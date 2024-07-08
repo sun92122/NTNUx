@@ -27,11 +27,26 @@ export default {
 
     // Column Definitions: Defines the columns to be displayed.
     const colDefs = ref([
-      { field: "dept_chiabbr" },
-      { field: "chn_name" },
-      { field: "time_inf" },
-      { field: "credit" },
-      { field: "serial_no" },
+      {
+        field: "serial_no",
+        headerName: "開課序號",
+        checkboxSelection: true,
+        width: 100,
+      },
+      {
+        field: "chn_name",
+        headerName: "課程名稱",
+        cellRenderer: (params) => (params.value = params.value),
+        cellStyle: { whiteSpace: "pre", wrapText: true, autoHeight: true },
+      },
+      { field: "dept_chiabbr", headerName: "開課單位", width: 120 },
+      { field: "time_inf", headerName: "時間地點" },
+      {
+        field: "credit",
+        headerName: "學分",
+        valueFormatter: (params) => Math.floor(params.value),
+        width: 80,
+      },
     ]);
 
     onMounted(async () => {
