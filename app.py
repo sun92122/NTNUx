@@ -45,47 +45,6 @@ for i in range(1, len(driver.find_elements(By.XPATH, '//*[@id="boundlist-1059-li
     # click the search button
     driver.find_element(By.ID, "button-1012-btnInnerEl").click()
 
-    # wait for the page to load
-    # time.sleep(5)
-    # while True:
-    #     try:
-    #         if len(driver.find_element(By.ID, "gridview-1032-body").find_elements(By.TAG_NAME, "tr")) > 0:
-    #             break
-    #     except:
-    #         pass
-
-    # last_height = driver.execute_script("return document.body.scrollHeight")
-    # while True:
-    #     # 向下滚动
-    #     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    #     # 等待页面加载
-    #     driver.implicitly_wait(1)
-    #     # 计算新的滚动高度并与最后的滚动高度进行比较
-    #     new_height = driver.execute_script("return document.body.scrollHeight")
-    #     if new_height == last_height:
-    #         break
-    #     last_height = new_height
-
-    # count = 0
-    # title = [cell.text for cell in driver.find_element(
-    #     By.ID, "headercontainer-1014-targetEl").find_elements(By.TAG_NAME, "span")]
-    # try:
-    #     table = driver.find_element(By.ID, "gridview-1032-body").find_elements(By.TAG_NAME, "tr")
-    #     for row in table:
-    #         try:
-    #             data.append({title[t]: cell.find_element(
-    #                 By.TAG_NAME, "div").text for t, cell in enumerate(row.find_elements(By.TAG_NAME, "td"))})
-    #             count += 1
-    #         except:
-    #             pass
-    # except:
-    #     pass
-
-    # try:
-    #     print(f"{department_text}: {count} / {len(table)}")
-    # except:
-    #     print(f"{department_text}: Error")
-
     details.click()
     
     time.sleep(0.5)
