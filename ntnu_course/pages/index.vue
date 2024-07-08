@@ -1,12 +1,26 @@
 <template>
   <AgGridVue
-    :rowData="rowData"
-    :columnDefs="colDefs"
-    style="height: 500px"
+    style="width: 100%; height: 500px"
     class="ag-theme-quartz"
     :localeText="AG_GRID_LOCALE_TW"
+    :columnDefs="colDefs"
+    :rowData="rowData"
+    :pagination="false"
+    :rowSelection="'multiple'"
+    :rowMultiSelectWithClick="true"
+    @selection-changed="onSelectionChanged"
   >
   </AgGridVue>
+
+  <div>
+    <h2>Selected Rows</h2>
+    <ul>
+      <li v-for="row in selectedRows" :key="row.serial_no">
+        {{ row.serial_no }} -
+        <text v-html="row.chn_name.replace('</br>', ' ')"></text>
+      </li>
+    </ul>
+  </div>
 </template>
 
 <script>
@@ -20,6 +34,11 @@ export default {
   name: "App",
   components: {
     AgGridVue, // Add Vue Data Grid component
+  },
+  methods: {
+    onSelectionChanged(event) {
+      this.selectedRows = event.api.getSelectedRows();
+    },
   },
   setup() {
     // Row Data: The data to be displayed.
@@ -65,9 +84,12 @@ export default {
       return response.json();
     };
 
+    const selectedRows = ref([]);
+
     return {
       rowData,
       colDefs,
+      selectedRows,
       AG_GRID_LOCALE_TW,
     };
   },
