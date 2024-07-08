@@ -47,10 +47,10 @@ for i in range(1, len(driver.find_elements(By.XPATH, '//*[@id="boundlist-1059-li
 
     details.click()
     
-    time.sleep(0.5)
+    time.sleep(1)
 
 driver.switch_to.default_content()
 
-time.sleep(10)
+time.sleep(15)
 
 driver.quit()
