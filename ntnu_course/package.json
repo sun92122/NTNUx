@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@ag-grid-community/locale": "^32.0.0",
     "ag-grid-community": "^32.0.0",
     "ag-grid-vue3": "^32.0.0",
     "nuxt": "^3.12.3",
