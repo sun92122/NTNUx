@@ -4,6 +4,7 @@
     :columnDefs="colDefs"
     style="height: 500px"
     class="ag-theme-quartz"
+    :localeText="AG_GRID_LOCALE_TW"
   >
   </AgGridVue>
 </template>
@@ -13,6 +14,7 @@ import { ref } from "vue";
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
 import { AgGridVue } from "ag-grid-vue3"; // Vue Data Grid Component
+import { AG_GRID_LOCALE_TW } from "@ag-grid-community/locale";
 
 export default {
   name: "App",
@@ -51,6 +53,7 @@ export default {
     return {
       rowData,
       colDefs,
+      AG_GRID_LOCALE_TW,
     };
   },
 };
