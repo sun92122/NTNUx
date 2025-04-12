@@ -9,13 +9,12 @@ with open("response_content.json", "w", encoding="utf-8") as f:
 
 
 def response(flow: http.HTTPFlow) -> None:
-    # 检查请求URL是否为目标URL
+    # check if the request URL is the target URL
     if flow.request.pretty_url.startswith(
-        "https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CofopdlCtrl?_dc="):
-        # 获取响应内容
+            "https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CofopdlCtrl?_dc="):
+        # get response content
         response_content = flow.response.get_text()
 
-        # 保存响应内容到文件
         # read json, append new data, write back to file
         try:
             with open("response_content.json", "r+", encoding="utf-8") as f:
@@ -30,5 +29,4 @@ def response(flow: http.HTTPFlow) -> None:
                 data.append(json.loads(response_content))
                 f.write(json.dumps(data, ensure_ascii=False, indent=4))
 
-        # 打印保存成功信息
         print("Response content saved to response_content.txt")
