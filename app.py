@@ -6,11 +6,11 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 
-# 配置ChromeDriver
+# setting up ChromeDriver
 chrome_options = Options()
 chrome_options.add_argument("--proxy-server=http://127.0.0.1:8080")
 
-# 打开浏览器
+# open the browser
 driver = webdriver.Chrome(options=chrome_options)
 
 driver.get("https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/index.jsp")
@@ -46,7 +46,7 @@ for i in range(1, len(driver.find_elements(By.XPATH, '//*[@id="boundlist-1059-li
     driver.find_element(By.ID, "button-1012-btnInnerEl").click()
 
     details.click()
-    
+
     time.sleep(1)
 
 driver.switch_to.default_content()
