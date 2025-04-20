@@ -55,23 +55,13 @@ export default {
       this.selectedRows = event.api.getSelectedRows();
     },
     onSemesterChange(event) {
-      this.rowData = []; // 清空資料
-      this.selectedRows = []; // 清空選取的資料
-
-      // 重新載入資料
-      this.fetchData(0).then((semester_info) => {
-        const maxPageNum = semester_info.total;
-        for (let i = 1; i <= maxPageNum; i++) {
-          this.fetchData(i).then((data) => {
-            this.rowData = this.rowData.concat(data);
-          });
-        }
-      });
+      this.reloadCurrentSemester(); // 重新載入當前學期資料
     },
   },
   setup() {
     const semesters = ref([]);
     const currentSemester = ref();
+    const downloadDone = ref(false);
 
     // Row Data: The data to be displayed.
     const rowData = ref([]);
@@ -106,16 +96,7 @@ export default {
       semesters.value = await semesterResp.json();
       currentSemester.value = semesters.value[0]; // 預設當前學期為第一個學期
 
-      rowData.value = [];
-
-      // get max page number
-      const semester_info = await fetchData(0);
-      const maxPageNum = semester_info.total;
-
-      for (let i = 1; i <= maxPageNum; i++) {
-        const data = await fetchData(i);
-        rowData.value = rowData.value.concat(data);
-      }
+      reloadCurrentSemester(); // 載入當前學期資料
     });
 
     const fetchData = async (i) => {
@@ -123,8 +104,31 @@ export default {
       const response = await fetch(
         "data/" + currentSemester.value + "_" + i + ".min.json"
       );
-      // const response = await fetch("https://www.ag-grid.com/example-assets/space-mission-data.json");
       return response.json();
+    };
+
+    const reloadCurrentSemester = async () => {
+      rowData.value = []; // 清空資料
+      selectedRows.value = []; // 清空選取的資料
+
+      // 重新載入資料
+      const semester_info = await fetchData(0);
+      const maxPageNum = semester_info.total;
+
+      const fetchPromises = [];
+      for (let i = 1; i <= maxPageNum; i++) {
+        fetchPromises.push(fetchData(i));
+      }
+
+      // 並行下載所有分頁資料
+      const pages = await Promise.all(fetchPromises);
+
+      // 合併結果
+      downloadDone.value = false;
+      for (const page of pages) {
+        rowData.value = rowData.value.concat(page);
+      }
+      downloadDone.value = true;
     };
 
     const selectedRows = ref([]);
@@ -137,6 +141,7 @@ export default {
       semesters,
       currentSemester,
       fetchData,
+      reloadCurrentSemester,
     };
   },
 };
