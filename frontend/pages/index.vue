@@ -16,8 +16,7 @@
     :columnDefs="colDefs"
     :rowData="rowData"
     :pagination="false"
-    :rowSelection="'multiple'"
-    :rowMultiSelectWithClick="true"
+    :rowSelection="rowSelection"
     @selection-changed="onSelectionChanged"
   >
   </AgGridVue>
@@ -71,7 +70,6 @@ export default {
       {
         field: "serial_no",
         headerName: "開課序號",
-        checkboxSelection: true,
         width: 100,
       },
       {
@@ -90,6 +88,13 @@ export default {
         width: 80,
       },
     ]);
+
+    const rowSelection = {
+      mode: "multiRow",
+      checkboxes: true,
+      headerCheckbox: false,
+      enableSelectionWithoutKeys: true,
+    };
 
     onMounted(async () => {
       const semesterResp = await fetch("data/semesters.json");
@@ -138,6 +143,7 @@ export default {
       colDefs,
       selectedRows,
       AG_GRID_LOCALE_TW,
+      rowSelection,
       semesters,
       currentSemester,
       fetchData,
