@@ -1,10 +1,10 @@
 <template>
   <!-- 選擇當前學期 -->
   <div style="margin-bottom: 10px">
-    <label for="semester">選擇學期: </label>
-    <select id="semester" v-model="currentSemester" @change="onSemesterChange">
-      <option v-for="semester in semesters" :key="semester" :value="semester">
-        {{ semester }}
+    <label for="term">選擇學期: </label>
+    <select id="term" v-model="currentTerm" @change="onTermChange">
+      <option v-for="term in terms" :key="term" :value="term">
+        {{ term }}
       </option>
     </select>
   </div>
@@ -53,17 +53,21 @@ export default {
     onSelectionChanged(event) {
       this.selectedRows = event.api.getSelectedRows();
     },
-    onSemesterChange(event) {
-      this.reloadCurrentSemester(); // 重新載入當前學期資料
+    onTermChange(event) {
+      this.reloadCurrentTerm(); // 重新載入當前學期資料
     },
   },
   setup() {
-    const semesters = ref([]);
-    const currentSemester = ref();
+    const terms = ref([]);
+    const currentTerm = ref();
+
     const downloadDone = ref(false);
 
     // Row Data: The data to be displayed.
+    const rowDatas = ref({});
     const rowData = ref([]);
+
+    const selectedRows = ref([]); // 用於存儲選中的行數據
 
     // Column Definitions: Defines the columns to be displayed.
     const colDefs = ref([
@@ -87,6 +91,13 @@ export default {
         valueFormatter: (params) => Math.floor(params.value),
         width: 80,
       },
+      {
+        headerName: "URL",
+        valueGetter: urlValueGetter,
+        cellRenderer: (params) => {
+          return `<a href="${params.value}" target="_blank">連結</a>`;
+        },
+      },
     ]);
 
     const rowSelection = {
@@ -97,28 +108,34 @@ export default {
     };
 
     onMounted(async () => {
-      const semesterResp = await fetch("data/semesters.json");
-      semesters.value = await semesterResp.json();
-      currentSemester.value = semesters.value[0]; // 預設當前學期為第一個學期
+      const termResp = await fetch("data/terms.json");
+      terms.value = await termResp.json();
+      currentTerm.value = terms.value[0]; // 預設當前學期為第一個學期
 
-      reloadCurrentSemester(); // 載入當前學期資料
+      reloadCurrentTerm(); // 載入當前學期資料
     });
 
     const fetchData = async (i) => {
       // Fetch data from the server
       const response = await fetch(
-        "data/" + currentSemester.value + "_" + i + ".min.json"
+        "data/" + currentTerm.value + "_" + i + ".min.json"
       );
       return response.json();
     };
 
-    const reloadCurrentSemester = async () => {
+    const reloadCurrentTerm = async () => {
+      // check if the current term data in rowDatas
+      if (rowDatas.value[currentTerm.value]) {
+        rowData.value = rowDatas.value[currentTerm.value]; // 直接使用已載入的資料
+        return;
+      }
+
       rowData.value = []; // 清空資料
       selectedRows.value = []; // 清空選取的資料
 
       // 重新載入資料
-      const semester_info = await fetchData(0);
-      const maxPageNum = semester_info.total;
+      const term_info = await fetchData(0);
+      const maxPageNum = term_info.total;
 
       const fetchPromises = [];
       for (let i = 1; i <= maxPageNum; i++) {
@@ -134,9 +151,32 @@ export default {
         rowData.value = rowData.value.concat(page);
       }
       downloadDone.value = true;
+
+      rowDatas.value[currentTerm.value] = rowData.value; // 儲存當前學期資料
     };
 
-    const selectedRows = ref([]);
+    function urlValueGetter(params) {
+      const data = params.data;
+      return (
+        "https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/SyllabusCtrl?" +
+        "year=" +
+        data.acadm_year +
+        "&term=" +
+        data.acadm_term +
+        "&courseCode=" +
+        data.course_code +
+        "&courseGroup=" +
+        data.course_group +
+        "&deptCode=" +
+        data.dept_code +
+        "&formS=" +
+        data.form_s +
+        "&classes1=" +
+        data.classes +
+        "&deptGroup=" +
+        data.dept_group_name
+      );
+    }
 
     return {
       rowData,
@@ -144,10 +184,10 @@ export default {
       selectedRows,
       AG_GRID_LOCALE_TW,
       rowSelection,
-      semesters,
-      currentSemester,
+      terms,
+      currentTerm,
       fetchData,
-      reloadCurrentSemester,
+      reloadCurrentTerm,
     };
   },
 };
