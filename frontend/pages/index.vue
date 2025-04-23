@@ -9,6 +9,10 @@
     </select>
   </div>
 
+  <span class="button-group">
+    <button @click="locationGongguan()">上課地點：公館</button>
+  </span>
+
   <AgGridVue
     style="width: 100%; height: 500px"
     class="ag-theme-quartz"
@@ -19,6 +23,7 @@
     :pagination="false"
     :rowSelection="rowSelection"
     @selection-changed="onSelectionChanged"
+    @grid-ready="onGridReady"
   >
   </AgGridVue>
 
@@ -88,21 +93,37 @@ export default {
         field: "serial_no",
         headerName: "開課序號",
         width: 100,
+        filter: "agTextColumnFilter",
       },
       {
         field: "chn_name",
         headerName: "課程名稱",
         cellRenderer: (params) => (params.value = params.value),
         cellStyle: { whiteSpace: "pre", wrapText: true, autoHeight: true },
+        filter: "agTextColumnFilter",
       },
-      { field: "dept_chiabbr", headerName: "開課單位", width: 120 },
-      { field: "time_inf", headerName: "時間地點" },
-      { field: "time", headerName: "時間" },
+      {
+        field: "dept_chiabbr",
+        headerName: "開課單位",
+        width: 120,
+        filter: "agTextColumnFilter",
+      },
+      {
+        field: "time_inf",
+        headerName: "時間地點",
+        filter: "agTextColumnFilter",
+      },
+      {
+        field: "time",
+        headerName: "時間",
+        filter: "agTextColumnFilter",
+      },
       {
         field: "credit",
         headerName: "學分",
         valueFormatter: (params) => Math.floor(params.value),
-        width: 80,
+        width: 50,
+        filter: "agNumberColumnFilter",
       },
       {
         headerName: "URL",
@@ -110,6 +131,7 @@ export default {
         cellRenderer: (params) => {
           return `<a href="${params.value}" target="_blank">連結</a>`;
         },
+        filter: false,
       },
     ]);
 
@@ -204,6 +226,20 @@ export default {
       );
     }
 
+    function locationGongguan(params) {
+      console.log("locationGongguan", gridApi.value);
+      if (gridApi.value) {
+        gridApi.value
+          .setColumnFilterModel("time_inf", {
+            type: "contains",
+            filter: "公館",
+          })
+          .then(() => {
+            gridApi.value.onFilterChanged();
+          });
+      }
+    }
+
     return {
       rowData,
       colDefs,
@@ -222,3 +258,10 @@ export default {
   },
 };
 </script>
+
+<style scoped lang="scss">
+.button-group {
+  padding-bottom: 4px;
+  display: block;
+}
+</style>
