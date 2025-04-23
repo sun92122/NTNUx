@@ -14,6 +14,7 @@
     class="ag-theme-quartz"
     :localeText="AG_GRID_LOCALE_TW"
     :columnDefs="colDefs"
+    :defaultColDef="defaultColDef"
     :rowData="rowData"
     :pagination="false"
     :rowSelection="rowSelection"
@@ -35,6 +36,14 @@
       </li>
     </ul>
   </div>
+
+  <button @click="showSchedule = true">打開課表</button>
+
+  <FloatingSchedule
+    :show="showSchedule"
+    :selectedRows="selectedRows"
+    @close="showSchedule = false"
+  />
 </template>
 
 <script>
@@ -43,6 +52,7 @@ import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the 
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
 import { AgGridVue } from "ag-grid-vue3"; // Vue Data Grid Component
 import { AG_GRID_LOCALE_TW } from "@ag-grid-community/locale";
+import { FloatingSchedule } from "#components";
 
 export default {
   name: "App",
@@ -58,10 +68,13 @@ export default {
     },
   },
   setup() {
+    const gridApi = shallowRef(null);
+
     const terms = ref([]);
     const currentTerm = ref();
 
     const downloadDone = ref(false);
+    const showSchedule = ref(false); // 控制課表顯示的變數
 
     // Row Data: The data to be displayed.
     const rowDatas = ref({});
@@ -100,6 +113,15 @@ export default {
       },
     ]);
 
+    const defaultColDef = ref({
+      sortable: true,
+      filter: true,
+      floatingFilter: true,
+      resizable: true,
+      flex: 1,
+      minWidth: 50,
+    });
+
     const rowSelection = {
       mode: "multiRow",
       checkboxes: true,
@@ -114,6 +136,10 @@ export default {
 
       reloadCurrentTerm(); // 載入當前學期資料
     });
+
+    const onGridReady = (params) => {
+      gridApi.value = params.api;
+    };
 
     const fetchData = async (i) => {
       // Fetch data from the server
@@ -181,6 +207,7 @@ export default {
     return {
       rowData,
       colDefs,
+      defaultColDef,
       selectedRows,
       AG_GRID_LOCALE_TW,
       rowSelection,
@@ -188,6 +215,9 @@ export default {
       currentTerm,
       fetchData,
       reloadCurrentTerm,
+      onGridReady,
+      locationGongguan,
+      showSchedule,
     };
   },
 };
