@@ -40,6 +40,7 @@
         top: colorPickerTarget.y + 'px',
         left: colorPickerTarget.x + 'px',
       }"
+      @click.stop
     >
       <input
         type="color"
