@@ -15,7 +15,7 @@
 
   <AgGridVue
     style="width: 100%; height: 500px"
-    class="ag-theme-quartz"
+    :class="`ag-theme-${darkMode ? 'quartz-dark' : 'quartz'}`"
     :localeText="AG_GRID_LOCALE_TW"
     :columnDefs="colDefs"
     :defaultColDef="defaultColDef"
@@ -73,12 +73,13 @@ export default {
     },
   },
   setup() {
+    const darkMode = useState("darkMode");
+
     const gridApi = shallowRef(null);
 
     const terms = ref([]);
     const currentTerm = ref();
 
-    const downloadDone = ref(false);
     const showSchedule = ref(false); // 控制課表顯示的變數
 
     // Row Data: The data to be displayed.
@@ -194,11 +195,9 @@ export default {
       const pages = await Promise.all(fetchPromises);
 
       // 合併結果
-      downloadDone.value = false;
       for (const page of pages) {
         rowData.value = rowData.value.concat(page);
       }
-      downloadDone.value = true;
 
       rowDatas.value[currentTerm.value] = rowData.value; // 儲存當前學期資料
     };
@@ -254,6 +253,7 @@ export default {
       onGridReady,
       locationGongguan,
       showSchedule,
+      darkMode,
     };
   },
 };
