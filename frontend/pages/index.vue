@@ -51,7 +51,7 @@
   />
 </template>
 
-<script>
+<script setup>
 import { ref } from "vue";
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
@@ -59,204 +59,180 @@ import { AgGridVue } from "ag-grid-vue3"; // Vue Data Grid Component
 import { AG_GRID_LOCALE_TW } from "@ag-grid-community/locale";
 import { FloatingSchedule } from "#components";
 
-export default {
-  name: "App",
-  components: {
-    AgGridVue, // Add Vue Data Grid component
+onMounted(async () => {
+  const termResp = await fetch("data/terms.json");
+  terms.value = await termResp.json();
+  currentTerm.value = terms.value[0]; // 預設當前學期為第一個學期
+
+  reloadCurrentTerm(); // 載入當前學期資料
+});
+
+const darkMode = useState("darkMode");
+
+const gridApi = shallowRef(null);
+
+const terms = ref([]);
+const currentTerm = ref();
+
+const showSchedule = ref(false); // 控制課表顯示的變數
+
+// Row Data: The data to be displayed.
+const rowDatas = ref({});
+const rowData = ref([]);
+
+const selectedRows = ref([]); // 用於存儲選中的行數據
+
+// Column Definitions: Defines the columns to be displayed.
+const colDefs = ref([
+  {
+    field: "serial_no",
+    headerName: "開課序號",
+    width: 100,
+    filter: "agTextColumnFilter",
   },
-  methods: {
-    onSelectionChanged(event) {
-      this.selectedRows = event.api.getSelectedRows();
+  {
+    field: "chn_name",
+    headerName: "課程名稱",
+    cellRenderer: (params) => (params.value = params.value),
+    cellStyle: { whiteSpace: "pre", wrapText: true, autoHeight: true },
+    filter: "agTextColumnFilter",
+  },
+  {
+    field: "dept_chiabbr",
+    headerName: "開課單位",
+    width: 120,
+    filter: "agTextColumnFilter",
+  },
+  {
+    field: "time_inf",
+    headerName: "時間地點",
+    filter: "agTextColumnFilter",
+  },
+  {
+    field: "time",
+    headerName: "時間",
+    filter: "agTextColumnFilter",
+  },
+  {
+    field: "credit",
+    headerName: "學分",
+    valueFormatter: (params) => Math.floor(params.value),
+    width: 50,
+    filter: "agNumberColumnFilter",
+  },
+  {
+    headerName: "URL",
+    valueGetter: urlValueGetter,
+    cellRenderer: (params) => {
+      return `<a href="${params.value}" target="_blank">連結</a>`;
     },
-    onTermChange(event) {
-      this.reloadCurrentTerm(); // 重新載入當前學期資料
-    },
+    filter: false,
   },
-  setup() {
-    const darkMode = useState("darkMode");
+]);
 
-    const gridApi = shallowRef(null);
+const defaultColDef = ref({
+  sortable: true,
+  filter: true,
+  floatingFilter: true,
+  resizable: true,
+  flex: 1,
+  minWidth: 50,
+});
 
-    const terms = ref([]);
-    const currentTerm = ref();
-
-    const showSchedule = ref(false); // 控制課表顯示的變數
-
-    // Row Data: The data to be displayed.
-    const rowDatas = ref({});
-    const rowData = ref([]);
-
-    const selectedRows = ref([]); // 用於存儲選中的行數據
-
-    // Column Definitions: Defines the columns to be displayed.
-    const colDefs = ref([
-      {
-        field: "serial_no",
-        headerName: "開課序號",
-        width: 100,
-        filter: "agTextColumnFilter",
-      },
-      {
-        field: "chn_name",
-        headerName: "課程名稱",
-        cellRenderer: (params) => (params.value = params.value),
-        cellStyle: { whiteSpace: "pre", wrapText: true, autoHeight: true },
-        filter: "agTextColumnFilter",
-      },
-      {
-        field: "dept_chiabbr",
-        headerName: "開課單位",
-        width: 120,
-        filter: "agTextColumnFilter",
-      },
-      {
-        field: "time_inf",
-        headerName: "時間地點",
-        filter: "agTextColumnFilter",
-      },
-      {
-        field: "time",
-        headerName: "時間",
-        filter: "agTextColumnFilter",
-      },
-      {
-        field: "credit",
-        headerName: "學分",
-        valueFormatter: (params) => Math.floor(params.value),
-        width: 50,
-        filter: "agNumberColumnFilter",
-      },
-      {
-        headerName: "URL",
-        valueGetter: urlValueGetter,
-        cellRenderer: (params) => {
-          return `<a href="${params.value}" target="_blank">連結</a>`;
-        },
-        filter: false,
-      },
-    ]);
-
-    const defaultColDef = ref({
-      sortable: true,
-      filter: true,
-      floatingFilter: true,
-      resizable: true,
-      flex: 1,
-      minWidth: 50,
-    });
-
-    const rowSelection = {
-      mode: "multiRow",
-      checkboxes: true,
-      headerCheckbox: false,
-      enableSelectionWithoutKeys: true,
-    };
-
-    onMounted(async () => {
-      const termResp = await fetch("data/terms.json");
-      terms.value = await termResp.json();
-      currentTerm.value = terms.value[0]; // 預設當前學期為第一個學期
-
-      reloadCurrentTerm(); // 載入當前學期資料
-    });
-
-    const onGridReady = (params) => {
-      gridApi.value = params.api;
-    };
-
-    const fetchData = async (i) => {
-      // Fetch data from the server
-      const response = await fetch(
-        "data/" + currentTerm.value + "_" + i + ".min.json"
-      );
-      return response.json();
-    };
-
-    const reloadCurrentTerm = async () => {
-      // check if the current term data in rowDatas
-      if (rowDatas.value[currentTerm.value]) {
-        rowData.value = rowDatas.value[currentTerm.value]; // 直接使用已載入的資料
-        return;
-      }
-
-      rowData.value = []; // 清空資料
-      selectedRows.value = []; // 清空選取的資料
-
-      // 重新載入資料
-      const term_info = await fetchData(0);
-      const maxPageNum = term_info.total;
-
-      const fetchPromises = [];
-      for (let i = 1; i <= maxPageNum; i++) {
-        fetchPromises.push(fetchData(i));
-      }
-
-      // 並行下載所有分頁資料
-      const pages = await Promise.all(fetchPromises);
-
-      // 合併結果
-      for (const page of pages) {
-        rowData.value = rowData.value.concat(page);
-      }
-
-      rowDatas.value[currentTerm.value] = rowData.value; // 儲存當前學期資料
-    };
-
-    function urlValueGetter(params) {
-      const data = params.data;
-      return (
-        "https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/SyllabusCtrl?" +
-        "year=" +
-        data.acadm_year +
-        "&term=" +
-        data.acadm_term +
-        "&courseCode=" +
-        data.course_code +
-        "&courseGroup=" +
-        data.course_group +
-        "&deptCode=" +
-        data.dept_code +
-        "&formS=" +
-        data.form_s +
-        "&classes1=" +
-        data.classes +
-        "&deptGroup=" +
-        data.dept_group_name
-      );
-    }
-
-    function locationGongguan(params) {
-      console.log("locationGongguan", gridApi.value);
-      if (gridApi.value) {
-        gridApi.value
-          .setColumnFilterModel("time_inf", {
-            type: "contains",
-            filter: "公館",
-          })
-          .then(() => {
-            gridApi.value.onFilterChanged();
-          });
-      }
-    }
-
-    return {
-      rowData,
-      colDefs,
-      defaultColDef,
-      selectedRows,
-      AG_GRID_LOCALE_TW,
-      rowSelection,
-      terms,
-      currentTerm,
-      fetchData,
-      reloadCurrentTerm,
-      onGridReady,
-      locationGongguan,
-      showSchedule,
-      darkMode,
-    };
-  },
+const rowSelection = {
+  mode: "multiRow",
+  checkboxes: true,
+  headerCheckbox: false,
+  enableSelectionWithoutKeys: true,
 };
+
+const onGridReady = (params) => {
+  gridApi.value = params.api;
+};
+
+const fetchData = async (i) => {
+  // Fetch data from the server
+  const response = await fetch(
+    "data/" + currentTerm.value + "_" + i + ".min.json"
+  );
+  return response.json();
+};
+
+const reloadCurrentTerm = async () => {
+  // check if the current term data in rowDatas
+  if (rowDatas.value[currentTerm.value]) {
+    rowData.value = rowDatas.value[currentTerm.value]; // 直接使用已載入的資料
+    return;
+  }
+
+  rowData.value = []; // 清空資料
+  selectedRows.value = []; // 清空選取的資料
+
+  // 重新載入資料
+  const term_info = await fetchData(0);
+  const maxPageNum = term_info.total;
+
+  const fetchPromises = [];
+  for (let i = 1; i <= maxPageNum; i++) {
+    fetchPromises.push(fetchData(i));
+  }
+
+  // 並行下載所有分頁資料
+  const pages = await Promise.all(fetchPromises);
+
+  // 合併結果
+  for (const page of pages) {
+    rowData.value = rowData.value.concat(page);
+  }
+
+  rowDatas.value[currentTerm.value] = rowData.value; // 儲存當前學期資料
+};
+
+function urlValueGetter(params) {
+  const data = params.data;
+  return (
+    "https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/SyllabusCtrl?" +
+    "year=" +
+    data.acadm_year +
+    "&term=" +
+    data.acadm_term +
+    "&courseCode=" +
+    data.course_code +
+    "&courseGroup=" +
+    data.course_group +
+    "&deptCode=" +
+    data.dept_code +
+    "&formS=" +
+    data.form_s +
+    "&classes1=" +
+    data.classes +
+    "&deptGroup=" +
+    data.dept_group_name
+  );
+}
+
+function locationGongguan(params) {
+  if (gridApi.value) {
+    gridApi.value
+      .setColumnFilterModel("time_inf", {
+        type: "contains",
+        filter: "公館",
+      })
+      .then(() => {
+        gridApi.value.onFilterChanged();
+      });
+  }
+}
+
+function onSelectionChanged(event) {
+  if (gridApi.value) {
+    selectedRows.value = gridApi.value.getSelectedRows(); // 更新選中的行數據
+  }
+}
+
+function onTermChange(event) {
+  reloadCurrentTerm(); // 重新載入當前學期資料
+}
 </script>
 
 <style scoped lang="scss">
