@@ -1,78 +1,50 @@
 <template>
-  <div v-if="show" class="overlay" @click="close">
-    <div class="schedule-box" @click.stop>
-      <div class="header">
-        <span>課表</span>
-        <button @click="close">✕ 關閉</button>
+  <div class="schedule-box">
+    <div class="timetable">
+      <div class="row header-row">
+        <div class="cell time-cell"></div>
+        <div v-for="day in days" :key="day" class="cell">{{ day }}</div>
       </div>
-      <div class="timetable">
-        <div class="row header-row">
-          <div class="cell time-cell"></div>
-          <div v-for="day in days" :key="day" class="cell">{{ day }}</div>
+      <div v-for="slot in slots" :key="slot.label" class="row">
+        <div class="cell time-cell">
+          {{ slot.label }}<br /><small>{{ slot.time }}</small>
         </div>
-        <div v-for="slot in slots" :key="slot.label" class="row">
-          <div class="cell time-cell">
-            {{ slot.label }}<br /><small>{{ slot.time }}</small>
-          </div>
-          <div v-for="day in days" :key="day" class="cell">
-            <div
-              v-for="course in getCoursesAt(day, slot.label)"
-              :key="course.serial_no"
-              class="course-block"
-              :style="{ backgroundColor: getCourseColor(course.serial_no) }"
-            >
-              {{ course.chn_name }}
-              <button @click="openColorPicker(course.serial_no, $event)">
-                🎨
-              </button>
-              <br />
-              {{ course.teacher }}
-            </div>
+        <div v-for="day in days" :key="day" class="cell">
+          <div
+            v-for="course in CoursesByDay[day]?.[slot.label] || []"
+            :key="course.serial_no"
+            class="course-block"
+            :style="{ backgroundColor: getCourseColor(course.serial_no) }"
+          >
+            {{ course.chn_name.replace(/<\/?br>/g, " ") }}
+            <br />
+            {{ course.teacher }}
+            <br />
+            {{ course.loc }}
           </div>
         </div>
       </div>
-    </div>
-    <!-- 顏色選擇器浮動視窗 -->
-    <div
-      v-if="colorPickerTarget"
-      class="color-picker"
-      :style="{
-        top: colorPickerTarget.y + 'px',
-        left: colorPickerTarget.x + 'px',
-      }"
-      @click.stop
-    >
-      <input
-        type="color"
-        :value="getCourseColor(colorPickerTarget.serial_no)"
-        @input="
-          changeCourseColor(colorPickerTarget.serial_no, $event.target.value)
-        "
-        @change="colorPickerTarget = null"
-      />
-      <button @click="colorPickerTarget = null">關閉</button>
     </div>
   </div>
+  <SpeedDial
+    :model="settingItems"
+    direction="up"
+    :style="{ position: 'absolute', right: '-2.5rem', bottom: '1.5rem' }"
+    :buttonProps="{ severity: 'secondary', rounded: true }"
+    :tooltipOptions="{ position: 'left' }"
+  />
 </template>
 
 <script setup>
+import ColorPicker from "primevue/colorpicker";
+import SpeedDial from "primevue/speeddial";
+
 const props = defineProps({
   selectedRows: {
     type: Array,
     default: () => [],
   },
-  show: {
-    type: Boolean,
-    default: false,
-  },
 });
-
-const emit = defineEmits(["close"]);
-
-function close() {
-  colorPickerTarget.value = null; // 關閉顏色選擇器
-  emit("close");
-}
 
 const days = ["一", "二", "三", "四", "五"];
 const slots = [
@@ -93,10 +65,13 @@ const slots = [
   { label: "D", time: "21:25 ~ 22:15" },
 ];
 
-function parseTimeSlots(timeStr) {
+function parseTimeSlots(timeObj) {
   const result = [];
-  const segments = timeStr.split(",");
-  for (const seg of segments) {
+  if (typeof timeObj !== "object" || !timeObj) {
+    return result;
+  }
+
+  for (const seg of Object.keys(timeObj)) {
     const match = seg.match(
       /([一二三四五])\s*(\d+|A|B|C|D)(?:-(\d+|A|B|C|D))?/
     );
@@ -104,7 +79,7 @@ function parseTimeSlots(timeStr) {
       const [_, day, start, end] = match;
       const range = getRange(start, end || start);
       for (const period of range) {
-        result.push({ day, period });
+        result.push({ day, period, loc: timeObj[seg] });
       }
     }
   }
@@ -140,6 +115,28 @@ function getCoursesAt(day, period) {
     return slots.some((slot) => slot.day === day && slot.period === period);
   });
 }
+
+const CoursesByDay = ref({});
+// { 一: { 0: [course at 一 0], 1: [course at 一 1] }, ...}
+function groupCoursesByDay() {
+  CoursesByDay.value = {};
+  for (const course of props.selectedRows) {
+    const slots = parseTimeSlots(course.time_loc || "");
+    for (const slot of slots) {
+      if (!CoursesByDay.value[slot.day]) {
+        CoursesByDay.value[slot.day] = {};
+      }
+      if (!CoursesByDay.value[slot.day][slot.period]) {
+        CoursesByDay.value[slot.day][slot.period] = [];
+      }
+      CoursesByDay.value[slot.day][slot.period].push({
+        ...course,
+        loc: slot.loc,
+      });
+    }
+  }
+}
+groupCoursesByDay();
 
 const colorMap = ref({});
 function autoColor(serial_no) {
@@ -177,33 +174,29 @@ const colorPickerTarget = ref(null); // 當前正在選擇顏色的 serial_no
 
 function openColorPicker(serial_no, event) {
   const rect = event.target.getBoundingClientRect();
+  const screenWidth = window.innerWidth;
+
   colorPickerTarget.value = {
     serial_no,
-    x: rect.right + 10, // 調整偏移量
+    x: rect.right + (rect.right > screenWidth * 0.6 ? -160 : 10), // 調整偏移量
     y: rect.top,
   };
 }
+
+const settingItems = ref([
+  {
+    label: "顏色",
+    icon: "pi pi-palette",
+    command: (event) => {
+      // openColorPicker(event.serial_no, event);
+    },
+  },
+]);
 </script>
 
 <style scoped>
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-}
 .schedule-box {
-  position: absolute;
-  top: 10%;
-  left: 10%;
-  right: 10%;
   background: white;
-  padding: 16px;
-  border-radius: 8px;
-  max-height: 80%;
   overflow-y: auto;
 }
 .header {

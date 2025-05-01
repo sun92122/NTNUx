@@ -58,11 +58,7 @@
     }"
     :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
   >
-    <FloatingSchedule
-      :show="isShowSchedule"
-      :selectedRows="selectedRows"
-      @close="isShowSchedule = false"
-    />
+    <FloatingSchedule :selectedRows="selectedRows" />
   </Dialog>
 </template>
 
