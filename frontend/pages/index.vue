@@ -42,13 +42,28 @@
     </ul>
   </div>
 
-  <button @click="showSchedule = true">打開課表</button>
+  <Button @click="isShowSchedule = true">打開課表</Button>
 
-  <FloatingSchedule
-    :show="showSchedule"
-    :selectedRows="selectedRows"
-    @close="showSchedule = false"
-  />
+  <Dialog
+    v-model:visible="isShowSchedule"
+    maximizable
+    modal
+    header="Header"
+    :style="{
+      width: '50rem',
+      height: '80vh',
+    }"
+    :content-style="{
+      margin: '0 0 1rem',
+    }"
+    :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+  >
+    <FloatingSchedule
+      :show="isShowSchedule"
+      :selectedRows="selectedRows"
+      @close="isShowSchedule = false"
+    />
+  </Dialog>
 </template>
 
 <script setup>
@@ -58,6 +73,8 @@ import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied
 import { AgGridVue } from "ag-grid-vue3"; // Vue Data Grid Component
 import { AG_GRID_LOCALE_TW } from "@ag-grid-community/locale";
 import { FloatingSchedule } from "#components";
+import Dialog from "primevue/dialog";
+import Button from "primevue/button";
 
 onMounted(async () => {
   const termResp = await fetch("data/terms.json");
@@ -74,7 +91,7 @@ const gridApi = shallowRef(null);
 const terms = ref([]);
 const currentTerm = ref();
 
-const showSchedule = ref(false); // 控制課表顯示的變數
+const isShowSchedule = ref(false); // 控制課表顯示的變數
 
 // Row Data: The data to be displayed.
 const rowDatas = ref({});
@@ -93,7 +110,8 @@ const colDefs = ref([
   {
     field: "chn_name",
     headerName: "課程名稱",
-    cellRenderer: (params) => (params.value = params.value),
+    cellRenderer: (params) =>
+      (params.value = params.value.replace(/<\/br>/g, " ")),
     cellStyle: { whiteSpace: "pre", wrapText: true, autoHeight: true },
     filter: "agTextColumnFilter",
   },
