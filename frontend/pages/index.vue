@@ -18,10 +18,14 @@
     :class="`ag-theme-${darkMode ? 'quartz-dark' : 'quartz'}`"
     :localeText="AG_GRID_LOCALE_TW"
     :columnDefs="colDefs"
+    :rowHeight="64"
     :defaultColDef="defaultColDef"
     :rowData="rowData"
     :pagination="false"
     :rowSelection="rowSelection"
+    :grid-options="gridOptions"
+    :autoSizeStrategy="autoSizeStrategy"
+    :enableCellTextSelection="true"
     @selection-changed="onSelectionChanged"
     @grid-ready="onGridReady"
   >
@@ -159,6 +163,11 @@ const rowSelection = {
   headerCheckbox: false,
   enableSelectionWithoutKeys: true,
 };
+
+const autoSizeStrategy = ref({
+  type: "fitCellContents",
+  colIds: ["serial_no", "course_code", "dept_chiabbr", "credit"],
+});
 
 const onGridReady = (params) => {
   gridApi.value = params.api;
