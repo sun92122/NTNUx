@@ -1,6 +1,15 @@
 <template>
   <div id="app">
     <Menubar :model="items" :sticky="true">
+      <template>
+        <Select
+          v-model="currentTerm"
+          :options="terms"
+          @change="onTermChange"
+          class="me-2"
+          aria-label="Select Term"
+        ></Select>
+      </template>
       <template #end>
         <div class="menubar-end">
           <ToggleSwitch
@@ -35,6 +44,14 @@ import Menubar from "primevue/menubar";
 import Button from "primevue/button";
 import ToggleSwitch from "primevue/toggleswitch";
 
+const updateMenubar = useState("updateMenubar");
+onMounted(() => {
+  updateMenubar.value = updateMenubarItems;
+});
+
+const currentTerm = useState("currentTerm", () => null);
+const terms = useState("terms", () => []);
+const loadTermData = useState("loadTermData");
 const items = ref([
   {
     label: "首頁",
@@ -50,6 +67,18 @@ const items = ref([
     label: "關於",
     icon: "pi pi-fw pi-info-circle",
     route: "/about",
+  },
+  {
+    label: `學期：${currentTerm.value}`,
+    icon: "pi pi-fw pi-book",
+    items: terms.value.map((term) => ({
+      label: term,
+      command: () => {
+        currentTerm.value = term;
+        loadTermData.value();
+        items.value[3].label = `學期：${term}`; // 更新學期顯示
+      },
+    })),
   },
 ]);
 
@@ -83,6 +112,14 @@ const toggleSwitchDt = ref({
     },
   },
 });
+
+function updateMenubarItems() {
+  if (!currentTerm.value) {
+    items.value[3].label = "選擇學期"; // 更新學期顯示
+    return;
+  }
+  items.value[3].label = `學期: ${currentTerm.value}`; // 更新學期顯示
+}
 </script>
 
 <style scoped lang="scss">

@@ -1,14 +1,4 @@
 <template>
-  <!-- 選擇當前學期 -->
-  <div style="margin-bottom: 10px">
-    <label for="term">選擇學期: </label>
-    <select id="term" v-model="currentTerm" @change="onTermChange">
-      <option v-for="term in terms" :key="term" :value="term">
-        {{ term }}
-      </option>
-    </select>
-  </div>
-
   <span class="button-group">
     <button @click="locationGongguan()">上課地點：公館</button>
   </span>
@@ -76,20 +66,23 @@ import { FloatingSchedule } from "#components";
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
 
+const terms = useState("terms", () => []); // 存儲學期資料
+const currentTerm = useState("currentTerm", () => null); // 當前學期
+const loadTermData = useState("loadTermData");
+const updateMenubar = useState("updateMenubar"); // 更新選單欄的狀態
+
 onMounted(async () => {
   const termResp = await fetch("data/terms.json");
   terms.value = await termResp.json();
   currentTerm.value = terms.value[0]; // 預設當前學期為第一個學期
+  loadTermData.value = reloadCurrentTerm; // 將載入學期資料的函數存儲到狀態中
 
-  reloadCurrentTerm(); // 載入當前學期資料
+  loadTermData.value(); // 載入學期資料
 });
 
 const darkMode = useState("darkMode");
 
 const gridApi = shallowRef(null);
-
-const terms = ref([]);
-const currentTerm = ref();
 
 const isShowSchedule = ref(false); // 控制課表顯示的變數
 
@@ -265,6 +258,8 @@ const reloadCurrentTerm = async () => {
   }
 
   rowDatas.value[currentTerm.value] = rowData.value; // 儲存當前學期資料
+
+  updateMenubar.value(); // 更新選單欄的狀態
 };
 
 function urlValueGetter(params) {
@@ -304,10 +299,6 @@ function onSelectionChanged(event) {
   if (gridApi.value) {
     selectedRows.value = gridApi.value.getSelectedRows(); // 更新選中的行數據
   }
-}
-
-function onTermChange(event) {
-  reloadCurrentTerm(); // 重新載入當前學期資料
 }
 
 const gridOptions = ref({
