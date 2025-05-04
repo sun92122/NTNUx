@@ -110,5 +110,11 @@ export default defineNuxtConfig({
 
   ssr: false,
 
+  runtimeConfig: {
+    public: {
+      isCloudflare: process.env.NUXT_RUNTIME_ENV === "cloudflare",
+    },
+  },
+
   compatibilityDate: "2024-07-05",
 });

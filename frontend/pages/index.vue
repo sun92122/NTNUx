@@ -66,6 +66,9 @@ import { FloatingSchedule } from "#components";
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
 
+const config = useRuntimeConfig();
+const isCloudflare = config.public.isCloudflare; // 判斷是否為 Cloudflare 環境
+
 const terms = useState("terms", () => []); // 存儲學期資料
 const currentTerm = useState("currentTerm", () => null); // 當前學期
 const loadTermData = useState("loadTermData");
@@ -230,6 +233,12 @@ const fetchData = async (i) => {
   return response.json();
 };
 
+const fetchDataCloudflare = async () => {
+  // Fetch data from the server
+  const response = await fetch("data/" + currentTerm.value + ".min.json");
+  return response.json();
+};
+
 const reloadCurrentTerm = async () => {
   // check if the current term data in rowDatas
   if (rowDatas.value[currentTerm.value]) {
@@ -241,20 +250,24 @@ const reloadCurrentTerm = async () => {
   selectedRows.value = []; // 清空選取的資料
 
   // 重新載入資料
-  const term_info = await fetchData(0);
-  const maxPageNum = term_info.total;
+  if (isCloudflare) {
+    rowData.value = await fetchDataCloudflare(); // 直接載入當前學期資料
+  } else {
+    const term_info = await fetchData(0);
+    const maxPageNum = term_info.total;
 
-  const fetchPromises = [];
-  for (let i = 1; i <= maxPageNum; i++) {
-    fetchPromises.push(fetchData(i));
-  }
+    const fetchPromises = [];
+    for (let i = 1; i <= maxPageNum; i++) {
+      fetchPromises.push(fetchData(i));
+    }
 
-  // 並行下載所有分頁資料
-  const pages = await Promise.all(fetchPromises);
+    // 並行下載所有分頁資料
+    const pages = await Promise.all(fetchPromises);
 
-  // 合併結果
-  for (const page of pages) {
-    rowData.value = rowData.value.concat(page);
+    // 合併結果
+    for (const page of pages) {
+      rowData.value = rowData.value.concat(page);
+    }
   }
 
   rowDatas.value[currentTerm.value] = rowData.value; // 儲存當前學期資料
