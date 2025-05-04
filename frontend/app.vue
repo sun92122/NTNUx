@@ -69,16 +69,9 @@ const items = ref([
     route: "/about",
   },
   {
-    label: `學期：${currentTerm.value}`,
+    label: "選擇學期",
     icon: "pi pi-fw pi-book",
-    items: terms.value.map((term) => ({
-      label: term,
-      command: () => {
-        currentTerm.value = term;
-        loadTermData.value();
-        items.value[3].label = `學期：${term}`; // 更新學期顯示
-      },
-    })),
+    items: [],
   },
 ]);
 
@@ -114,11 +107,21 @@ const toggleSwitchDt = ref({
 });
 
 function updateMenubarItems() {
+  // 更新學期選單
+  items.value[3].items = terms.value.map((term) => ({
+    label: term,
+    command: () => {
+      currentTerm.value = term;
+      loadTermData.value();
+      items.value[3].label = `學期：${term}`; // 更新學期顯示
+    },
+  }));
+  // 更新學期顯示
   if (!currentTerm.value) {
-    items.value[3].label = "選擇學期"; // 更新學期顯示
+    items.value[3].label = "選擇學期";
     return;
   }
-  items.value[3].label = `學期: ${currentTerm.value}`; // 更新學期顯示
+  items.value[3].label = `學期：${currentTerm.value}`;
 }
 </script>
 
