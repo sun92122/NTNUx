@@ -103,40 +103,67 @@ const selectedRows = ref([]); // 用於存儲選中的行數據
 const colDefs = ref([
   {
     field: "serial_no",
-    headerName: "開課序號",
-    width: 100,
+    headerName: "開課\n序號",
     filter: "agTextColumnFilter",
+    sortable: false,
+    maxWidth: 80,
+  },
+  {
+    field: "course_code",
+    headerName: "科目\n代碼",
+    filter: "agTextColumnFilter",
+maxWidth: 100,
   },
   {
     field: "chn_name",
     headerName: "課程名稱",
-    cellRenderer: (params) =>
-      (params.value = params.value.replace(/<\/br>/g, " ")),
-    cellStyle: { whiteSpace: "pre", wrapText: true, autoHeight: true },
+valueGetter: urlValueGetter,
+    cellRenderer: (params) => {
+      return `<a href="${params.value.url}" target="_blank">${params.value.name}</a>`;
+    },
     filter: "agTextColumnFilter",
+    filterValueGetter: (params) => {
+      return params.data.chn_name.replace(/<\/br>/g, "\n");
+    },
+    maxWidth: 200,
+    autoHeight: true,
+    wrapText: true,
+  },
+  {
+    field: "teacher",
+    headerName: "教師",
+    valueFormatter: (params) => {
+      return params.value.replace("", "温");
+    },
+    filter: "agTextColumnFilter",
+filterValueGetter: (params) => {
+      return params.data.teacher.replace("", "温");
+    },
+    maxWidth: 100,
+    autoHeight: true,
   },
   {
     field: "dept_chiabbr",
     headerName: "開課單位",
-    width: 120,
-    filter: "agTextColumnFilter",
+        filter: "agTextColumnFilter",
+maxWidth: 150,
   },
   {
-    field: "time_inf",
+    field: "time_loc",
     headerName: "時間地點",
+valueGetter: timeLocValueGetter,
     filter: "agTextColumnFilter",
-  },
-  {
-    field: "time",
-    headerName: "時間",
-    filter: "agTextColumnFilter",
+  maxWidth: 200,
+    autoHeight: true,
+    wrapText: true,
+    cellStyle: { "font-size": "small" },
   },
   {
     field: "credit",
     headerName: "學分",
     valueFormatter: (params) => Math.floor(params.value),
-    width: 50,
-    filter: "agNumberColumnFilter",
+        filter: "agNumberColumnFilter",
+maxWidth: 80,
   },
   {
     headerName: "URL",
@@ -213,25 +240,22 @@ const reloadCurrentTerm = async () => {
 
 function urlValueGetter(params) {
   const data = params.data;
-  return (
-    "https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/SyllabusCtrl?" +
-    "year=" +
-    data.acadm_year +
-    "&term=" +
-    data.acadm_term +
-    "&courseCode=" +
-    data.course_code +
-    "&courseGroup=" +
-    data.course_group +
-    "&deptCode=" +
-    data.dept_code +
-    "&formS=" +
-    data.form_s +
-    "&classes1=" +
-    data.classes +
-    "&deptGroup=" +
-    data.dept_group_name
-  );
+  return {
+    name: data.chn_name.replace(/<\/br>/g, "\n"),
+    url: `https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/SyllabusCtrl?year=${data.acadm_year}&term=${data.acadm_term}&courseCode=${data.course_code}&courseGroup=${data.course_group}&deptCode=${data.dept_code}&formS=${data.form_s}&classes1=${data.classes}&deptGroup=${data.dept_group_name}`,
+  };
+}
+
+function timeLocValueGetter(params) {
+  const data = params.data.time_loc;
+  if (typeof data === "object") {
+    return Object.entries(data)
+      .map(([key, value]) => `${key} ${value}`)
+      .join("\n");
+  } else if (typeof data === "string") {
+    return data.replace(/<\/br>/g, "\n");
+  }
+  return data;
 }
 
 function locationGongguan(params) {
@@ -256,11 +280,44 @@ function onSelectionChanged(event) {
 function onTermChange(event) {
   reloadCurrentTerm(); // 重新載入當前學期資料
 }
+
+const gridOptions = ref({
+  rowClass: "custom-row-style",
+});
 </script>
 
-<style scoped lang="scss">
-.button-group {
-  padding-bottom: 4px;
-  display: block;
+<style lang="scss">
+@import url("https://fonts.googleapis.com/css2?family=LXGW+WenKai+Mono+TC:wght@300;400;700&display=swap");
+
+.custom-row-style {
+  --ag-odd-row-background-color: color-mix(
+    in srgb,
+    var(--ag-background-color),
+    #c0c0c0 10%
+  );
+  div,
+  a,
+  input {
+    white-space: pre-line;
+    line-height: normal;
+    align-content: center;
+  }
+  a {
+    color: var(--ag-header-foreground-color);
+  }
+}
+
+[class*="ag-theme-"] {
+  font-family: "LXGW WenKai Mono TC", monospace;
+  font-size: "normal";
+}
+
+.ag-header-row {
+  white-space: pre-line;
+  font-weight: bold;
+}
+
+.ag-checkbox-input-wrapper {
+  display: flex;
 }
 </style>
