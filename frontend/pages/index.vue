@@ -152,7 +152,7 @@ const colDefs = ref([
     maxWidth: 200,
     autoHeight: true,
     wrapText: true,
-    cellStyle: { "font-size": "small" },
+    cellStyle: { "font-size": "calc(var(--ag-font-size) * 0.85)" },
   },
   {
     field: "credit",
@@ -197,6 +197,8 @@ const colDefs = ref([
     },
     filter: "agTextColumnFilter",
     autoHeight: true,
+flex: 1,
+    minWidth: 200,
   },
 ]);
 
@@ -205,9 +207,7 @@ const defaultColDef = ref({
   filter: true,
   floatingFilter: true,
   resizable: true,
-  flex: 1,
-  minWidth: 50,
-});
+  });
 
 const rowSelection = {
   mode: "multiRow",
@@ -342,7 +342,12 @@ const gridOptions = ref({
 
 [class*="ag-theme-"] {
   font-family: "LXGW WenKai Mono TC", monospace;
-  font-size: "normal";
+  }
+
+@media screen and (max-width: 768px) {
+  [class*="ag-theme-"] {
+    --ag-font-size: 0.8rem;
+  }
 }
 
 .ag-header-row {
