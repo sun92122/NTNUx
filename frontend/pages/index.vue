@@ -14,7 +14,7 @@
   </span>
 
   <AgGridVue
-    style="width: 100%; height: 500px"
+    style="width: 100%; height: 80vh"
     :class="`ag-theme-${darkMode ? 'quartz-dark' : 'quartz'}`"
     :localeText="AG_GRID_LOCALE_TW"
     :columnDefs="colDefs"
