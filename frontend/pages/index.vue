@@ -112,12 +112,12 @@ const colDefs = ref([
     field: "course_code",
     headerName: "科目\n代碼",
     filter: "agTextColumnFilter",
-maxWidth: 100,
+    maxWidth: 100,
   },
   {
     field: "chn_name",
     headerName: "課程名稱",
-valueGetter: urlValueGetter,
+    valueGetter: urlValueGetter,
     cellRenderer: (params) => {
       return `<a href="${params.value.url}" target="_blank">${params.value.name}</a>`;
     },
@@ -136,7 +136,7 @@ valueGetter: urlValueGetter,
       return params.value.replace("", "温");
     },
     filter: "agTextColumnFilter",
-filterValueGetter: (params) => {
+    filterValueGetter: (params) => {
       return params.data.teacher.replace("", "温");
     },
     maxWidth: 100,
@@ -145,15 +145,15 @@ filterValueGetter: (params) => {
   {
     field: "dept_chiabbr",
     headerName: "開課單位",
-        filter: "agTextColumnFilter",
-maxWidth: 150,
+    filter: "agTextColumnFilter",
+    maxWidth: 150,
   },
   {
     field: "time_loc",
     headerName: "時間地點",
-valueGetter: timeLocValueGetter,
+    valueGetter: timeLocValueGetter,
     filter: "agTextColumnFilter",
-  maxWidth: 200,
+    maxWidth: 200,
     autoHeight: true,
     wrapText: true,
     cellStyle: { "font-size": "small" },
@@ -162,16 +162,45 @@ valueGetter: timeLocValueGetter,
     field: "credit",
     headerName: "學分",
     valueFormatter: (params) => Math.floor(params.value),
-        filter: "agNumberColumnFilter",
-maxWidth: 80,
+    filter: "agNumberColumnFilter",
+    maxWidth: 80,
   },
   {
-    headerName: "URL",
-    valueGetter: urlValueGetter,
-    cellRenderer: (params) => {
-      return `<a href="${params.value}" target="_blank">連結</a>`;
+    field: "option_code",
+    headerName: "選別",
+    filter: "agTextColumnFilter",
+    maxWidth: 80,
+  },
+  {
+    field: "restrict",
+    headerName: "限修",
+    valueFormatter: (params) => {
+      return params.value.replace(/<\/br>/g, "\n").replace(/(?<=.)◎/g, "\n◎");
     },
-    filter: false,
+    filter: "agTextColumnFilter",
+    maxWidth: 200,
+    autoHeight: true,
+  },
+  {
+    headerName: "備註",
+    valueGetter: (params) => {
+      return {
+        eng_teach: params.data.eng_teach ? true : false,
+        comment: params.data.comment.replace(/<\/br>/g, "\n"),
+      };
+    },
+    cellRenderer: (params) => {
+      const { eng_teach, comment } = params.value;
+      if (eng_teach) {
+        return (
+          `<span style="color: var(--p-red-500);">英文授課</span></br>` +
+          comment
+        );
+      }
+      return comment;
+    },
+    filter: "agTextColumnFilter",
+    autoHeight: true,
   },
 ]);
 
