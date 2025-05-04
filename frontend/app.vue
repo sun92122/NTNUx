@@ -92,3 +92,9 @@ const toggleSwitchDt = ref({
   gap: 1.5rem;
 }
 </style>
+
+<style lang="scss">
+body {
+  background-color: var(--p-content-background);
+}
+</style>
