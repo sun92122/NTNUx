@@ -109,6 +109,7 @@ const colDefs = ref([
     headerName: "科目\n代碼",
     filter: "agTextColumnFilter",
     maxWidth: 100,
+    hide: true,
   },
   {
     field: "chn_name",
@@ -197,7 +198,7 @@ const colDefs = ref([
     },
     filter: "agTextColumnFilter",
     autoHeight: true,
-flex: 1,
+    flex: 1,
     minWidth: 200,
   },
 ]);
@@ -207,7 +208,7 @@ const defaultColDef = ref({
   filter: true,
   floatingFilter: true,
   resizable: true,
-  });
+});
 
 const rowSelection = {
   mode: "multiRow",
@@ -342,7 +343,7 @@ const gridOptions = ref({
 
 [class*="ag-theme-"] {
   font-family: "LXGW WenKai Mono TC", monospace;
-  }
+}
 
 @media screen and (max-width: 768px) {
   [class*="ag-theme-"] {
