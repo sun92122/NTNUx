@@ -1,42 +1,29 @@
 <template>
-  <span class="button-group">
-    <button @click="locationGongguan()">上課地點：公館</button>
-  </span>
+  <div class="container">
+    <span class="button-group justify-center">
+      <h1>這裡是搜尋欄</h1>
+    </span>
 
-  <AgGridVue
-    style="width: 100%; height: 80vh"
-    :class="`ag-theme-${darkMode ? 'quartz-dark' : 'quartz'}`"
-    :localeText="AG_GRID_LOCALE_TW"
-    :columnDefs="colDefs"
-    :rowHeight="64"
-    :defaultColDef="defaultColDef"
-    :rowData="rowData"
-    :pagination="false"
-    :rowSelection="rowSelection"
-    :grid-options="gridOptions"
-    :autoSizeStrategy="autoSizeStrategy"
-    :enableCellTextSelection="true"
-    @selection-changed="onSelectionChanged"
-    @grid-ready="onGridReady"
-  >
-  </AgGridVue>
-
-  <!-- 顯示已完成載入數量 -->
-  <div style="margin-top: 10px">
-    <p>已完成載入 {{ rowData.length }} 筆資料</p>
+    <div class="grid-container">
+      <AgGridVue
+        style="width: 100%; height: 80vh"
+        :class="`ag-theme-${darkMode ? 'quartz-dark' : 'quartz'}`"
+        :localeText="AG_GRID_LOCALE_TW"
+        :columnDefs="colDefs"
+        :rowHeight="72"
+        :defaultColDef="defaultColDef"
+        :rowData="rowData"
+        :pagination="false"
+        :grid-options="gridOptions"
+        :enableCellTextSelection="true"
+        :suppressRowHoverHighlight="true"
+        :debounceVerticalScrollbar="true"
+        :scrollbarWidth="0"
+        @grid-ready="onGridReady"
+      >
+      </AgGridVue>
+    </div>
   </div>
-
-  <div>
-    <h2>Selected Rows</h2>
-    <ul>
-      <li v-for="row in selectedRows" :key="row.serial_no">
-        {{ row.serial_no }} -
-        <text v-html="row.chn_name.replace('</br>', ' ')"></text>
-      </li>
-    </ul>
-  </div>
-
-  <Button @click="isShowSchedule = true">打開課表</Button>
 
   <Dialog
     v-model:visible="isShowSchedule"
@@ -62,7 +49,7 @@ import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the 
 import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
 import { AgGridVue } from "ag-grid-vue3"; // Vue Data Grid Component
 import { AG_GRID_LOCALE_TW } from "@ag-grid-community/locale";
-import { FloatingSchedule } from "#components";
+import { FloatingSchedule, CourseCell } from "#components";
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
 
@@ -98,128 +85,86 @@ const selectedRows = ref([]); // 用於存儲選中的行數據
 // Column Definitions: Defines the columns to be displayed.
 const colDefs = ref([
   {
+    headerName: "課程資訊",
+    cellRenderer: CourseCell,
+    cellRendererParams: (params) => {
+      return {
+        course: params.data,
+      };
+    },
+    flex: 1,
+    autoHeight: true,
+  },
+  {
     field: "serial_no",
     headerName: "開課\n序號",
     filter: "agTextColumnFilter",
-    sortable: false,
-    maxWidth: 80,
+    hide: true,
   },
   {
     field: "course_code",
     headerName: "科目\n代碼",
     filter: "agTextColumnFilter",
-    maxWidth: 100,
     hide: true,
   },
   {
     field: "chn_name",
     headerName: "課程名稱",
-    valueGetter: urlValueGetter,
-    cellRenderer: (params) => {
-      return `<a href="${params.value.url}" target="_blank">${params.value.name}</a>`;
-    },
     filter: "agTextColumnFilter",
     filterValueGetter: (params) => {
       return params.data.chn_name.replace(/<\/br>/g, "\n");
     },
-    maxWidth: 200,
-    autoHeight: true,
-    wrapText: true,
+    hide: true,
   },
   {
     field: "teacher",
     headerName: "教師",
-    valueFormatter: (params) => {
-      return params.value.replace("", "温");
-    },
     filter: "agTextColumnFilter",
     filterValueGetter: (params) => {
       return params.data.teacher.replace("", "温");
     },
-    maxWidth: 100,
-    autoHeight: true,
+    hide: true,
   },
   {
     field: "dept_chiabbr",
     headerName: "開課單位",
     filter: "agTextColumnFilter",
-    maxWidth: 150,
+    hide: true,
   },
   {
     field: "time_loc",
     headerName: "時間地點",
-    valueGetter: timeLocValueGetter,
     filter: "agTextColumnFilter",
-    maxWidth: 200,
-    autoHeight: true,
-    wrapText: true,
-    cellStyle: { "font-size": "calc(var(--ag-font-size) * 0.85)" },
+    hide: true,
   },
   {
     field: "credit",
     headerName: "學分",
-    valueFormatter: (params) => Math.floor(params.value),
     filter: "agNumberColumnFilter",
-    maxWidth: 80,
+    hide: true,
   },
   {
     field: "option_code",
     headerName: "選別",
     filter: "agTextColumnFilter",
-    maxWidth: 80,
+    hide: true,
   },
   {
     field: "restrict",
     headerName: "限修",
-    valueFormatter: (params) => {
-      return params.value.replace(/<\/br>/g, "\n").replace(/(?<=.)◎/g, "\n◎");
-    },
     filter: "agTextColumnFilter",
-    maxWidth: 200,
-    autoHeight: true,
+    hide: true,
   },
   {
     headerName: "備註",
-    valueGetter: (params) => {
-      return {
-        eng_teach: params.data.eng_teach ? true : false,
-        comment: params.data.comment.replace(/<\/br>/g, "\n"),
-      };
-    },
-    cellRenderer: (params) => {
-      const { eng_teach, comment } = params.value;
-      if (eng_teach) {
-        return (
-          `<span style="color: var(--p-red-500);">英文授課</span></br>` +
-          comment
-        );
-      }
-      return comment;
-    },
     filter: "agTextColumnFilter",
-    autoHeight: true,
-    flex: 1,
-    minWidth: 200,
+    hide: true,
   },
 ]);
 
 const defaultColDef = ref({
-  sortable: true,
-  filter: true,
-  floatingFilter: true,
-  resizable: true,
-});
-
-const rowSelection = {
-  mode: "multiRow",
-  checkboxes: true,
-  headerCheckbox: false,
-  enableSelectionWithoutKeys: true,
-};
-
-const autoSizeStrategy = ref({
-  type: "fitCellContents",
-  colIds: ["serial_no", "course_code", "dept_chiabbr", "credit"],
+  sortable: false,
+  resizable: false,
 });
 
 const onGridReady = (params) => {
@@ -323,6 +268,33 @@ const gridOptions = ref({
 <style lang="scss">
 @import url("https://fonts.googleapis.com/css2?family=LXGW+WenKai+Mono+TC:wght@300;400;700&display=swap");
 
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.grid-container {
+  width: 100vw;
+  padding: 0;
+}
+
+@media screen and (min-width: 768px) {
+  .grid-container {
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  @media (min-width: 992px) {
+    .grid-container {
+      width: clamp(992px, 88%, 1632px);
+    }
+  }
+}
+
 .custom-row-style {
   --ag-odd-row-background-color: color-mix(
     in srgb,
@@ -343,12 +315,6 @@ const gridOptions = ref({
 
 [class*="ag-theme-"] {
   font-family: "LXGW WenKai Mono TC", monospace;
-}
-
-@media screen and (max-width: 768px) {
-  [class*="ag-theme-"] {
-    --ag-font-size: 0.8rem;
-  }
 }
 
 .ag-header-row {
