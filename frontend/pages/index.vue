@@ -1,4 +1,29 @@
 <template>
+  <div class="tabs-container">
+    <Tabs value="quick" scrollable>
+      <TabList>
+        <Tab
+          v-for="tab in [
+            { label: '快速搜尋', value: 'quick' },
+            { label: '通識', value: 'general' },
+            { label: '共同', value: 'common' },
+            { label: '國防', value: '國防' },
+            { label: '體育', value: 'physical' },
+            { label: '校際', value: 'interschool' },
+            { label: '學分學程', value: 'program' },
+            { label: '英文授課', value: 'EMI' },
+            { label: '英文三', value: 'english' },
+          ]"
+          :key="tab.value"
+          :label="tab.label"
+          :value="tab.value"
+        >
+          {{ tab.label }}
+        </Tab>
+      </TabList>
+    </Tabs>
+  </div>
+
   <div class="container">
     <div class="search-container">
       <FloatLabel variant="in" class="search-bar">
@@ -41,7 +66,7 @@
           <template #body="{ data }">
             <CourseCell :course="data" />
           </template>
-      </Column>
+        </Column>
       </DataTable>
     </div>
   </div>
@@ -76,6 +101,12 @@ import { FilterMatchMode } from "@primevue/core/api";
 
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
+
+import Tabs from "primevue/tabs";
+import Tab from "primevue/tab";
+import TabList from "primevue/tablist";
+import TabPanels from "primevue/tabpanels";
+import TabPanel from "primevue/tabpanel";
 
 import FloatLabel from "primevue/floatlabel";
 import IconField from "primevue/iconfield";
@@ -242,7 +273,7 @@ function onSelectionChanged(event) {
 }
 
 .grid-container {
-margin-top: 2rem;
+  margin-top: 2rem;
   width: 100vw;
   padding: 0;
 }
