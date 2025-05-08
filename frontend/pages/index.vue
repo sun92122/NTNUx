@@ -147,17 +147,39 @@ const selectedRows = ref([]); // 用於存儲選中的行數據
 
 const fetchData = async (i) => {
   // Fetch data from the server
-  const response = await fetch(
-    "data/" + currentTerm.value + "_" + i + ".min.json"
-  );
-  return response.json();
-};
+  const res = await fetch(`data/${currentTerm.value}/${i}.min.json`);
+  if (!res.ok) {
+    return null; // Return null if no data
+  }
+  const data = await res.json();
+  if (data.length === 0) {
+    return null; // Return null if no data
+  }
+  return data.map((item) => {
+    return {
+      ...item,
+      course_name: item.chn_name.replace(/<\/br>.*/g, ""),
+      time: timeFormatter(item.time_loc),
+      location: locationFormatter(item.time_loc),
+      teacher: teacherNameFormatter(item.teacher),
+    };
+  });
+}
 
-const fetchDataCloudflare = async () => {
-  // Fetch data from the server
-  const response = await fetch("data/" + currentTerm.value + ".min.json");
-  return response.json();
-};
+async function fetchAllData() {
+  const fetchPromises = [];
+  for (let i = 0; i < 10; i++) {
+    fetchPromises.push(fetchData(i));
+  }
+
+  for await (const page of fetchPromises) {
+    if (!page) {
+      continue; // Skip if no data
+    }
+    rowData.value = rowData.value.concat(page);
+    loading.value = false; // 停止載入資料
+  }
+}
 
 function teacherNameFormatter(teacher) {
   return teacher.replace("", "温");
@@ -199,41 +221,15 @@ const reloadCurrentTerm = async () => {
   selectedRows.value = []; // 清空選取的資料
 
   // 重新載入資料
-  if (isCloudflare) {
-    rowData.value = await fetchDataCloudflare(); // 直接載入當前學期資料
-  } else {
-    const term_info = await fetchData(0);
-    const maxPageNum = term_info.total;
-
-    const fetchPromises = [];
-    for (let i = 1; i <= maxPageNum; i++) {
-      fetchPromises.push(fetchData(i));
-    }
-
-    // 並行下載所有分頁資料
-    const pages = await Promise.all(fetchPromises);
-
-    // 合併結果
-    for (const page of pages) {
-      rowData.value = rowData.value.concat(page);
-    }
-  }
-
-  // 格式化資料
-  rowData.value = rowData.value.map((data) => {
-    return {
-      ...data,
-      course_name: data.chn_name.replace(/<\/br>.*/g, ""),
-      time: timeFormatter(data.time_loc),
-      location: locationFormatter(data.time_loc),
-      teacher: teacherNameFormatter(data.teacher),
-    };
+  
+  await fetchAllData().then(() => {
+    loading.value = false; // 停止載入資料
   });
 
   rowDatas.value[currentTerm.value] = rowData.value; // 儲存當前學期資料
 
   updateMenubar.value(); // 更新選單欄的狀態
-};
+}
 
 function onSelectionChanged(event) {
   if (gridApi.value) {
