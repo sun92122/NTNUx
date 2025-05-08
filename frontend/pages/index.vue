@@ -130,8 +130,6 @@ onMounted(async () => {
   loadTermData.value(); // 載入學期資料
 });
 
-const gridApi = shallowRef(null);
-
 const filters = ref({
   global: {
     value: null,
