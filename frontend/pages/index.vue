@@ -52,7 +52,7 @@
         :showGridlines="true"
         :show-headers="false"
         :scrollable="true"
-        scrollHeight="80vh"
+        scrollHeight="calc(100vh - 20rem)"
         :rows="50"
         :rowsPerPageOptions="[10, 20, 50, 100]"
         @selection-change="onSelectionChanged"
