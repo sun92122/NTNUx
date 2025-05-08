@@ -1,22 +1,13 @@
 <template>
   <div class="tabs-container">
-    <Tabs value="quick" scrollable>
+    <Tabs :value="searchMode" scrollable>
       <TabList>
         <Tab
-          v-for="tab in [
-            { label: '快速搜尋', value: 'quick' },
-            { label: '通識', value: 'general' },
-            { label: '共同', value: 'common' },
-            { label: '國防', value: '國防' },
-            { label: '體育', value: 'physical' },
-            { label: '校際', value: 'interschool' },
-            { label: '學分學程', value: 'program' },
-            { label: '英文授課', value: 'EMI' },
-            { label: '英文三', value: 'english' },
-          ]"
+          v-for="tab in searchModeList"
           :key="tab.value"
           :label="tab.label"
           :value="tab.value"
+          @click="tab.command ? tab.command() : null"
         >
           {{ tab.label }}
         </Tab>
@@ -55,6 +46,7 @@
         scrollHeight="calc(100vh - 20rem)"
         :rows="50"
         :rowsPerPageOptions="[10, 20, 50, 100]"
+        :loading="loading"
         @selection-change="onSelectionChanged"
       >
         <template #header>
@@ -113,9 +105,6 @@ import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 import InputText from "primevue/inputtext";
 
-const config = useRuntimeConfig();
-const isCloudflare = config.public.isCloudflare; // 判斷是否為 Cloudflare 環境
-
 const terms = useState("terms", () => []); // 存儲學期資料
 const currentTerm = useState("currentTerm", () => null); // 當前學期
 const loadTermData = useState("loadTermData");
@@ -135,9 +124,30 @@ const filters = ref({
     value: null,
     matchMode: FilterMatchMode.CONTAINS,
   },
+  option_code: {
+    value: null,
+    matchMode: FilterMatchMode.EQUALS,
+  },
+  course_name: {
+    value: null,
+    matchMode: FilterMatchMode.CONTAINS,
+  },
+  chn_name: {
+    value: null,
+    matchMode: FilterMatchMode.CONTAINS,
+  },
+  dept_chiabbr: {
+    value: null,
+    matchMode: FilterMatchMode.CONTAINS,
+  },
+  eng_teach: {
+    value: null,
+    matchMode: FilterMatchMode.EQUALS,
+  },
 });
 
 const isShowSchedule = ref(false); // 控制課表顯示的變數
+const loading = ref(true); // 控制載入狀態的變數
 
 // Row Data: The data to be displayed.
 const rowDatas = ref({});
@@ -145,7 +155,63 @@ const rowData = ref([]);
 
 const selectedRows = ref([]); // 用於存儲選中的行數據
 
-const fetchData = async (i) => {
+const searchMode = ref("quick"); // 用於存儲當前的搜尋模式
+const searchModeList = [
+  {
+    label: "快速搜尋",
+    value: "quick",
+    filter_field: ["course_name", "teacher", "serial_no"],
+  },
+  {
+    label: "通識",
+    value: "general",
+    command: () => {
+      filterMutatou({ option_code: "通" });
+    },
+    filter_field: ["course_name"],
+  },
+  { label: "共同", value: "common" },
+  { label: "國防", value: "military" },
+  { label: "體育", value: "physical" },
+  {
+    label: "校際",
+    value: "interschool",
+    command: () => {
+      filterMutatou({ dept_chiabbr: "校際" });
+    },
+  },
+  { label: "學分學程", value: "program" },
+  {
+    label: "英文三",
+    value: "english",
+    command: () => {
+      filterMutatou({ course_name: "英文（三）" });
+    },
+  },
+  {
+    label: "英文授課",
+    value: "EMI",
+    command: () => {
+      filterMutatou({ eng_teach: "是" });
+    },
+  },
+];
+
+function filterMutatou(updateValue) {
+  const filter = filters.value;
+  for (const key in filter) {
+    if (key === "global") {
+      continue; // Skip global filter
+    }
+    if (key in updateValue) {
+      filter[key].value = updateValue[key];
+    } else {
+      filter[key].value = null;
+    }
+  }
+}
+
+async function fetchData(i) {
   // Fetch data from the server
   const res = await fetch(`data/${currentTerm.value}/${i}.min.json`);
   if (!res.ok) {
@@ -210,10 +276,13 @@ function locationFormatter(location) {
   return locations.join("/");
 }
 
-const reloadCurrentTerm = async () => {
+async function reloadCurrentTerm() {
+  loading.value = true; // 開始載入資料
+
   // check if the current term data in rowDatas
   if (rowDatas.value[currentTerm.value]) {
     rowData.value = rowDatas.value[currentTerm.value]; // 直接使用已載入的資料
+    loading.value = false; // 停止載入資料
     return;
   }
 
@@ -221,7 +290,7 @@ const reloadCurrentTerm = async () => {
   selectedRows.value = []; // 清空選取的資料
 
   // 重新載入資料
-  
+
   await fetchAllData().then(() => {
     loading.value = false; // 停止載入資料
   });
