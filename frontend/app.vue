@@ -126,6 +126,13 @@ function updateMenubarItems() {
 </script>
 
 <style scoped lang="scss">
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
 .menubar-end {
   display: flex;
   align-items: center;
@@ -135,6 +142,11 @@ function updateMenubarItems() {
 
 <style lang="scss">
 body {
+  margin: 0;
   background-color: var(--p-content-background);
+}
+
+html {
+  font-size: 14px;
 }
 </style>

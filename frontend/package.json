@@ -8,7 +8,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "deploy": "nuxt generate && echo ntnux.sun92122.com > .output/public/CNAME && echo > .output/public/.nojekyll && gh-pages -d .output/public --dotfiles"
+    "deploy": "nuxt generate && echo NTNUx2.sun92122.com > .output/public/CNAME && echo > .output/public/.nojekyll && gh-pages -d .output/public --dotfiles"
   },
   "dependencies": {
     "@ag-grid-community/locale": "^32.0.0",

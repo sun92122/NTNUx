@@ -1,42 +1,75 @@
 <template>
-  <span class="button-group">
-    <button @click="locationGongguan()">上課地點：公館</button>
-  </span>
-
-  <AgGridVue
-    style="width: 100%; height: 80vh"
-    :class="`ag-theme-${darkMode ? 'quartz-dark' : 'quartz'}`"
-    :localeText="AG_GRID_LOCALE_TW"
-    :columnDefs="colDefs"
-    :rowHeight="64"
-    :defaultColDef="defaultColDef"
-    :rowData="rowData"
-    :pagination="false"
-    :rowSelection="rowSelection"
-    :grid-options="gridOptions"
-    :autoSizeStrategy="autoSizeStrategy"
-    :enableCellTextSelection="true"
-    @selection-changed="onSelectionChanged"
-    @grid-ready="onGridReady"
-  >
-  </AgGridVue>
-
-  <!-- 顯示已完成載入數量 -->
-  <div style="margin-top: 10px">
-    <p>已完成載入 {{ rowData.length }} 筆資料</p>
+  <div class="tabs-container">
+    <Tabs value="quick" scrollable>
+      <TabList>
+        <Tab
+          v-for="tab in [
+            { label: '快速搜尋', value: 'quick' },
+            { label: '通識', value: 'general' },
+            { label: '共同', value: 'common' },
+            { label: '國防', value: '國防' },
+            { label: '體育', value: 'physical' },
+            { label: '校際', value: 'interschool' },
+            { label: '學分學程', value: 'program' },
+            { label: '英文授課', value: 'EMI' },
+            { label: '英文三', value: 'english' },
+          ]"
+          :key="tab.value"
+          :label="tab.label"
+          :value="tab.value"
+        >
+          {{ tab.label }}
+        </Tab>
+      </TabList>
+    </Tabs>
   </div>
 
-  <div>
-    <h2>Selected Rows</h2>
-    <ul>
-      <li v-for="row in selectedRows" :key="row.serial_no">
-        {{ row.serial_no }} -
-        <text v-html="row.chn_name.replace('</br>', ' ')"></text>
-      </li>
-    </ul>
-  </div>
+  <div class="container">
+    <div class="search-container">
+      <FloatLabel variant="in" class="search-bar">
+        <IconField>
+          <InputIcon>
+            <i class="pi pi-search" />
+          </InputIcon>
+          <InputText
+            id="globalFilter"
+            v-model="filters['global'].value"
+            :autocapitalize="false"
+            size="large"
+            :style="{ width: '100%' }"
+          />
+        </IconField>
+        <label for="globalFilter">課程名稱/教師/開課序號</label>
+      </FloatLabel>
+    </div>
 
-  <Button @click="isShowSchedule = true">打開課表</Button>
+    <div class="grid-container">
+      <DataTable
+        :value="rowData"
+        :paginator="true"
+        :filters="filters"
+        :global-filter-fields="['course_name', 'teacher', 'serial_no']"
+        :showGridlines="true"
+        :show-headers="false"
+        :scrollable="true"
+        scrollHeight="80vh"
+        :rows="50"
+        :rowsPerPageOptions="[10, 20, 50, 100]"
+        @selection-change="onSelectionChanged"
+      >
+        <template #header>
+          <span>課程資訊</span>
+        </template>
+
+        <!-- <template #header> </template> -->
+        <Column :sortable="false">
+          <template #body="{ data }">
+            <CourseCell :course="data" />
+          </template>
+        </Column>
+      </DataTable>
+    </div>
+  </div>
 
   <Dialog
     v-model:visible="isShowSchedule"
@@ -58,13 +91,27 @@
 
 <script setup>
 import { ref } from "vue";
-import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
-import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
-import { AgGridVue } from "ag-grid-vue3"; // Vue Data Grid Component
-import { AG_GRID_LOCALE_TW } from "@ag-grid-community/locale";
-import { FloatingSchedule } from "#components";
+import { FloatingSchedule, CourseCell } from "#components";
+
+import DataTable from "primevue/datatable";
+import Column from "primevue/column";
+import ColumnGroup from "primevue/columngroup"; // optional
+import Row from "primevue/row"; // optional
+import { FilterMatchMode } from "@primevue/core/api";
+
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
+
+import Tabs from "primevue/tabs";
+import Tab from "primevue/tab";
+import TabList from "primevue/tablist";
+import TabPanels from "primevue/tabpanels";
+import TabPanel from "primevue/tabpanel";
+
+import FloatLabel from "primevue/floatlabel";
+import IconField from "primevue/iconfield";
+import InputIcon from "primevue/inputicon";
+import InputText from "primevue/inputtext";
 
 const config = useRuntimeConfig();
 const isCloudflare = config.public.isCloudflare; // 判斷是否為 Cloudflare 環境
@@ -83,9 +130,14 @@ onMounted(async () => {
   loadTermData.value(); // 載入學期資料
 });
 
-const darkMode = useState("darkMode");
-
 const gridApi = shallowRef(null);
+
+const filters = ref({
+  global: {
+    value: null,
+    matchMode: FilterMatchMode.CONTAINS,
+  },
+});
 
 const isShowSchedule = ref(false); // 控制課表顯示的變數
 
@@ -94,136 +146,6 @@ const rowDatas = ref({});
 const rowData = ref([]);
 
 const selectedRows = ref([]); // 用於存儲選中的行數據
-
-// Column Definitions: Defines the columns to be displayed.
-const colDefs = ref([
-  {
-    field: "serial_no",
-    headerName: "開課\n序號",
-    filter: "agTextColumnFilter",
-    sortable: false,
-    maxWidth: 80,
-  },
-  {
-    field: "course_code",
-    headerName: "科目\n代碼",
-    filter: "agTextColumnFilter",
-    maxWidth: 100,
-  },
-  {
-    field: "chn_name",
-    headerName: "課程名稱",
-    valueGetter: urlValueGetter,
-    cellRenderer: (params) => {
-      return `<a href="${params.value.url}" target="_blank">${params.value.name}</a>`;
-    },
-    filter: "agTextColumnFilter",
-    filterValueGetter: (params) => {
-      return params.data.chn_name.replace(/<\/br>/g, "\n");
-    },
-    maxWidth: 200,
-    autoHeight: true,
-    wrapText: true,
-  },
-  {
-    field: "teacher",
-    headerName: "教師",
-    valueFormatter: (params) => {
-      return params.value.replace("", "温");
-    },
-    filter: "agTextColumnFilter",
-    filterValueGetter: (params) => {
-      return params.data.teacher.replace("", "温");
-    },
-    maxWidth: 100,
-    autoHeight: true,
-  },
-  {
-    field: "dept_chiabbr",
-    headerName: "開課單位",
-    filter: "agTextColumnFilter",
-    maxWidth: 150,
-  },
-  {
-    field: "time_loc",
-    headerName: "時間地點",
-    valueGetter: timeLocValueGetter,
-    filter: "agTextColumnFilter",
-    maxWidth: 200,
-    autoHeight: true,
-    wrapText: true,
-    cellStyle: { "font-size": "small" },
-  },
-  {
-    field: "credit",
-    headerName: "學分",
-    valueFormatter: (params) => Math.floor(params.value),
-    filter: "agNumberColumnFilter",
-    maxWidth: 80,
-  },
-  {
-    field: "option_code",
-    headerName: "選別",
-    filter: "agTextColumnFilter",
-    maxWidth: 80,
-  },
-  {
-    field: "restrict",
-    headerName: "限修",
-    valueFormatter: (params) => {
-      return params.value.replace(/<\/br>/g, "\n").replace(/(?<=.)◎/g, "\n◎");
-    },
-    filter: "agTextColumnFilter",
-    maxWidth: 200,
-    autoHeight: true,
-  },
-  {
-    headerName: "備註",
-    valueGetter: (params) => {
-      return {
-        eng_teach: params.data.eng_teach ? true : false,
-        comment: params.data.comment.replace(/<\/br>/g, "\n"),
-      };
-    },
-    cellRenderer: (params) => {
-      const { eng_teach, comment } = params.value;
-      if (eng_teach) {
-        return (
-          `<span style="color: var(--p-red-500);">英文授課</span></br>` +
-          comment
-        );
-      }
-      return comment;
-    },
-    filter: "agTextColumnFilter",
-    autoHeight: true,
-  },
-]);
-
-const defaultColDef = ref({
-  sortable: true,
-  filter: true,
-  floatingFilter: true,
-  resizable: true,
-  flex: 1,
-  minWidth: 50,
-});
-
-const rowSelection = {
-  mode: "multiRow",
-  checkboxes: true,
-  headerCheckbox: false,
-  enableSelectionWithoutKeys: true,
-};
-
-const autoSizeStrategy = ref({
-  type: "fitCellContents",
-  colIds: ["serial_no", "course_code", "dept_chiabbr", "credit"],
-});
-
-const onGridReady = (params) => {
-  gridApi.value = params.api;
-};
 
 const fetchData = async (i) => {
   // Fetch data from the server
@@ -238,6 +160,35 @@ const fetchDataCloudflare = async () => {
   const response = await fetch("data/" + currentTerm.value + ".min.json");
   return response.json();
 };
+
+function teacherNameFormatter(teacher) {
+  return teacher.replace("", "温");
+}
+
+// .time_loc => { '一 1-2': 'A', '二 3-4': 'B' }
+function timeFormatter(time) {
+  const timeLocation = [];
+  for (const [key, _] of Object.entries(time)) {
+    const [day, period] = key.split(" ");
+    timeLocation.push(`${day} ${period}`);
+  }
+  return timeLocation.join("/");
+}
+
+function locationFormatter(location) {
+  // all same => A, else => A/B/...
+  const locations = [];
+  for (const [_, value] of Object.entries(location)) {
+    if (value !== "") {
+      locations.push(value);
+    }
+  }
+  const uniqueLocations = [...new Set(locations)];
+  if (uniqueLocations.length === 1) {
+    return uniqueLocations[0];
+  }
+  return locations.join("/");
+}
 
 const reloadCurrentTerm = async () => {
   // check if the current term data in rowDatas
@@ -270,57 +221,92 @@ const reloadCurrentTerm = async () => {
     }
   }
 
+  // 格式化資料
+  rowData.value = rowData.value.map((data) => {
+    return {
+      ...data,
+      course_name: data.chn_name.replace(/<\/br>.*/g, ""),
+      time: timeFormatter(data.time_loc),
+      location: locationFormatter(data.time_loc),
+      teacher: teacherNameFormatter(data.teacher),
+    };
+  });
+
   rowDatas.value[currentTerm.value] = rowData.value; // 儲存當前學期資料
 
   updateMenubar.value(); // 更新選單欄的狀態
 };
-
-function urlValueGetter(params) {
-  const data = params.data;
-  return {
-    name: data.chn_name.replace(/<\/br>/g, "\n"),
-    url: `https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/SyllabusCtrl?year=${data.acadm_year}&term=${data.acadm_term}&courseCode=${data.course_code}&courseGroup=${data.course_group}&deptCode=${data.dept_code}&formS=${data.form_s}&classes1=${data.classes}&deptGroup=${data.dept_group_name}`,
-  };
-}
-
-function timeLocValueGetter(params) {
-  const data = params.data.time_loc;
-  if (typeof data === "object") {
-    return Object.entries(data)
-      .map(([key, value]) => `${key} ${value}`)
-      .join("\n");
-  } else if (typeof data === "string") {
-    return data.replace(/<\/br>/g, "\n");
-  }
-  return data;
-}
-
-function locationGongguan(params) {
-  if (gridApi.value) {
-    gridApi.value
-      .setColumnFilterModel("time_inf", {
-        type: "contains",
-        filter: "公館",
-      })
-      .then(() => {
-        gridApi.value.onFilterChanged();
-      });
-  }
-}
 
 function onSelectionChanged(event) {
   if (gridApi.value) {
     selectedRows.value = gridApi.value.getSelectedRows(); // 更新選中的行數據
   }
 }
-
-const gridOptions = ref({
-  rowClass: "custom-row-style",
-});
 </script>
 
 <style lang="scss">
 @import url("https://fonts.googleapis.com/css2?family=LXGW+WenKai+Mono+TC:wght@300;400;700&display=swap");
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tabs-container {
+  margin: 0.5rem auto 1rem auto;
+  width: clamp(0px, 100%, 650px);
+
+  @media screen and (min-width: 650px) {
+    .p-tablist-tab-list {
+      justify-content: center;
+    }
+  }
+}
+
+.search-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+.grid-container {
+  margin-top: 2rem;
+  width: 100vw;
+  padding: 0;
+}
+
+@media screen and (min-width: 768px) {
+  .grid-container {
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  @media (min-width: 992px) {
+    .grid-container {
+      width: clamp(992px, 88%, 1632px);
+    }
+  }
+}
+
+.search-bar {
+  width: 100%;
+  max-width: 48rem;
+  --p-inputtext-border-radius: 25px;
+}
+
+.p-datatable-header {
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.p-datatable-table-container {
+  scrollbar-width: none;
+}
 
 .custom-row-style {
   --ag-odd-row-background-color: color-mix(
@@ -342,7 +328,6 @@ const gridOptions = ref({
 
 [class*="ag-theme-"] {
   font-family: "LXGW WenKai Mono TC", monospace;
-  font-size: "normal";
 }
 
 .ag-header-row {
