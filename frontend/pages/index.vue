@@ -1,8 +1,22 @@
 <template>
   <div class="container">
-    <span class="button-group justify-center">
-      <h1>這裡是搜尋欄</h1>
-    </span>
+    <div class="search-container">
+      <FloatLabel variant="in" class="search-bar">
+        <IconField>
+          <InputIcon>
+            <i class="pi pi-search" />
+          </InputIcon>
+          <InputText
+            id="globalFilter"
+            v-model="filters['global'].value"
+            :autocapitalize="false"
+            size="large"
+            :style="{ width: '100%' }"
+          />
+        </IconField>
+        <label for="globalFilter">課程名稱/教師/開課序號</label>
+      </FloatLabel>
+    </div>
 
     <div class="grid-container">
       <DataTable
@@ -26,7 +40,7 @@
         <Column :sortable="false">
           <template #body="{ data }">
             <CourseCell :course="data" />
-          </template      >
+          </template>
       </Column>
       </DataTable>
     </div>
@@ -63,6 +77,11 @@ import { FilterMatchMode } from "@primevue/core/api";
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
 
+import FloatLabel from "primevue/floatlabel";
+import IconField from "primevue/iconfield";
+import InputIcon from "primevue/inputicon";
+import InputText from "primevue/inputtext";
+
 const config = useRuntimeConfig();
 const isCloudflare = config.public.isCloudflare; // 判斷是否為 Cloudflare 環境
 
@@ -79,8 +98,6 @@ onMounted(async () => {
 
   loadTermData.value(); // 載入學期資料
 });
-
-const darkMode = useState("darkMode");
 
 const gridApi = shallowRef(null);
 
@@ -205,7 +222,27 @@ function onSelectionChanged(event) {
   align-items: center;
 }
 
+.tabs-container {
+  margin: 0.5rem auto 1rem auto;
+  width: clamp(0px, 100%, 650px);
+
+  @media screen and (min-width: 650px) {
+    .p-tablist-tab-list {
+      justify-content: center;
+    }
+  }
+}
+
+.search-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0 1rem;
+}
+
 .grid-container {
+margin-top: 2rem;
   width: 100vw;
   padding: 0;
 }
@@ -224,6 +261,20 @@ function onSelectionChanged(event) {
       width: clamp(992px, 88%, 1632px);
     }
   }
+}
+
+.search-bar {
+  width: 100%;
+  max-width: 48rem;
+  --p-inputtext-border-radius: 25px;
+}
+
+.p-datatable-header {
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.p-datatable-table-container {
+  scrollbar-width: none;
 }
 
 .custom-row-style {
