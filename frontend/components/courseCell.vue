@@ -162,12 +162,4 @@ const generalCoreMap = {
   --p-message-content-padding: 0.25rem 0.5rem;
   --p-message-text-font-size: smaller;
 }
-
-.p-message-icon {
-  margin-top: 4px;
-}
-.red-message {
-  --p-message-background: var(--p-tag-danger-background);
-  --p-message-color: var(--p-tag-danger-color);
-}
 </style>
