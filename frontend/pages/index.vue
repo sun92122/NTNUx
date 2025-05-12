@@ -255,6 +255,7 @@ async function fetchData(i) {
       time: timeFormatter(item.time_loc),
       location: locationFormatter(item.time_loc),
       teacher: teacherNameFormatter(item.teacher),
+      generalCore: item.generalCore.join("/"),
     };
   });
 }
@@ -325,12 +326,6 @@ async function reloadCurrentTerm() {
   rowDatas.value[currentTerm.value] = rowData.value; // 儲存當前學期資料
 
   updateMenubar.value(); // 更新選單欄的狀態
-}
-
-function onSelectionChanged(event) {
-  if (gridApi.value) {
-    selectedRows.value = gridApi.value.getSelectedRows(); // 更新選中的行數據
-  }
 }
 </script>
 
