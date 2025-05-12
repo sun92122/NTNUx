@@ -46,6 +46,15 @@
         <Message icon="pi pi-tag" severity="secondary" class="custom-message">{{
           optionMap[course.option_code] || course.option_code
         }}</Message>
+        <Message
+          v-if="course.generalCore"
+          v-for="item in course.generalCore.split('/')"
+          :key="item"
+          icon="pi pi-tag"
+          severity="secondary"
+          class="custom-message"
+          >{{ generalCoreMap[item] || item }}</Message
+        >
         <Message icon="pi pi-book" severity="secondary" class="custom-message"
           >{{ Math.floor(course.credit) }} 學分</Message
         >
@@ -90,6 +99,17 @@ const optionMap = {
   必: "必修",
   選: "選修",
   通: "通識",
+};
+const generalCoreMap = {
+  A1UG: "人文藝術",
+  A2UG: "社會科學",
+  A3UG: "自然科學",
+  A4UG: "邏輯運算",
+  B1UG: "學院共同課程",
+  B2UG: "跨域專業探索課程",
+  B3UG: "大學入門",
+  C1UG: "專題探究",
+  C2UG: "MOOCs",
 };
 </script>
 
