@@ -1,6 +1,6 @@
 <template>
   <div class="tabs-container">
-    <Tabs :value="searchMode" scrollable>
+    <Tabs v-model:value="searchMode" scrollable>
       <TabList>
         <Tab
           v-for="tab in searchModeList"
