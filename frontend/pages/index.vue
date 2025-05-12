@@ -330,8 +330,6 @@ async function reloadCurrentTerm() {
 </script>
 
 <style lang="scss">
-@import url("https://fonts.googleapis.com/css2?family=LXGW+WenKai+Mono+TC:wght@300;400;700&display=swap");
-
 .container {
   display: flex;
   flex-direction: column;
@@ -339,10 +337,10 @@ async function reloadCurrentTerm() {
 }
 
 .tabs-container {
-  margin: 0.5rem auto 1rem auto;
-  width: clamp(0px, 100%, 650px);
+  margin: 0.5rem auto 1rem;
+  width: clamp(0px, 100%, 670px);
 
-  @media screen and (min-width: 650px) {
+  @media screen and (min-width: 670px) {
     .p-tablist-tab-list {
       justify-content: center;
     }
@@ -361,6 +359,14 @@ async function reloadCurrentTerm() {
   margin-top: 2rem;
   width: 100vw;
   padding: 0;
+  .p-datatable-table-container,
+  .p-datatable-table {
+    min-height: 50vh;
+  }
+
+  .p-datatable-mask {
+    border-radius: 0.5rem;
+  }
 }
 
 @media screen and (min-width: 768px) {
@@ -380,9 +386,66 @@ async function reloadCurrentTerm() {
 }
 
 .search-bar {
+  .p-component {
+    height: 48px;
+  }
+  .p-multiselect-chip {
+    height: auto;
+  }
+  .p-multiselect-label-container {
+    align-content: center;
+  }
   width: 100%;
   max-width: 48rem;
+}
+
+.search-input {
+  width: 100%;
   --p-inputtext-border-radius: 25px;
+  --p-multiselect-border-radius: 25px;
+}
+
+.multi-search-input-main-filter {
+  .p-component {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+.multi-search-input-sub-filter {
+  .p-multiselect {
+    border-left: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .multi-search-input-main-filter,
+  .multi-search-input-sub-filter {
+    width: 50%;
+  }
+  .single-search-input {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 670px) {
+  .search-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .multi-search-input-main-filter {
+    .p-component {
+      border-radius: 1rem 1rem 0 0;
+    }
+  }
+  .multi-search-input-sub-filter {
+    .p-multiselect {
+      border-left: 1px solid var(--p-multiselect-border-color);
+      border-radius: 0 0 1rem 1rem;
+    }
+  }
 }
 
 .p-datatable-header {
@@ -391,36 +454,5 @@ async function reloadCurrentTerm() {
 
 .p-datatable-table-container {
   scrollbar-width: none;
-}
-
-.custom-row-style {
-  --ag-odd-row-background-color: color-mix(
-    in srgb,
-    var(--ag-background-color),
-    #c0c0c0 10%
-  );
-  div,
-  a,
-  input {
-    white-space: pre-line;
-    line-height: normal;
-    align-content: center;
-  }
-  a {
-    color: var(--ag-header-foreground-color);
-  }
-}
-
-[class*="ag-theme-"] {
-  font-family: "LXGW WenKai Mono TC", monospace;
-}
-
-.ag-header-row {
-  white-space: pre-line;
-  font-weight: bold;
-}
-
-.ag-checkbox-input-wrapper {
-  display: flex;
 }
 </style>
