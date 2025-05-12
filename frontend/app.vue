@@ -42,6 +42,7 @@
 <script setup>
 import Menubar from "primevue/menubar";
 import Button from "primevue/button";
+import Select from "primevue/selectbutton";
 import ToggleSwitch from "primevue/toggleswitch";
 
 const updateMenubar = useState("updateMenubar");
