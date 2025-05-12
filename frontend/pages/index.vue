@@ -7,6 +7,7 @@
           :key="tab.value"
           :value="tab.value"
           @click="tab.command ? tab.command() : null"
+          :class="tab.label ? '' : 'tab-disabled'"
         >
           {{
             searchMode == tab.value ? tab.activeLabel || tab.label : tab.label
@@ -490,10 +491,14 @@ async function reloadCurrentTerm() {
   margin: 0.5rem auto 1rem;
   width: clamp(0px, 100%, 670px);
 
-  @media screen and (min-width: 670px) {
+  @media screen and (min-width: 600px) {
     .p-tablist-tab-list {
       justify-content: center;
     }
+  }
+
+  .tab-disabled {
+    border-color: inherit;
   }
 }
 
