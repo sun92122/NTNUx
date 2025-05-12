@@ -40,7 +40,9 @@
         :value="rowData"
         :paginator="true"
         :filters="filters"
-        :global-filter-fields="['course_name', 'teacher', 'serial_no']"
+        :global-filter-fields="
+          searchMode.filter_field || defultGlobalFilterFields
+        "
         :showGridlines="true"
         :show-headers="false"
         :scrollable="true"
@@ -160,7 +162,16 @@ const filters = ref({
     value: null,
     matchMode: FilterMatchMode.EQUALS,
   },
+  generalCore: {
+    operator: FilterOperator.OR,
+    constraints: [],
+  },
+  dept_code: {
+    operator: FilterOperator.OR,
+    constraints: [],
+  },
 });
+const defultGlobalFilterFields = ["course_name", "teacher", "serial_no"]; // 預設的全域篩選欄位
 
 const isShowSchedule = ref(false); // 控制課表顯示的變數
 const loading = ref(true); // 控制載入狀態的變數
