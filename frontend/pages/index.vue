@@ -281,6 +281,10 @@ function teacherNameFormatter(teacher) {
 
 // .time_loc => { '一 1-2': 'A', '二 3-4': 'B' }
 function timeFormatter(time) {
+  if (typeof time === "string") {
+    return time;
+  }
+
   const timeLocation = [];
   for (const [key, _] of Object.entries(time)) {
     const [day, period] = key.split(" ");
@@ -289,8 +293,12 @@ function timeFormatter(time) {
   return timeLocation.join("/");
 }
 
+// all same => A, else => A/B/...
 function locationFormatter(location) {
-  // all same => A, else => A/B/...
+  if (typeof location === "string") {
+    return null;
+  }
+
   const locations = [];
   for (const [_, value] of Object.entries(location)) {
     if (value !== "") {
