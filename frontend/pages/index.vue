@@ -17,8 +17,16 @@
   </div>
 
   <div class="container">
-    <div class="search-container">
-      <FloatLabel variant="in" class="search-bar">
+    <div class="search-container search-bar">
+      <FloatLabel
+        variant="in"
+        :class="[
+          'search-input',
+          subFilterValue.filter_field
+            ? 'multi-search-input-main-filter'
+            : 'single-search-input',
+        ]"
+      >
         <IconField>
           <InputIcon>
             <i class="pi pi-search" />
@@ -33,6 +41,31 @@
         </IconField>
         <label for="globalFilter">課程名稱/教師/開課序號</label>
       </FloatLabel>
+      <div
+        v-if="subFilterValue.filter_field"
+        class="search-input multi-search-input-sub-filter"
+      >
+        <MultiSelect
+          id="sub-filter"
+          v-model="subFilterValue.value"
+          :options="subFilterValue.select_list"
+          :optionLabel="'label'"
+          :optionValue="'value'"
+          :style="{ width: '100%' }"
+          :showClear="true"
+          :showToggleAll="false"
+          :showFilter="true"
+          :placeholder="subFilterValue.label"
+          display="chip"
+          @change="
+            (e) => {
+              filters[subFilterValue.filter_field].constraints = e.value || [
+                { value: null, matchMode: FilterMatchMode.CONTAINS },
+              ];
+            }
+          "
+        />
+      </div>
     </div>
 
     <div class="grid-container">
@@ -50,7 +83,6 @@
         :rows="50"
         :rowsPerPageOptions="[10, 20, 50, 100]"
         :loading="loading"
-        @selection-change="onSelectionChanged"
       >
         <template #header>
           <span>課程資訊</span>
@@ -115,13 +147,13 @@ import Button from "primevue/button";
 import Tabs from "primevue/tabs";
 import Tab from "primevue/tab";
 import TabList from "primevue/tablist";
-import TabPanels from "primevue/tabpanels";
-import TabPanel from "primevue/tabpanel";
 
+import InputGroup from "primevue/inputgroup";
 import FloatLabel from "primevue/floatlabel";
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 import InputText from "primevue/inputtext";
+import MultiSelect from "primevue/multiselect";
 
 const terms = useState("terms", () => []); // 存儲學期資料
 const currentTerm = useState("currentTerm", () => null); // 當前學期
@@ -140,6 +172,12 @@ onMounted(async () => {
   loadTermData.value(); // 載入學期資料
 });
 
+const subFilterValue = ref({
+  value: null,
+  filter_field: null,
+  select_list: [],
+  label: null,
+}); // 用於存儲子篩選器的值
 const filters = ref({
   global: {
     value: null,
@@ -190,27 +228,109 @@ const searchModeList = [
   {
     label: "快速搜尋",
     value: "quick",
-    filter_field: ["course_name", "teacher", "serial_no"],
+    command: () => {
+      filterMutatou({});
+    },
   },
   {
     label: "通識",
     value: "general",
     command: () => {
-      filterMutatou({ option_code: "通" });
+      filterMutatou(
+        { option_code: "通" },
+        {
+          label: "選擇通識領域",
+          select_list: [
+            {
+              label: "人文藝術",
+              value: { value: "A1UG", matchMode: FilterMatchMode.CONTAINS },
+            },
+            {
+              label: "社會科學",
+              value: { value: "A2UG", matchMode: FilterMatchMode.CONTAINS },
+            },
+            {
+              label: "自然科學",
+              value: { value: "A3UG", matchMode: FilterMatchMode.CONTAINS },
+            },
+            {
+              label: "邏輯運算",
+              value: { value: "A4UG", matchMode: FilterMatchMode.CONTAINS },
+            },
+            {
+              label: "學院共同課程",
+              value: { value: "B1UG", matchMode: FilterMatchMode.CONTAINS },
+            },
+            {
+              label: "跨域專業探索課程",
+              value: { value: "B2UG", matchMode: FilterMatchMode.CONTAINS },
+            },
+            {
+              label: "大學入門",
+              value: { value: "B3UG", matchMode: FilterMatchMode.CONTAINS },
+            },
+            {
+              label: "專題探究",
+              value: { value: "C1UG", matchMode: FilterMatchMode.CONTAINS },
+            },
+            {
+              label: "MOOCs",
+              value: { value: "C2UG", matchMode: FilterMatchMode.CONTAINS },
+            },
+          ],
+          filter_field: "generalCore",
+        }
+      );
     },
     filter_field: ["course_name"],
   },
-  { label: "共同", value: "common" },
-  { label: "國防", value: "military" },
-  { label: "體育", value: "physical" },
   {
-    label: "校際",
-    value: "interschool",
+    label: "體育",
+    activeLabel: "普通體育",
+    value: "physical",
     command: () => {
-      filterMutatou({ dept_chiabbr: "校際" });
+      filterMutatou({ dept_chiabbr: "普通體育" });
     },
   },
-  { label: "學分學程", value: "program" },
+  {
+    label: "國防",
+    activeLabel: "全民國防教育",
+    value: "Defense",
+    command: () => {
+      filterMutatou({ chn_name: "全民國防" });
+    },
+  },
+  {
+    label: "校際",
+    activeLabel: "臺大系統校際課程",
+    value: "interschool",
+    command: () => {
+      filterMutatou(
+        { dept_chiabbr: "校際" },
+        {
+          label: "選擇開課學校",
+          select_list: [
+            {
+              label: "國立臺灣大學",
+              value: { value: "AA", matchMode: FilterMatchMode.ENDS_WITH },
+            },
+            {
+              label: "國立臺灣科技大學",
+              value: { value: "AB", matchMode: FilterMatchMode.ENDS_WITH },
+            },
+          ],
+          filter_field: "dept_code",
+        }
+      );
+    },
+  },
+  {
+    label: "學分學程",
+    value: "program",
+    command: () => {
+      filterMutatou({ chn_name: "學分學程" });
+    },
+  },
   {
     label: "英文三",
     value: "english",
@@ -225,9 +345,16 @@ const searchModeList = [
       filterMutatou({ eng_teach: "是" });
     },
   },
+  {
+    label: "",
+    value: "quick",
+    command: () => {
+      filterMutatou({});
+    },
+  },
 ];
 
-function filterMutatou(updateValue) {
+function filterMutatou(updateValue, subFilter = null) {
   const filter = filters.value;
   for (const key in filter) {
     if (key === "global") {
@@ -236,8 +363,22 @@ function filterMutatou(updateValue) {
     if (key in updateValue) {
       filter[key].value = updateValue[key];
     } else {
-      filter[key].value = null;
+      if (filter[key].value) {
+        filter[key].value = null;
+      }
+      if (filter[key].constraints) {
+        filter[key].constraints = [];
+      }
     }
+  }
+
+  if (subFilter) {
+    subFilterValue.value.value = null; // 清空子篩選器的值
+    subFilterValue.value.filter_field = subFilter.filter_field;
+    subFilterValue.value.select_list = subFilter.select_list;
+    subFilterValue.value.label = subFilter.label;
+  } else {
+    subFilterValue.value.filter_field = null;
   }
 }
 
