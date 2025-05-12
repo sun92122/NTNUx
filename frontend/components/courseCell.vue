@@ -72,13 +72,13 @@
         >
       </div>
     </div>
-    <div class="course-cell">
-      <span v-if="course.restrict" class="course-comment">
+    <div class="course-cell course-comment">
+      <span v-if="course.restrict">
         {{
           course.restrict.replace(/<\/br>/g, "\n").replace(/(?<=.)◎/g, "\n◎")
         }}
       </span>
-      <span v-if="course.comment" class="course-comment">
+      <span v-if="course.comment">
         {{ course.comment.replace(/<\/br>/g, "\n") }}
       </span>
     </div>
@@ -122,7 +122,7 @@ const generalCoreMap = {
   gap: 0.5rem;
 
   a {
-    color: var(--ag-header-foreground-color);
+    color: var(--text-color);
   }
 }
 
@@ -143,7 +143,8 @@ const generalCoreMap = {
     justify-content: flex-start;
   }
 
-  .course-title {
+  .course-title,
+  .course-comment {
     flex-direction: column;
   }
 }
