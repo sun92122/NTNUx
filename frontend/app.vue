@@ -127,7 +127,11 @@ function updateMenubarItems() {
 </script>
 
 <style scoped lang="scss">
+@import url("https://fonts.googleapis.com/css2?family=LXGW+WenKai+Mono+TC:wght@300;400;700&display=swap");
+
 #app {
+  font-family: "LXGW WenKai Mono TC", monospace;
+
   display: flex;
   flex-direction: column;
   height: 100vh;
