@@ -54,6 +54,22 @@
           <span>課程資訊</span>
         </template>
 
+        <template #loading>
+          <Skeleton
+            width="100%"
+            height="100%"
+            :shape="'rectangle'"
+            :border-radius="'0.5rem'"
+          />
+        </template>
+
+        <template #empty>
+          <div class="flex align-items-center justify-content-center">
+            <i class="pi pi-exclamation-triangle mr-2" />
+            <span>沒有符合條件的課程</span>
+          </div>
+        </template>
+
         <!-- <template #header> </template> -->
         <Column :sortable="false">
           <template #body="{ data }">
@@ -88,9 +104,8 @@ import { FloatingSchedule, CourseCell } from "#components";
 
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
-import ColumnGroup from "primevue/columngroup"; // optional
-import Row from "primevue/row"; // optional
-import { FilterMatchMode } from "@primevue/core/api";
+import Skeleton from "primevue/skeleton";
+import { FilterMatchMode, FilterOperator } from "@primevue/core/api";
 
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
