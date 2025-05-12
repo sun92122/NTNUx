@@ -5,11 +5,12 @@
         <Tab
           v-for="tab in searchModeList"
           :key="tab.value"
-          :label="tab.label"
           :value="tab.value"
           @click="tab.command ? tab.command() : null"
         >
-          {{ tab.label }}
+          {{
+            searchMode == tab.value ? tab.activeLabel || tab.label : tab.label
+          }}
         </Tab>
       </TabList>
     </Tabs>
