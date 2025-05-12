@@ -130,8 +130,11 @@ const updateMenubar = useState("updateMenubar"); // 更新選單欄的狀態
 
 onMounted(async () => {
   const termResp = await fetch("data/terms.json");
-  terms.value = await termResp.json();
-  currentTerm.value = terms.value[0]; // 預設當前學期為第一個學期
+  const termRespData = await termResp.json();
+  terms.value = termRespData.terms;
+  currentTerm.value = terms.value[termRespData.defaultIndex];
+  updateMenubar.value(); // 更新選單欄的狀態
+
   loadTermData.value = reloadCurrentTerm; // 將載入學期資料的函數存儲到狀態中
 
   loadTermData.value(); // 載入學期資料
