@@ -116,9 +116,9 @@ const generalCoreMap = {
 <style lang="scss">
 .course-row {
   display: grid;
-  grid-template-columns: 90px 6fr 6fr 7fr auto;
+  grid-template-columns: 64px 6fr 6fr 7fr auto;
   align-items: center;
-  padding: 0.5rem 0;
+  padding: 0.5rem;
   gap: 0.5rem;
 
   a {

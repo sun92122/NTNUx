@@ -77,13 +77,17 @@
         :global-filter-fields="
           searchMode.filter_field || defultGlobalFilterFields
         "
-        :showGridlines="true"
+        :showGridlines="false"
         :show-headers="false"
         :scrollable="true"
         scrollHeight="calc(100vh - 20rem)"
         :rows="50"
         :rowsPerPageOptions="[10, 20, 50, 100]"
         :loading="loading"
+        :style="{
+          border: '1px solid var(--p-datatable-border-color)',
+          borderRadius: '0.5rem',
+        }"
       >
         <template #header>
           <span>課程資訊</span>
@@ -514,6 +518,8 @@ async function reloadCurrentTerm() {
   margin-top: 2rem;
   width: 100vw;
   padding: 0;
+  --p-datatable-body-cell-padding: 0.75rem 0;
+
   .p-datatable-table-container,
   .p-datatable-table {
     min-height: 50vh;
