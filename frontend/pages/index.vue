@@ -115,6 +115,23 @@
             <CourseCell :course="data" />
           </template>
         </Column>
+
+        <!-- Selecte button -->
+        <Column
+          :headerStyle="{ width: '5rem', textAlign: 'center' }"
+          :bodyStyle="{ textAlign: 'center' }"
+          :sortable="false"
+          :style="{ width: '5rem', textAlign: 'center', paddingRight: '1rem' }"
+          :header="''"
+        >
+          <template #body="{ data }">
+            <Button
+              :label="selectedRows[data.serial_no] ? '取消' : '加入'"
+              :severity="selectedRows[data.serial_no] ? 'warn' : 'secondary'"
+              @click="selectCourse(data)"
+            />
+          </template>
+        </Column>
       </DataTable>
     </div>
   </div>
@@ -147,6 +164,7 @@ import Skeleton from "primevue/skeleton";
 import { FilterMatchMode, FilterOperator } from "@primevue/core/api";
 
 import Dialog from "primevue/dialog";
+import Button from "primevue/button";
 
 import Tabs from "primevue/tabs";
 import Tab from "primevue/tab";
@@ -481,6 +499,27 @@ async function reloadCurrentTerm() {
   rowDatas.value[currentTerm.value] = rowData.value; // 儲存當前學期資料
 
   updateMenubar.value(); // 更新選單欄的狀態
+}
+
+function selectCourse(course) {
+  const selectedCourse = selectedRows.value;
+  if (selectedCourse[course.serial_no]) {
+    delete selectedCourse[course.serial_no];
+    toast.add({
+      severity: "info",
+      summary: "已取消選課",
+      detail: `${course.serial_no} ${course.course_name}`,
+      life: 3000,
+    });
+  } else {
+    selectedCourse[course.serial_no] = course;
+    toast.add({
+      severity: "success",
+      summary: "已選課",
+      detail: `${course.serial_no} ${course.course_name}`,
+      life: 3000,
+    });
+  }
 }
 </script>
 
