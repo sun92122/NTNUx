@@ -242,9 +242,8 @@ const defultGlobalFilterFields = ["course_name", "teacher", "serial_no"]; // 預
 const isShowSchedule = ref(false); // 控制課表顯示的變數
 const loading = ref(true); // 控制載入狀態的變數
 
-// Row Data: The data to be displayed.
-const rowDatas = ref({});
-const rowData = ref([]);
+const rowDatas = useState("rowDatas", () => ({})); // 存儲所有學期的資料
+const rowData = ref([]); // 存儲當前學期的資料
 
 const selectedRows = ref({}); // 用於存儲選中的行數據
 
