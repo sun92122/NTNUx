@@ -491,7 +491,7 @@ async function reloadCurrentTerm() {
   }
 
   rowData.value = []; // 清空資料
-  selectedRows.value = []; // 清空選取的資料
+  selectedRows.value = {}; // 清空選取的資料
 
   // 重新載入資料
 
