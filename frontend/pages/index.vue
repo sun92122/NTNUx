@@ -245,7 +245,7 @@ const loading = ref(true); // 控制載入狀態的變數
 const rowDatas = useState("rowDatas", () => ({})); // 存儲所有學期的資料
 const rowData = ref([]); // 存儲當前學期的資料
 
-const selectedRows = ref({}); // 用於存儲選中的行數據
+const selectedRows = useState("selectedRows", () => ({})); // 存儲選取的課程資料
 
 const searchMode = ref("quick"); // 用於存儲當前的搜尋模式
 const searchModeList = [
