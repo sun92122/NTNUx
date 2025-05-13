@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <Toast />
     <Menubar :model="items" :sticky="true">
       <template>
         <Select
@@ -44,6 +45,8 @@ import Menubar from "primevue/menubar";
 import Button from "primevue/button";
 import Select from "primevue/selectbutton";
 import ToggleSwitch from "primevue/toggleswitch";
+
+import Toast from "primevue/toast";
 
 const updateMenubar = useState("updateMenubar");
 onMounted(() => {
@@ -142,6 +145,10 @@ function updateMenubarItems() {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+}
+
+.p-menubar-submenu {
+  z-index: 1000;
 }
 </style>
 

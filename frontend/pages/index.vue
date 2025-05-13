@@ -176,10 +176,14 @@ import InputIcon from "primevue/inputicon";
 import InputText from "primevue/inputtext";
 import MultiSelect from "primevue/multiselect";
 
+import { useToast } from "primevue/usetoast";
+
 const terms = useState("terms", () => []); // 存儲學期資料
 const currentTerm = useState("currentTerm", () => null); // 當前學期
 const loadTermData = useState("loadTermData");
 const updateMenubar = useState("updateMenubar"); // 更新選單欄的狀態
+
+const toast = useToast(); // 用於顯示提示訊息
 
 onMounted(async () => {
   const termResp = await fetch("data/terms.json");
@@ -242,7 +246,7 @@ const loading = ref(true); // 控制載入狀態的變數
 const rowDatas = ref({});
 const rowData = ref([]);
 
-const selectedRows = ref([]); // 用於存儲選中的行數據
+const selectedRows = ref({}); // 用於存儲選中的行數據
 
 const searchMode = ref("quick"); // 用於存儲當前的搜尋模式
 const searchModeList = [
