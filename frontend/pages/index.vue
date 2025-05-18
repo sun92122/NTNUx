@@ -3,7 +3,7 @@
     <Tabs v-model:value="searchMode" scrollable>
       <TabList>
         <Tab
-          v-for="tab in searchModeList"
+          v-for="tab in Object.values(searchModeList)"
           :key="tab.value"
           :value="tab.value"
           @click="tab.command ? tab.command() : null"
@@ -160,6 +160,9 @@ import MultiSelect from "primevue/multiselect";
 
 import { useToast } from "primevue/usetoast";
 
+const router = useRouter();
+const route = useRoute();
+
 const terms = useState("terms", () => []); // 存儲學期資料
 const currentTerm = useState("currentTerm", () => null); // 當前學期
 const loadTermData = useState("loadTermData");
@@ -167,78 +170,17 @@ const updateMenubar = useState("updateMenubar"); // 更新選單欄的狀態
 
 const toast = useToast(); // 用於顯示提示訊息
 
-onMounted(async () => {
-  const termResp = await fetch("data/terms.json");
-  const termRespData = await termResp.json();
-  terms.value = termRespData.terms;
-  currentTerm.value = terms.value[termRespData.defaultIndex];
-  updateMenubar.value(); // 更新選單欄的狀態
-
-  loadTermData.value = reloadCurrentTerm; // 將載入學期資料的函數存儲到狀態中
-
-  loadTermData.value(); // 載入學期資料
-});
-
-const subFilterValue = ref({
-  value: null,
-  filter_field: null,
-  select_list: [],
-  label: null,
-}); // 用於存儲子篩選器的值
-const filters = ref({
-  global: {
-    value: null,
-    matchMode: FilterMatchMode.CONTAINS,
-  },
-  option_code: {
-    value: null,
-    matchMode: FilterMatchMode.EQUALS,
-  },
-  course_name: {
-    value: null,
-    matchMode: FilterMatchMode.CONTAINS,
-  },
-  chn_name: {
-    value: null,
-    matchMode: FilterMatchMode.CONTAINS,
-  },
-  dept_chiabbr: {
-    value: null,
-    matchMode: FilterMatchMode.CONTAINS,
-  },
-  eng_teach: {
-    value: null,
-    matchMode: FilterMatchMode.EQUALS,
-  },
-  generalCore: {
-    operator: FilterOperator.OR,
-    constraints: [],
-  },
-  dept_code: {
-    operator: FilterOperator.OR,
-    constraints: [],
-  },
-});
-const defultGlobalFilterFields = ["course_name", "teacher", "serial_no"]; // 預設的全域篩選欄位
-
-const isShowSchedule = ref(false); // 控制課表顯示的變數
-const loading = ref(true); // 控制載入狀態的變數
-
-const rowDatas = useState("rowDatas", () => ({})); // 存儲所有學期的資料
-const rowData = ref([]); // 存儲當前學期的資料
-
-const selectedRows = useState("selectedRows", () => ({})); // 存儲選取的課程資料
-
-const searchMode = ref("quick"); // 用於存儲當前的搜尋模式
-const searchModeList = [
-  {
+const searchText = null;
+const searchMode = ref(""); // 用於存儲當前的搜尋模式
+const searchModeList = ref({
+  quick: {
     label: "快速搜尋",
     value: "quick",
     command: () => {
       filterMutatou({});
     },
   },
-  {
+  general: {
     label: "通識",
     value: "general",
     command: () => {
@@ -290,7 +232,7 @@ const searchModeList = [
     },
     filter_field: ["course_name"],
   },
-  {
+  physical: {
     label: "體育",
     activeLabel: "普通體育",
     value: "physical",
@@ -298,15 +240,15 @@ const searchModeList = [
       filterMutatou({ dept_chiabbr: "普通體育" });
     },
   },
-  {
+  defense: {
     label: "國防",
     activeLabel: "全民國防教育",
-    value: "Defense",
+    value: "defense",
     command: () => {
       filterMutatou({ chn_name: "全民國防" });
     },
   },
-  {
+  interschool: {
     label: "校際",
     activeLabel: "臺大系統校際課程",
     value: "interschool",
@@ -330,35 +272,106 @@ const searchModeList = [
       );
     },
   },
-  {
+  program: {
     label: "學分學程",
     value: "program",
     command: () => {
       filterMutatou({ chn_name: "學分學程" });
     },
   },
-  {
+  english: {
     label: "英文三",
     value: "english",
     command: () => {
       filterMutatou({ course_name: "英文（三）" });
     },
   },
-  {
+  emi: {
     label: "英文授課",
-    value: "EMI",
+    value: "emi",
     command: () => {
       filterMutatou({ eng_teach: "是" });
     },
   },
-  {
+  "": {
     label: "",
     value: "quick",
     command: () => {
       filterMutatou({});
     },
   },
-];
+});
+
+onMounted(async () => {
+  const termResp = await fetch("data/terms.json");
+  const termRespData = await termResp.json();
+  terms.value = termRespData.terms;
+  currentTerm.value = route.query.term;
+  if (!currentTerm.value || terms.value.indexOf(currentTerm.value) === -1) {
+    currentTerm.value = terms.value[termRespData.defaultIndex];
+  }
+  updateMenubar.value(); // 更新選單欄的狀態
+  searchMode.value = route.query.m.toLowerCase() || "quick"; // 更新搜尋模式
+
+  loadTermData.value = reloadCurrentTerm; // 將載入學期資料的函數存儲到狀態中
+
+  loadTermData.value(); // 載入學期資料
+
+  if (searchModeList.value[searchMode.value]) {
+    searchModeList.value[searchMode.value]?.command(); // 如果搜尋模式在列表中，則執行對應的命令
+  } else {
+    searchMode.value = "quick"; // 如果搜尋模式不在列表中，則設置為預設值
+  }
+});
+
+const subFilterValue = ref({
+  value: null,
+  filter_field: null,
+  select_list: [],
+  label: null,
+}); // 用於存儲子篩選器的值
+const filters = ref({
+  global: {
+    value: searchText,
+    matchMode: FilterMatchMode.CONTAINS,
+  },
+  option_code: {
+    value: null,
+    matchMode: FilterMatchMode.EQUALS,
+  },
+  course_name: {
+    value: null,
+    matchMode: FilterMatchMode.CONTAINS,
+  },
+  chn_name: {
+    value: null,
+    matchMode: FilterMatchMode.CONTAINS,
+  },
+  dept_chiabbr: {
+    value: null,
+    matchMode: FilterMatchMode.CONTAINS,
+  },
+  eng_teach: {
+    value: null,
+    matchMode: FilterMatchMode.EQUALS,
+  },
+  generalCore: {
+    operator: FilterOperator.OR,
+    constraints: [],
+  },
+  dept_code: {
+    operator: FilterOperator.OR,
+    constraints: [],
+  },
+});
+const defultGlobalFilterFields = ["course_name", "teacher", "serial_no"]; // 預設的全域篩選欄位
+
+const loading = ref(true); // 控制載入狀態的變數
+
+const rowDatas = useState("rowDatas", () => ({})); // 存儲所有學期的資料
+const rowData = ref([]); // 存儲當前學期的資料
+
+const selectedRows = useState("selectedRows", () => ({})); // 存儲選取的課程資料
 
 function filterMutatou(updateValue, subFilter = null) {
   const filter = filters.value;
@@ -506,6 +519,24 @@ function selectCourse(course) {
     });
   }
 }
+
+async function updateUrlState(searchMode, searchText = null) {
+  router.replace({
+    path: route.path, // 保持當前路徑
+    query: {
+      ...route.query, // 保留原有參數
+      m: searchMode,
+      s: searchText || route.query.s || null,
+    },
+  });
+}
+
+watch(
+  () => searchMode.value,
+  (newValue) => {
+    updateUrlState(newValue, filters.value.global.value);
+  }
+);
 </script>
 
 <style lang="scss">
