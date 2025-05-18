@@ -311,7 +311,7 @@ onMounted(async () => {
     currentTerm.value = terms.value[termRespData.defaultIndex];
   }
   updateMenubar.value(); // 更新選單欄的狀態
-  searchMode.value = route.query.m.toLowerCase() || "quick"; // 更新搜尋模式
+  searchMode.value = route.query.m?.toLowerCase() || "quick"; // 更新搜尋模式
 
   loadTermData.value = reloadCurrentTerm; // 將載入學期資料的函數存儲到狀態中
 
