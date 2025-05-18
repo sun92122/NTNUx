@@ -161,4 +161,8 @@ body {
 html {
   font-size: 14px;
 }
+
+.p-menubar-submenu {
+  z-index: 1000;
+}
 </style>
