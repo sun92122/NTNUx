@@ -36,7 +36,25 @@
         </div>
       </template>
     </Menubar>
+
     <NuxtPage />
+
+    <Dialog
+      v-model:visible="isShowSchedule"
+      maximizable
+      modal
+      header="課表"
+      :style="{
+        width: '50rem',
+        height: '80vh',
+      }"
+      :content-style="{
+        margin: '0 0 1rem',
+      }"
+      :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+    >
+      <FloatingSchedule />
+    </Dialog>
   </div>
 </template>
 
@@ -48,10 +66,15 @@ import ToggleSwitch from "primevue/toggleswitch";
 
 import Toast from "primevue/toast";
 
+import Dialog from "primevue/dialog";
+import { FloatingSchedule } from "#components";
+
 const updateMenubar = useState("updateMenubar");
 onMounted(() => {
   updateMenubar.value = updateMenubarItems;
 });
+
+const isShowSchedule = ref(false); // 控制課表顯示的變數
 
 const currentTerm = useState("currentTerm", () => null);
 const terms = useState("terms", () => []);
@@ -60,17 +83,17 @@ const items = ref([
   {
     label: "首頁",
     icon: "pi pi-fw pi-home",
-    route: "/",
   },
   {
     label: "課表",
     icon: "pi pi-fw pi-calendar",
-    route: "/schedule",
+    command: () => {
+      isShowSchedule.value = true;
+    },
   },
   {
     label: "關於",
     icon: "pi pi-fw pi-info-circle",
-    route: "/about",
   },
   {
     label: "選擇學期",
@@ -145,10 +168,6 @@ function updateMenubarItems() {
   display: flex;
   align-items: center;
   gap: 1.5rem;
-}
-
-.p-menubar-submenu {
-  z-index: 1000;
 }
 </style>
 

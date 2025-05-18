@@ -135,35 +135,17 @@
       </DataTable>
     </div>
   </div>
-
-  <Dialog
-    v-model:visible="isShowSchedule"
-    maximizable
-    modal
-    header="Header"
-    :style="{
-      width: '50rem',
-      height: '80vh',
-    }"
-    :content-style="{
-      margin: '0 0 1rem',
-    }"
-    :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
-  >
-    <FloatingSchedule :selectedRows="selectedRows" />
-  </Dialog>
 </template>
 
 <script setup>
 import { ref } from "vue";
-import { FloatingSchedule, CourseCell } from "#components";
+import { CourseCell } from "#components";
 
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Skeleton from "primevue/skeleton";
 import { FilterMatchMode, FilterOperator } from "@primevue/core/api";
 
-import Dialog from "primevue/dialog";
 import Button from "primevue/button";
 
 import Tabs from "primevue/tabs";

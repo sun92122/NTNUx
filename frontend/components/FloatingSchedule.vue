@@ -1,30 +1,37 @@
 <template>
   <div class="schedule-box">
-    <div class="timetable">
-      <div class="row header-row">
-        <div class="cell time-cell"></div>
-        <div v-for="day in days" :key="day" class="cell">{{ day }}</div>
-      </div>
-      <div v-for="slot in slots" :key="slot.label" class="row">
-        <div class="cell time-cell">
-          {{ slot.label }}<br /><small>{{ slot.time }}</small>
-        </div>
-        <div v-for="day in days" :key="day" class="cell">
-          <div
-            v-for="course in CoursesByDay[day]?.[slot.label] || []"
-            :key="course.serial_no"
-            class="course-block"
-            :style="{ backgroundColor: getCourseColor(course.serial_no) }"
-          >
-            {{ course.chn_name.replace(/<\/?br>/g, " ") }}
-            <br />
-            {{ course.teacher }}
-            <br />
-            {{ course.loc }}
+    <DataTable
+      :value="slots"
+      :showGridlines="true"
+      :scrollable="true"
+      scrollHeight="flex"
+    >
+      <Column field="label" header="" :style="{ width: '40px' }" />
+
+      <Column
+        v-for="(day, index) in days"
+        :key="index"
+        :header="day"
+        :style="{ width: '100px' }"
+      >
+        <template #body="slotProps">
+          <div>
+            <div
+              v-for="(info, index) in CoursesByTime[day][slotProps.data.label]"
+              :key="index"
+              :style="{ background: getCourseColor(info.serial_no) }"
+              class="course-cell"
+            >
+              {{ selectedRows[info.serial_no].course_name }}
+              <br />
+              {{ selectedRows[info.serial_no].teacher }}
+              <br />
+              {{ info.loc }}
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </template>
+      </Column>
+    </DataTable>
   </div>
   <SpeedDial
     :model="settingItems"
@@ -39,14 +46,12 @@
 import ColorPicker from "primevue/colorpicker";
 import SpeedDial from "primevue/speeddial";
 
-const props = defineProps({
-  selectedRows: {
-    type: Array,
-    default: () => [],
-  },
-});
+import DataTable from "primevue/datatable";
+import Column from "primevue/column";
 
-const days = ["一", "二", "三", "四", "五"];
+const selectedRows = useState("selectedRows", () => ({}));
+
+const days = ["一", "二", "三", "四", "五", "六"];
 const slots = [
   { label: "0", time: "07:10 ~ 08:00" },
   { label: "1", time: "08:10 ~ 09:00" },
@@ -73,7 +78,7 @@ function parseTimeSlots(timeObj) {
 
   for (const seg of Object.keys(timeObj)) {
     const match = seg.match(
-      /([一二三四五])\s*(\d+|A|B|C|D)(?:-(\d+|A|B|C|D))?/
+      /([一二三四五六])\s*(\d+|A|B|C|D)(?:-(\d+|A|B|C|D))?/
     );
     if (match) {
       const [_, day, start, end] = match;
@@ -109,48 +114,49 @@ function getRange(start, end) {
   return periodOrder.slice(s, e + 1);
 }
 
-function getCoursesAt(day, period) {
-  return props.selectedRows.filter((course) => {
-    const slots = parseTimeSlots(course.time || "");
-    return slots.some((slot) => slot.day === day && slot.period === period);
-  });
+const CoursesByTime = ref({});
+// {"0001": { (course1 info) }, "0002": { (course2 info) }, ...} ->
+// { "一": { "0": [], "1": [] } }, "二": { "0": [], "1": [] } }, ... }
+function initializeCoursesByTime() {
+  const coursesByTime = {};
+  for (const day of days) {
+    coursesByTime[day] = {};
+    for (const slot of slots) {
+      coursesByTime[day][slot.label] = [];
+    }
+  }
+  CoursesByTime.value = coursesByTime;
 }
 
-const CoursesByDay = ref({});
-// { 一: { 0: [course at 一 0], 1: [course at 一 1] }, ...}
-function groupCoursesByDay() {
-  CoursesByDay.value = {};
-  for (const course of props.selectedRows) {
-    const slots = parseTimeSlots(course.time_loc || "");
-    for (const slot of slots) {
-      if (!CoursesByDay.value[slot.day]) {
-        CoursesByDay.value[slot.day] = {};
+// selectedRows.value = {"0002":{ couse0002 info},"0003":{ course0003 info }}
+function updateCoursesByTime() {
+  for (const [serial_no, course] of Object.entries(selectedRows.value)) {
+    if (!course) continue;
+    const timeSlots = parseTimeSlots(course.time_loc);
+    for (const { day, period, loc } of timeSlots) {
+      if (day in CoursesByTime.value && period in CoursesByTime.value[day]) {
+        CoursesByTime.value[day][period].push({ serial_no, loc });
       }
-      if (!CoursesByDay.value[slot.day][slot.period]) {
-        CoursesByDay.value[slot.day][slot.period] = [];
-      }
-      CoursesByDay.value[slot.day][slot.period].push({
-        ...course,
-        loc: slot.loc,
-      });
     }
   }
 }
-groupCoursesByDay();
+
+initializeCoursesByTime();
+updateCoursesByTime();
 
 const colorMap = ref({});
 function autoColor(serial_no) {
   const palette = [
-    "#FFDD57",
-    "#87CEEB",
-    "#FF7F7F",
-    "#90EE90",
-    "#DDA0DD",
-    "#FFA07A",
-    "#00CED1",
-    "#F4A460",
-    "#B0E0E6",
-    "#FFB6C1",
+    "#FFDD57A8",
+    "#87CEEBA8",
+    "#FF7F7FA8",
+    "#90EE90A8",
+    "#DDA0DDA8",
+    "#FFA07AA8",
+    "#00CED1A8",
+    "#F4A460A8",
+    "#B0E0E6A8",
+    "#FFB6C1A8",
   ];
   const hash = Array.from(serial_no).reduce(
     (acc, char) => acc + char.charCodeAt(0),
@@ -194,66 +200,23 @@ const settingItems = ref([
 ]);
 </script>
 
-<style scoped>
+<style lang="scss">
 .schedule-box {
   background: white;
   overflow-y: auto;
-}
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-.timetable {
-  display: grid;
-  grid-template-columns: 80px repeat(5, 1fr);
-}
-.row {
-  display: contents;
-}
-.cell {
-  border: 1px solid #ddd;
-  min-height: 60px;
-  padding: 2px;
-  position: relative;
-}
-.time-cell {
-  background: #f8f8f8;
-  text-align: center;
-  font-size: 12px;
-}
-.course-block {
-  background: #e2f0ff;
-  /* border-left: 4px solid #1e90ff; */
-  font-size: 12px;
-  padding: 2px;
-  margin: 1px 0;
-}
-button {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-.color-picker {
-  position: fixed; /* 使用 fixed，避免被表格內容擋住 */
-  background: white;
-  padding: 12px 16px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-  z-index: 1001;
-  text-align: center;
-}
-.color-picker input[type="color"] {
-  margin: 10px 0;
-}
-.color-picker button {
-  background: #ddd;
-  border: none;
-  padding: 4px 8px;
-  border-radius: 4px;
-  cursor: pointer;
+  --p-datatable-body-cell-padding: 0.125rem 0.25rem;
+
+  .p-datatable-tbody > tr > td {
+    text-align: center;
+  }
+
+  .p-datatable-column-header-content {
+    justify-content: center;
+  }
+  .course-cell {
+    font-size: 0.8rem;
+    text-align: start;
+    padding: 0.25rem;
+  }
 }
 </style>
