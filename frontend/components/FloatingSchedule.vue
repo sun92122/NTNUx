@@ -31,6 +31,26 @@
           </div>
         </template>
       </Column>
+
+      <ColumnGroup type="footer">
+        <Row>
+          <Column
+            footer="其他課程"
+            :colspan="2"
+            footerStyle="text-align:center"
+          />
+          <Column :colspan="5">
+            <template #footer>
+              <div v-for="(course, index) in otherCourses" :key="index">
+                {{
+                  `● ${course.course_name} ${course.teacher} 【${course.dept_chiabbr}】` +
+                  (course.time_loc ? ` ${course.time_loc}` : "")
+                }}
+              </div>
+            </template>
+          </Column>
+        </Row>
+      </ColumnGroup>
     </DataTable>
   </div>
   <SpeedDial
@@ -48,8 +68,11 @@ import SpeedDial from "primevue/speeddial";
 
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
+import ColumnGroup from "primevue/columngroup";
+import Row from "primevue/row";
 
 const selectedRows = useState("selectedRows", () => ({}));
+const otherCourses = ref([]);
 
 const days = ["一", "二", "三", "四", "五", "六"];
 const slots = [
@@ -133,6 +156,9 @@ function updateCoursesByTime() {
   for (const [serial_no, course] of Object.entries(selectedRows.value)) {
     if (!course) continue;
     const timeSlots = parseTimeSlots(course.time_loc);
+    if (!timeSlots || timeSlots.length === 0) {
+      otherCourses.value.push(course);
+    }
     for (const { day, period, loc } of timeSlots) {
       if (day in CoursesByTime.value && period in CoursesByTime.value[day]) {
         CoursesByTime.value[day][period].push({ serial_no, loc });
