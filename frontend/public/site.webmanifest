@@ -1,6 +1,6 @@
 {
-  "name": "NTNUx - 臺師大課程查詢魔改版",
-  "short_name": "NTNUx",
+  "name": "MyWebSite",
+  "short_name": "MySite",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
