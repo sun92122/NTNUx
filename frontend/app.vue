@@ -182,6 +182,6 @@ html {
 }
 
 .p-menubar-submenu {
-  z-index: 1000;
+  z-index: 1000 !important;
 }
 </style>
