@@ -73,3 +73,9 @@ bun run preview
 ```
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+
+## Favicon setup
+
+```bash
+npx realfavicon generate ".\public\favicon.png" favicon-settings.json output-data.json ".\public"
+```

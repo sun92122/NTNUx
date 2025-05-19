@@ -80,10 +80,42 @@ const MyPreset = definePreset(Aura, {
 
 export default defineNuxtConfig({
   app: {
-    baseURL: "/", // 使用自訂網域，保留為根路徑
+    baseURL: "", // 使用自訂網域，保留為根路徑
+    head: {
+      title: "NTNUx",
+      link: [
+        {
+          rel: "icon",
+          type: "image/png",
+          href: "/favicon-96x96.png",
+          sizes: "96x96",
+        },
+        { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+        { rel: "shortcut icon", href: "/favicon.ico" },
+        {
+          rel: "apple-touch-icon",
+          sizes: "180x180",
+          href: "/apple-touch-icon.png",
+        },
+        { rel: "manifest", href: "/site.webmanifest" },
+      ],
+      meta: [
+        { name: "apple-mobile-web-app-title", content: "NTNUx" },
+        { name: "apple-mobile-web-app-capable", content: "yes" },
+        {
+          name: "apple-mobile-web-app-status-bar-style",
+          content: "black-translucent",
+        },
+      ],
+    },
   },
   nitro: {
     preset: "static",
+  },
+  router: {
+    options: {
+      strict: true,
+    },
   },
 
   modules: ["@primevue/nuxt-module"],
