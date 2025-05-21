@@ -1,16 +1,18 @@
 <template>
   <div id="app">
     <Toast />
-    <Menubar :model="items" :sticky="true">
-      <template>
-        <Select
-          v-model="currentTerm"
-          :options="terms"
-          @change="onTermChange"
-          class="me-2"
-          aria-label="Select Term"
-        ></Select>
+    <Menubar :model="items" :sticky="true" breakpoint="340px">
+      <template #start>
+        <Button
+          icon="pi pi-fw pi-calendar"
+          label="課表"
+          class="p-button-text"
+          severity="secondary"
+          @click="isShowSchedule = true"
+          aria-label="Show Schedule"
+        ></Button>
       </template>
+
       <template #end>
         <div class="menubar-end">
           <ToggleSwitch
@@ -45,13 +47,13 @@
       modal
       header="課表"
       :style="{
-        width: '50rem',
+        width: '850px',
         height: '80vh',
       }"
       :content-style="{
         margin: '0 0 1rem',
       }"
-      :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+      :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
     >
       <FloatingSchedule />
     </Dialog>
@@ -61,7 +63,6 @@
 <script setup>
 import Menubar from "primevue/menubar";
 import Button from "primevue/button";
-import Select from "primevue/selectbutton";
 import ToggleSwitch from "primevue/toggleswitch";
 
 import Toast from "primevue/toast";
@@ -80,21 +81,6 @@ const currentTerm = useState("currentTerm", () => null);
 const terms = useState("terms", () => []);
 const loadTermData = useState("loadTermData");
 const items = ref([
-  {
-    label: "首頁",
-    icon: "pi pi-fw pi-home",
-  },
-  {
-    label: "課表",
-    icon: "pi pi-fw pi-calendar",
-    command: () => {
-      isShowSchedule.value = true;
-    },
-  },
-  {
-    label: "關於",
-    icon: "pi pi-fw pi-info-circle",
-  },
   {
     label: "選擇學期",
     icon: "pi pi-fw pi-book",
@@ -134,21 +120,23 @@ const toggleSwitchDt = ref({
 });
 
 function updateMenubarItems() {
+  const termLabelItem = items.value[0];
+
   // 更新學期選單
-  items.value[3].items = terms.value.map((term) => ({
+  termLabelItem.items = terms.value.map((term) => ({
     label: term,
     command: () => {
       currentTerm.value = term;
       loadTermData.value();
-      items.value[3].label = `學期：${term}`; // 更新學期顯示
+      termLabelItem.label = `學期：${term}`; // 更新學期顯示
     },
   }));
   // 更新學期顯示
   if (!currentTerm.value) {
-    items.value[3].label = "選擇學期";
+    termLabelItem.label = "選擇學期";
     return;
   }
-  items.value[3].label = `學期：${currentTerm.value}`;
+  termLabelItem.label = `學期：${currentTerm.value}`;
 }
 </script>
 
