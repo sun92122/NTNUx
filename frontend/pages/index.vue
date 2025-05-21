@@ -371,6 +371,7 @@ const loading = ref(true); // 控制載入狀態的變數
 const rowDatas = useState("rowDatas", () => ({})); // 存儲所有學期的資料
 const rowData = ref([]); // 存儲當前學期的資料
 
+const selectedCourses = useState("selectedCourses", () => ({})); // 存儲選取的課程資料
 const selectedRows = useState("selectedRows", () => ({})); // 存儲選取的課程資料
 
 function filterMutatou(updateValue, subFilter = null) {
@@ -478,6 +479,11 @@ function locationFormatter(location) {
 async function reloadCurrentTerm() {
   loading.value = true; // 開始載入資料
 
+  if (!selectedCourses.value[currentTerm.value]) {
+    selectedCourses.value[currentTerm.value] = {};
+  }
+  selectedRows.value = selectedCourses.value[currentTerm.value]; // 更新選取的課程資料
+
   // check if the current term data in rowDatas
   if (rowDatas.value[currentTerm.value]) {
     rowData.value = rowDatas.value[currentTerm.value]; // 直接使用已載入的資料
@@ -486,7 +492,6 @@ async function reloadCurrentTerm() {
   }
 
   rowData.value = []; // 清空資料
-  selectedRows.value = {}; // 清空選取的資料
 
   // 重新載入資料
 
