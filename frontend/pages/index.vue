@@ -129,7 +129,7 @@
               :label="selectedRows[data.serial_no] ? '取消' : '加入'"
               :severity="selectedRows[data.serial_no] ? 'warn' : 'secondary'"
               @click="selectCourse(data)"
-            />
+            ></Button>
           </template>
         </Column>
       </DataTable>
@@ -138,52 +138,102 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { CourseCell } from "#components";
-
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
-import Skeleton from "primevue/skeleton";
+import { ref, onMounted, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { useToast } from "primevue/usetoast";
 import { FilterMatchMode, FilterOperator } from "@primevue/core/api";
 
-import Button from "primevue/button";
+import { useCourses } from "~/composables/useCourses";
 
-import Tabs from "primevue/tabs";
-import Tab from "primevue/tab";
-import TabList from "primevue/tablist";
-
-import FloatLabel from "primevue/floatlabel";
-import IconField from "primevue/iconfield";
-import InputIcon from "primevue/inputicon";
-import InputText from "primevue/inputtext";
-import MultiSelect from "primevue/multiselect";
-
-import { useToast } from "primevue/usetoast";
+import {
+  DataTable,
+  Column,
+  Skeleton,
+  Button,
+  InputText,
+  MultiSelect,
+  FloatLabel,
+  IconField,
+  InputIcon,
+  Tabs,
+  Tab,
+  TabList,
+} from "primevue";
+import { CourseCell } from "#components";
 
 const router = useRouter();
 const route = useRoute();
+const toast = useToast();
 
-const terms = useState("terms", () => []); // 存儲學期資料
-const currentTerm = useState("currentTerm", () => null); // 當前學期
-const loadTermData = useState("loadTermData");
-const updateMenubar = useState("updateMenubar"); // 更新選單欄的狀態
+const {
+  terms,
+  currentTerm,
+  rowData,
+  loading,
+  reloadCurrentTerm,
+  initTermData,
+  defultGlobalFilterFields,
+} = useCourses();
 
-const toast = useToast(); // 用於顯示提示訊息
+const updateMenubar = useState("updateMenubar");
+const selectedCourses = useState("selectedCourses", () => ({}));
+const selectedRows = useState("selectedRows", () => ({}));
 
+// 搜尋模式與子篩選器
+const searchMode = ref("");
 const searchText = null;
-const searchMode = ref(""); // 用於存儲當前的搜尋模式
+const subFilterValue = ref({
+  value: null,
+  filter_field: null,
+  select_list: [],
+  label: null,
+});
+
+const filters = ref({
+  global: {
+    value: searchText,
+    matchMode: FilterMatchMode.CONTAINS,
+  },
+  option_code: {
+    value: null,
+    matchMode: FilterMatchMode.EQUALS,
+  },
+  course_name: {
+    value: null,
+    matchMode: FilterMatchMode.CONTAINS,
+  },
+  chn_name: {
+    value: null,
+    matchMode: FilterMatchMode.CONTAINS,
+  },
+  dept_chiabbr: {
+    value: null,
+    matchMode: FilterMatchMode.CONTAINS,
+  },
+  eng_teach: {
+    value: null,
+    matchMode: FilterMatchMode.EQUALS,
+  },
+  generalCore: {
+    operator: FilterOperator.OR,
+    constraints: [],
+  },
+  dept_code: {
+    operator: FilterOperator.OR,
+    constraints: [],
+  },
+});
+
 const searchModeList = ref({
   quick: {
     label: "快速搜尋",
     value: "quick",
-    command: () => {
-      filterMutatou({});
-    },
+    command: () => filterMutatou({}),
   },
   general: {
     label: "通識",
     value: "general",
-    command: () => {
+    command: () =>
       filterMutatou(
         { option_code: "通" },
         {
@@ -228,31 +278,25 @@ const searchModeList = ref({
           ],
           filter_field: "generalCore",
         }
-      );
-    },
-    filter_field: ["course_name"],
+      ),
   },
   physical: {
     label: "體育",
     activeLabel: "普通體育",
     value: "physical",
-    command: () => {
-      filterMutatou({ dept_chiabbr: "普通體育" });
-    },
+    command: () => filterMutatou({ dept_chiabbr: "普通體育" }),
   },
   defense: {
     label: "國防",
     activeLabel: "全民國防教育",
     value: "defense",
-    command: () => {
-      filterMutatou({ chn_name: "全民國防" });
-    },
+    command: () => filterMutatou({ chn_name: "全民國防" }),
   },
   interschool: {
     label: "校際",
     activeLabel: "臺大系統校際課程",
     value: "interschool",
-    command: () => {
+    command: () =>
       filterMutatou(
         { dept_chiabbr: "校際" },
         {
@@ -269,245 +313,89 @@ const searchModeList = ref({
           ],
           filter_field: "dept_code",
         }
-      );
-    },
+      ),
   },
   program: {
     label: "學分學程",
     value: "program",
-    command: () => {
-      filterMutatou({ chn_name: "學分學程" });
-    },
+    command: () => filterMutatou({ chn_name: "學分學程" }),
   },
   english: {
     label: "英文三",
     value: "english",
-    command: () => {
-      filterMutatou({ course_name: "英文（三）" });
-    },
+    command: () => filterMutatou({ course_name: "英文（三）" }),
   },
   emi: {
     label: "英文授課",
     value: "emi",
-    command: () => {
-      filterMutatou({ eng_teach: "是" });
-    },
+    command: () => filterMutatou({ eng_teach: "是" }),
   },
   "": {
     label: "",
     value: "quick",
-    command: () => {
-      filterMutatou({});
-    },
+    command: () => filterMutatou({}),
   },
 });
 
 onMounted(async () => {
-  const termResp = await fetch("data/terms.json");
-  const termRespData = await termResp.json();
-  terms.value = termRespData.terms;
-  currentTerm.value = route.query.term;
-  if (!currentTerm.value || terms.value.indexOf(currentTerm.value) === -1) {
-    currentTerm.value = terms.value[termRespData.defaultIndex];
-  }
-  updateMenubar.value(); // 更新選單欄的狀態
-  searchMode.value = route.query.m?.toLowerCase() || "quick"; // 更新搜尋模式
+  await initTermData(route);
+  updateMenubar.value();
 
-  loadTermData.value = reloadCurrentTerm; // 將載入學期資料的函數存儲到狀態中
-
-  loadTermData.value(); // 載入學期資料
-
+  searchMode.value = route.query.m?.toLowerCase() || "quick";
   if (searchModeList.value[searchMode.value]) {
-    searchModeList.value[searchMode.value]?.command(); // 如果搜尋模式在列表中，則執行對應的命令
+    searchModeList.value[searchMode.value]?.command();
   } else {
-    searchMode.value = "quick"; // 如果搜尋模式不在列表中，則設置為預設值
+    searchMode.value = "quick";
   }
+
+  if (!selectedCourses.value[currentTerm.value]) {
+    selectedCourses.value[currentTerm.value] = {};
+  }
+  selectedRows.value = selectedCourses.value[currentTerm.value];
 });
 
-const subFilterValue = ref({
-  value: null,
-  filter_field: null,
-  select_list: [],
-  label: null,
-}); // 用於存儲子篩選器的值
-const filters = ref({
-  global: {
-    value: searchText,
-    matchMode: FilterMatchMode.CONTAINS,
-  },
-  option_code: {
-    value: null,
-    matchMode: FilterMatchMode.EQUALS,
-  },
-  course_name: {
-    value: null,
-    matchMode: FilterMatchMode.CONTAINS,
-  },
-  chn_name: {
-    value: null,
-    matchMode: FilterMatchMode.CONTAINS,
-  },
-  dept_chiabbr: {
-    value: null,
-    matchMode: FilterMatchMode.CONTAINS,
-  },
-  eng_teach: {
-    value: null,
-    matchMode: FilterMatchMode.EQUALS,
-  },
-  generalCore: {
-    operator: FilterOperator.OR,
-    constraints: [],
-  },
-  dept_code: {
-    operator: FilterOperator.OR,
-    constraints: [],
-  },
-});
-const defultGlobalFilterFields = ["course_name", "teacher", "serial_no"]; // 預設的全域篩選欄位
-
-const loading = ref(true); // 控制載入狀態的變數
-
-const rowDatas = useState("rowDatas", () => ({})); // 存儲所有學期的資料
-const rowData = ref([]); // 存儲當前學期的資料
-
-const selectedCourses = useState("selectedCourses", () => ({})); // 存儲選取的課程資料
-const selectedRows = useState("selectedRows", () => ({})); // 存儲選取的課程資料
+watch(
+  () => searchMode.value,
+  (newValue) => {
+    router.replace({
+      path: route.path,
+      query: {
+        ...route.query,
+        m: newValue,
+        s: filters.value.global.value || null,
+      },
+    });
+  }
+);
 
 function filterMutatou(updateValue, subFilter = null) {
-  const filter = filters.value;
-  for (const key in filter) {
-    if (key === "global") {
-      continue; // Skip global filter
-    }
+  for (const key in filters.value) {
+    if (key === "global") continue;
     if (key in updateValue) {
-      filter[key].value = updateValue[key];
+      filters.value[key].value = updateValue[key];
     } else {
-      if (filter[key].value) {
-        filter[key].value = null;
-      }
-      if (filter[key].constraints) {
-        filter[key].constraints = [];
-      }
+      filters.value[key].value = null;
+      filters.value[key].constraints &&= [];
     }
   }
 
   if (subFilter) {
-    subFilterValue.value.value = null; // 清空子篩選器的值
-    subFilterValue.value.filter_field = subFilter.filter_field;
-    subFilterValue.value.select_list = subFilter.select_list;
-    subFilterValue.value.label = subFilter.label;
+    subFilterValue.value = {
+      ...subFilterValue.value,
+      value: null,
+      filter_field: subFilter.filter_field,
+      select_list: subFilter.select_list,
+      label: subFilter.label,
+    };
   } else {
     subFilterValue.value.filter_field = null;
   }
 }
 
-async function fetchData(i) {
-  // Fetch data from the server
-  const res = await fetch(`data/${currentTerm.value}/${i}.min.json`);
-  if (!res.ok) {
-    return null; // Return null if no data
-  }
-  const data = await res.json();
-  if (data.length === 0) {
-    return null; // Return null if no data
-  }
-  return data.map((item) => {
-    return {
-      ...item,
-      course_name: item.chn_name.replace(/<\/br>.*/g, ""),
-      time: timeFormatter(item.time_loc),
-      location: locationFormatter(item.time_loc),
-      teacher: teacherNameFormatter(item.teacher),
-      generalCore: item.generalCore.join("/"),
-    };
-  });
-}
-
-async function fetchAllData() {
-  const fetchPromises = [];
-  for (let i = 0; i < 10; i++) {
-    fetchPromises.push(fetchData(i));
-  }
-
-  for await (const page of fetchPromises) {
-    if (!page) {
-      continue; // Skip if no data
-    }
-    rowData.value = rowData.value.concat(page);
-    loading.value = false; // 停止載入資料
-  }
-}
-
-function teacherNameFormatter(teacher) {
-  return teacher.replace("", "温");
-}
-
-// .time_loc => { '一 1-2': 'A', '二 3-4': 'B' }
-function timeFormatter(time) {
-  if (typeof time === "string") {
-    return time;
-  }
-
-  const timeLocation = [];
-  for (const [key, _] of Object.entries(time)) {
-    const [day, period] = key.split(" ");
-    timeLocation.push(`${day} ${period}`);
-  }
-  return timeLocation.join("/");
-}
-
-// all same => A, else => A/B/...
-function locationFormatter(location) {
-  if (typeof location === "string") {
-    return null;
-  }
-
-  const locations = [];
-  for (const [_, value] of Object.entries(location)) {
-    if (value !== "") {
-      locations.push(value);
-    }
-  }
-  const uniqueLocations = [...new Set(locations)];
-  if (uniqueLocations.length === 1) {
-    return uniqueLocations[0];
-  }
-  return locations.join("/");
-}
-
-async function reloadCurrentTerm() {
-  loading.value = true; // 開始載入資料
-
-  if (!selectedCourses.value[currentTerm.value]) {
-    selectedCourses.value[currentTerm.value] = {};
-  }
-  selectedRows.value = selectedCourses.value[currentTerm.value]; // 更新選取的課程資料
-
-  // check if the current term data in rowDatas
-  if (rowDatas.value[currentTerm.value]) {
-    rowData.value = rowDatas.value[currentTerm.value]; // 直接使用已載入的資料
-    loading.value = false; // 停止載入資料
-    return;
-  }
-
-  rowData.value = []; // 清空資料
-
-  // 重新載入資料
-
-  await fetchAllData().then(() => {
-    loading.value = false; // 停止載入資料
-  });
-
-  rowDatas.value[currentTerm.value] = rowData.value; // 儲存當前學期資料
-
-  updateMenubar.value(); // 更新選單欄的狀態
-}
-
 function selectCourse(course) {
-  const selectedCourse = selectedRows.value;
-  if (selectedCourse[course.serial_no]) {
-    delete selectedCourse[course.serial_no];
+  const selected = selectedRows.value;
+  if (selected[course.serial_no]) {
+    delete selected[course.serial_no];
     toast.add({
       severity: "info",
       summary: "已取消選課",
@@ -515,7 +403,7 @@ function selectCourse(course) {
       life: 3000,
     });
   } else {
-    selectedCourse[course.serial_no] = course;
+    selected[course.serial_no] = course;
     toast.add({
       severity: "success",
       summary: "已選課",
@@ -524,24 +412,6 @@ function selectCourse(course) {
     });
   }
 }
-
-async function updateUrlState(searchMode, searchText = null) {
-  router.replace({
-    path: route.path, // 保持當前路徑
-    query: {
-      ...route.query, // 保留原有參數
-      m: searchMode,
-      s: searchText || route.query.s || null,
-    },
-  });
-}
-
-watch(
-  () => searchMode.value,
-  (newValue) => {
-    updateUrlState(newValue, filters.value.global.value);
-  }
-);
 </script>
 
 <style lang="scss">
