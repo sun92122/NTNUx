@@ -59,12 +59,45 @@
     :style="{ position: 'absolute', right: '-2.5rem', bottom: '1.5rem' }"
     :buttonProps="{ severity: 'secondary', rounded: true }"
     :tooltipOptions="{ position: 'left' }"
+    :hideOnClickOutside="false"
   />
+
+  <Popover
+    ref="colorPickerPopover"
+    :style="{ position: 'absolute', zIndex: 1000 }"
+    :dismissable="false"
+  >
+    <DataTable
+      :value="Object.entries(colorMap)"
+      :scrollable="true"
+      scrollHeight="flex"
+      :style="{ width: '200px', height: '200px' }"
+    >
+      <Column header="課程代碼" :style="{ width: '100px' }">
+        <template #body="slotProps">
+          <div>
+            {{ slotProps.data[0] }}
+          </div>
+        </template>
+      </Column>
+      <Column header="顏色" :style="{ width: '100px' }">
+        <template #body="slotProps">
+          <ColorPicker
+            v-model="colorMap[slotProps.data[0]]"
+            :style="{ width: '100%' }"
+            format="rgb"
+            @change="changeCourseColor(slotProps.data[0], $event.value)"
+          />
+        </template>
+      </Column>
+    </DataTable>
+  </Popover>
 </template>
 
 <script setup>
 import ColorPicker from "primevue/colorpicker";
 import SpeedDial from "primevue/speeddial";
+import Popover from "primevue/popover";
 
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
@@ -73,6 +106,8 @@ import Row from "primevue/row";
 
 const selectedRows = useState("selectedRows", () => ({}));
 const otherCourses = ref([]);
+
+const colorPickerPopover = ref(null);
 
 const days = ["一", "二", "三", "四", "五", "六"];
 const slots = [
@@ -171,19 +206,29 @@ initializeCoursesByTime();
 updateCoursesByTime();
 
 const colorMap = ref({});
+const palette = [
+  // "#FFDD57",
+  { r: 255, g: 221, b: 87 },
+  // "#87CEEB",
+  { r: 135, g: 206, b: 235 },
+  // "#FF7F7F",
+  { r: 255, g: 127, b: 127 },
+  // "#90EE90",
+  { r: 144, g: 238, b: 144 },
+  // "#DDA0DD",
+  { r: 221, g: 160, b: 221 },
+  // "#FFA07A",
+  { r: 255, g: 160, b: 122 },
+  // "#00CED1",
+  { r: 0, g: 206, b: 209 },
+  // "#F4A460",
+  { r: 244, g: 164, b: 96 },
+  // "#B0E0E6",
+  { r: 176, g: 224, b: 230 },
+  // "#FFB6C1",
+  { r: 255, g: 182, b: 193 },
+];
 function autoColor(serial_no) {
-  const palette = [
-    "#FFDD57A8",
-    "#87CEEBA8",
-    "#FF7F7FA8",
-    "#90EE90A8",
-    "#DDA0DDA8",
-    "#FFA07AA8",
-    "#00CED1A8",
-    "#F4A460A8",
-    "#B0E0E6A8",
-    "#FFB6C1A8",
-  ];
   const hash = Array.from(serial_no).reduce(
     (acc, char) => acc + char.charCodeAt(0),
     0
@@ -195,24 +240,11 @@ function getCourseColor(serial_no) {
   if (!(serial_no in colorMap.value)) {
     colorMap.value[serial_no] = autoColor(serial_no);
   }
-  return colorMap.value[serial_no];
+  return `rgba(${colorMap.value[serial_no].r}, ${colorMap.value[serial_no].g}, ${colorMap.value[serial_no].b}, 0.5)`;
 }
 
 function changeCourseColor(serial_no, color) {
   colorMap.value[serial_no] = color;
-}
-
-const colorPickerTarget = ref(null); // 當前正在選擇顏色的 serial_no
-
-function openColorPicker(serial_no, event) {
-  const rect = event.target.getBoundingClientRect();
-  const screenWidth = window.innerWidth;
-
-  colorPickerTarget.value = {
-    serial_no,
-    x: rect.right + (rect.right > screenWidth * 0.6 ? -160 : 10), // 調整偏移量
-    y: rect.top,
-  };
 }
 
 const settingItems = ref([
@@ -220,7 +252,7 @@ const settingItems = ref([
     label: "顏色",
     icon: "pi pi-palette",
     command: (event) => {
-      // openColorPicker(event.serial_no, event);
+      colorPickerPopover.value.toggle(event.originalEvent);
     },
   },
 ]);
