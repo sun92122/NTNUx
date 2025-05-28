@@ -8,7 +8,7 @@
           label="課表"
           class="p-button-text"
           severity="secondary"
-          @click="isShowSchedule = true"
+          @click="() => (isShowSchedule = true)"
           aria-label="Show Schedule"
         ></Button>
       </template>
@@ -31,7 +31,8 @@
           <Button
             icon="pi pi-github"
             class="p-button-rounded p-button-secondary"
-            :url="'https://github.com/sun92122/NTNUx'"
+            as="a"
+            href="https://github.com/sun92122/NTNUx"
             target="_blank"
             aria-label="Github"
           ></Button>
@@ -155,7 +156,7 @@ function updateMenubarItems() {
 .menubar-end {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 </style>
 
@@ -171,5 +172,9 @@ html {
 
 .p-menubar-submenu {
   z-index: 1000 !important;
+}
+
+.p-button-icon-only {
+  text-decoration: none;
 }
 </style>
