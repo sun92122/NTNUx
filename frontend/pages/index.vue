@@ -488,6 +488,8 @@ function selectCourse(course) {
   }
   width: 100%;
   max-width: 48rem;
+
+  --p-floatlabel-focus-color: var(--p-floatlabel-color);
 }
 
 .search-input {
