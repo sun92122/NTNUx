@@ -126,11 +126,14 @@ function updateMenubarItems() {
   // 更新學期選單
   termLabelItem.items = terms.value.map((term) => ({
     label: term,
-    command: () => {
-      currentTerm.value = term;
-      loadTermData.value();
-      termLabelItem.label = `學期：${term}`; // 更新學期顯示
-    },
+    items: [1, 2, 3].map((subTerm) => ({
+      label: ["1", "2", "暑期"][subTerm - 1],
+      command: () => {
+        currentTerm.value = `${term}-${subTerm}`;
+        loadTermData.value();
+        termLabelItem.label = `學期：${term}-${["1", "2", "暑期"][subTerm - 1]}`; // 更新學期顯示
+      },
+    })),
   }));
   // 更新學期顯示
   if (!currentTerm.value) {
@@ -172,6 +175,7 @@ html {
 
 .p-menubar-submenu {
   z-index: 1000 !important;
+  min-width: 10rem;
 }
 
 .p-button-icon-only {

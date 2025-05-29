@@ -62,7 +62,7 @@ export function useCourses() {
 
     currentTerm.value = route.query.term;
     if (!currentTerm.value || terms.value.indexOf(currentTerm.value) === -1) {
-      currentTerm.value = terms.value[termRespData.defaultIndex];
+      currentTerm.value = termRespData.defaultValue;
     }
 
     loadTermData.value = reloadCurrentTerm;
