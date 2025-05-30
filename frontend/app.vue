@@ -4,13 +4,15 @@
     <Menubar :model="items" :sticky="true" breakpoint="340px">
       <template #start>
         <Button
-          icon="pi pi-fw pi-calendar"
-          label="課表"
-          class="p-button-text"
-          severity="secondary"
-          @click="() => (isShowSchedule = true)"
-          aria-label="Show Schedule"
-        ></Button>
+          class="p-button-rounded p-button-secondary me-2"
+          as="router-link"
+          to="/home"
+          aria-label="Home"
+        >
+          <template #icon>
+            <img src="/favicon.svg" alt="Home Icon" width="24" height="24" />
+          </template>
+        </Button>
       </template>
 
       <template #end>
@@ -83,6 +85,13 @@ const terms = useState("terms", () => []);
 const loadTermData = useState("loadTermData");
 const items = ref([
   {
+    label: "課表",
+    icon: "pi pi-fw pi-calendar",
+    command: () => {
+      isShowSchedule.value = true;
+    },
+  },
+  {
     label: "選擇學期",
     icon: "pi pi-fw pi-book",
     items: [],
@@ -121,7 +130,7 @@ const toggleSwitchDt = ref({
 });
 
 function updateMenubarItems() {
-  const termLabelItem = items.value[0];
+  const termLabelItem = items.value[1];
 
   // 更新學期選單
   termLabelItem.items = terms.value.map((term) => ({
@@ -180,5 +189,12 @@ html {
 
 .p-button-icon-only {
   text-decoration: none;
+}
+
+@media screen and (max-width: 375px) {
+  :root {
+    --p-navigation-item-padding: 0.5rem 0.25rem;
+    --p-menubar-gap: 0rem;
+  }
 }
 </style>
