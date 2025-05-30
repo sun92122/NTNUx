@@ -27,20 +27,33 @@
             ? 'multi-search-input-main-filter'
             : 'single-search-input',
         ]"
+        @click="isAdvancedSearch ? openAdvancedSearch() : null"
       >
         <IconField>
           <InputIcon>
             <i class="pi pi-search" />
           </InputIcon>
           <InputText
+            v-if="!isAdvancedSearch"
             id="globalFilter"
             v-model="filters['global'].value"
             :autocapitalize="false"
             size="large"
             :style="{ width: '100%' }"
           />
+          <InputText
+            v-else
+            id="globalFilter"
+            v-model="filters['global'].value"
+            :autocapitalize="false"
+            size="large"
+            :style="{ width: '100%', cursor: 'pointer' }"
+          />
         </IconField>
-        <label for="globalFilter">課程名稱/教師/開課序號</label>
+        <label for="globalFilter" v-if="!isAdvancedSearch"
+          >課程名稱/教師/開課序號</label
+        >
+        <label for="globalFilter" v-else>進階搜尋</label>
       </FloatLabel>
       <div
         v-if="subFilterValue.filter_field"
@@ -178,6 +191,7 @@ const {
 const updateMenubar = useState("updateMenubar");
 const selectedCourses = useState("selectedCourses", () => ({}));
 const selectedRows = useState("selectedRows", () => ({}));
+const isShowAdvancedSearch = useState("isShowAdvancedSearch", () => false);
 
 // 搜尋模式與子篩選器
 const searchMode = ref("");
@@ -224,11 +238,20 @@ const filters = ref({
   },
 });
 
+const isAdvancedSearch = ref(false);
 const searchModeList = ref({
   quick: {
     label: "快速搜尋",
     value: "quick",
     command: () => filterMutatou({}),
+  },
+  advanced: {
+    label: "進階搜尋",
+    value: "advanced",
+    command: () => {
+      isAdvancedSearch.value = true;
+      filterMutatou({ global: null });
+    },
   },
   general: {
     label: "通識",
@@ -390,6 +413,10 @@ function filterMutatou(updateValue, subFilter = null) {
   } else {
     subFilterValue.value.filter_field = null;
   }
+}
+
+function openAdvancedSearch() {
+  isShowAdvancedSearch.value = true;
 }
 
 function selectCourse(course) {

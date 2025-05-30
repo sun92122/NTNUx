@@ -44,6 +44,7 @@
 
     <NuxtPage />
 
+    <!-- Schedule -->
     <Dialog
       v-model:visible="isShowSchedule"
       maximizable
@@ -60,6 +61,24 @@
     >
       <FloatingSchedule />
     </Dialog>
+
+    <!-- Advanced search -->
+    <Dialog
+      v-model:visible="isShowAdvancedSearch"
+      maximizable
+      modal
+      header="進階搜尋"
+      :style="{
+        width: '850px',
+        height: '80vh',
+      }"
+      :content-style="{
+        margin: '0 0 1rem',
+      }"
+      :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+    >
+      <AdvancedSearch />
+    </Dialog>
   </div>
 </template>
 
@@ -71,7 +90,7 @@ import ToggleSwitch from "primevue/toggleswitch";
 import Toast from "primevue/toast";
 
 import Dialog from "primevue/dialog";
-import { FloatingSchedule } from "#components";
+import { FloatingSchedule, AdvancedSearch } from "#components";
 
 const updateMenubar = useState("updateMenubar");
 onMounted(() => {
@@ -79,6 +98,7 @@ onMounted(() => {
 });
 
 const isShowSchedule = ref(false); // 控制課表顯示的變數
+const isShowAdvancedSearch = useState("isShowAdvancedSearch", () => false);
 
 const currentTerm = useState("currentTerm", () => null);
 const terms = useState("terms", () => []);
@@ -140,7 +160,9 @@ function updateMenubarItems() {
       command: () => {
         currentTerm.value = `${term}-${subTerm}`;
         loadTermData.value();
-        termLabelItem.label = `學期：${term}-${["1", "2", "暑期"][subTerm - 1]}`; // 更新學期顯示
+        termLabelItem.label = `學期：${term}-${
+          ["1", "2", "暑期"][subTerm - 1]
+        }`; // 更新學期顯示
       },
     })),
   }));
