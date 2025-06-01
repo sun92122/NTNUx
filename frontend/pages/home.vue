@@ -20,7 +20,92 @@
     </Tabs>
   </div>
 
-  <div class="container">"主頁測試"</div>
+  <!-- 選課時程 -->
+  <div class="container">
+    <h3 :style="{ marginBottom: 0 }">
+      {{ selectionSchedule?.year }} 學年度 第 {{ selectionSchedule?.term }} 學期
+    </h3>
+    <h1 class="center">選課時程</h1>
+    <Carousel
+      :value="selectionSchedule?.schedule"
+      :numVisible="3"
+      :numScroll="1"
+      :showNavigators="false"
+      :showIndicators="true"
+      :responsiveOptions="responsiveOptions"
+      ref="carousel"
+    >
+      <template #item="{ data, _ }">
+        <Card class="p-mb-3" :style="data?.info ? {} : { boxShadow: 'none' }">
+          <template #title>
+            <h3 style="margin: 0">{{ data?.info }}</h3>
+          </template>
+          <template #subtitle>
+            <div v-if="data?.date" style="text-align: center">
+              <span v-if="data.date.time">
+                {{ data.date.time }}
+              </span>
+              <span :style="{ fontSize: 'x-large', color: data.color }">
+                {{ data.date.date }}
+              </span>
+            </div>
+            <div v-if="data.start">
+              <div style="text-align: center">
+                <span v-if="data.start.time"> {{ data.start.time }} </span>
+                <span :style="{ fontSize: 'x-large', color: data.color }">
+                  {{ data.start.date }}-{{ data.end.date }}
+                </span>
+                <span v-if="data.end.time"> {{ data.end.time }}</span>
+              </div>
+            </div>
+          </template>
+          <template #content>
+            <Timeline :value="data?.steps" :align="'left'" class="p-mt-3">
+              <template #content="{ item }">
+                <div class="p-d-flex p-ai-center">
+                  <div>
+                    <h4 style="margin: 0">{{ item.title }}</h4>
+                    <div
+                      :style="{
+                        whiteSpace: 'break-spaces',
+                        marginTop: '0.5rem',
+                      }"
+                      class="p-card-subtitle"
+                    >
+                      {{ item.description }}
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </Timeline>
+          </template>
+          <template #footer>
+            <div v-if="data?.moreInfo" style="margin-top: 8rem">
+              <a
+                :href="data.moreInfoUrl"
+                target="_blank"
+                style="color: inherit; text-decoration: none; cursor: pointer"
+              >
+                <i class="pi pi-external-link" style="margin-right: 1rem"></i>
+                {{ data.moreInfo }}
+              </a>
+            </div>
+          </template>
+        </Card>
+      </template>
+    </Carousel>
+    <div>
+      <!-- carousel navigation buttons -->
+      <Button
+        icon="pi pi-chevron-left"
+        class="p-button-rounded p-button-secondary p-mr-2"
+      ></Button>
+      <Button
+        icon="pi pi-chevron-right"
+        class="p-button-rounded p-button-secondary"
+      ></Button>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -29,7 +114,7 @@ import { useRoute } from "vue-router";
 
 import { useCourses } from "~/composables/useCourses";
 
-import { Tabs, Tab, TabList } from "primevue";
+import { Tabs, Tab, TabList, Avatar, Card, Timeline, Carousel } from "primevue";
 
 const route = useRoute();
 
@@ -97,7 +182,31 @@ const searchModeList = ref({
   },
 });
 
+const selectionSchedule = useState("courseSelectionSchedule", () => {});
+
+const carousel = ref(null);
+const responsiveOptions = ref([
+  {
+    breakpoint: "1280px",
+    numVisible: 3,
+    numScroll: 1,
+  },
+  {
+    breakpoint: "745px",
+    numVisible: 1,
+    numScroll: 1,
+  },
+]);
+
 onMounted(async () => {
+  await fetch("/data/schedule.json")
+    .then((response) => response.json())
+    .then((data) => {
+      selectionSchedule.value = data;
+    })
+    .catch((error) => {
+      console.error("Error fetching course selection schedule:", error);
+    });
   await initTermData(route);
   updateMenubar.value();
 });
@@ -119,5 +228,43 @@ onMounted(async () => {
       justify-content: center;
     }
   }
+}
+
+.p-timeline-event-opposite {
+  display: none;
+}
+
+.p-carousel-viewport {
+  width: clamp(0px, 98vw, 1000px);
+  margin: auto;
+}
+
+.p-carousel-item-list {
+  padding: 1rem 0;
+  gap: 1%;
+}
+
+.p-carousel-item {
+  flex-basis: 32.5% !important;
+}
+@media screen and (max-width: 745px) {
+  .p-carousel-item {
+    flex-basis: 99% !important;
+  }
+  .p-carousel-viewport {
+    width: clamp(0px, 99vw, 500px);
+  }
+}
+
+.p-card {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  height: 95%;
+}
+</style>
+
+<style lang="scss" scoped>
+h3 {
+  text-align: center;
 }
 </style>
