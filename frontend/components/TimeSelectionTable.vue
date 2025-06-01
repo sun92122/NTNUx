@@ -1,6 +1,168 @@
 <template>
-
-  
+  <div class="excel-grid">
+    <table>
+      <thead>
+        <tr>
+          <th
+            v-for="(col, col_index) in cols"
+            :key="`header-${col_index}`"
+            @click="handleColumnClick(col_index)"
+          >
+            {{ col }}
+          </th>
+        </tr>
+      </thead>
+      <tbody @mouseup="handleMouseUp" @mouseleave="handleMouseUp">
+        <tr v-for="(row, row_index) in rows" :key="`row-${row_index}`">
+          <td
+            v-for="(_, col_index) in cols"
+            :key="`${row_index}-${col_index}`"
+            :data-id="`${row_index}-${col_index}`"
+            :class="{
+              selected: selectedCells.has(`${row_index}-${col_index}`),
+            }"
+            @mousedown="handleMouseDown(`${row_index}-${col_index}`)"
+            @mouseover="handleMouseOver(`${row_index}-${col_index}`)"
+          >
+            {{ row }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </template>
 
-<script setup></script>
+<script setup>
+import { ref } from "vue";
+
+const rows = ref([
+  "0",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "A",
+  "B",
+  "C",
+  "D",
+]);
+const cols = ref(["一", "二", "三", "四", "五", "六"]);
+
+const selectedCells = ref(new Set());
+const isSelecting = ref(false);
+const startCell = ref(null);
+const isDeselecting = ref(false);
+
+function parseCellId(id) {
+  const [row, col] = id.split("-").map(Number);
+  return { row, col };
+}
+
+function generateRange(from, to) {
+  const start = parseCellId(from);
+  const end = parseCellId(to);
+
+  const cells = [];
+  for (
+    let i = Math.min(start.row, end.row);
+    i <= Math.max(start.row, end.row);
+    i++
+  ) {
+    for (
+      let j = Math.min(start.col, end.col);
+      j <= Math.max(start.col, end.col);
+      j++
+    ) {
+      cells.push(`${i}-${j}`);
+    }
+  }
+  return cells;
+}
+
+function handleMouseDown(id) {
+  isSelecting.value = true;
+  startCell.value = id;
+  isDeselecting.value = selectedCells.value.has(id); // 若起點已選取 → 取消選取模式
+  toggleCells(generateRange(id, id)); // 即使不拖曳也立即處理起點
+}
+
+function handleMouseOver(id) {
+  if (isSelecting.value && startCell.value) {
+    const cells = generateRange(startCell.value, id);
+    previewSelection(cells);
+  }
+}
+
+function handleMouseUp() {
+  isSelecting.value = false;
+  startCell.value = null;
+  isDeselecting.value = false;
+  previewSet.clear();
+}
+
+function handleColumnClick(colIndex) {
+  const cells = rows.value.map((row, rowIndex) => `${rowIndex}-${colIndex}`);
+  isDeselecting.value = cells.every((cell) => selectedCells.value.has(cell));
+  toggleCells(cells);
+}
+
+// --- 處理選取預覽 ---
+const previewSet = new Set();
+function previewSelection(cells) {
+  previewSet.clear();
+  for (const cell of cells) {
+    previewSet.add(cell);
+  }
+
+  // 當滑鼠移動時，立刻應用變更（非預覽）
+  toggleCells(cells);
+}
+
+function toggleCells(cells) {
+  for (const cell of cells) {
+    if (isDeselecting.value) {
+      selectedCells.value.delete(cell);
+    } else {
+      selectedCells.value.add(cell);
+    }
+  }
+}
+</script>
+
+<style scoped>
+.excel-grid {
+  user-select: none;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+th {
+  width: 60px;
+  height: 30px;
+  text-align: center;
+  border: 1px solid #ccc;
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+td {
+  width: 60px;
+  height: 30px;
+  text-align: center;
+  border: 1px solid #ccc;
+  cursor: cell;
+  transition: background-color 0.2s;
+}
+
+td.selected {
+  background-color: #7fd2ff;
+}
+</style>

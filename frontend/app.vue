@@ -65,17 +65,13 @@
     <!-- Advanced search -->
     <Dialog
       v-model:visible="isShowAdvancedSearch"
-      maximizable
       modal
       header="進階搜尋"
-      :style="{
-        width: '850px',
-        height: '80vh',
-      }"
+      class="advanced-search-dialog"
       :content-style="{
         margin: '0 0 1rem',
       }"
-      :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
+      content-class="hide-scrollbar"
     >
       <AdvancedSearch />
     </Dialog>
@@ -217,6 +213,23 @@ html {
   :root {
     --p-navigation-item-padding: 0.5rem 0.25rem;
     --p-menubar-gap: 0rem;
+  }
+}
+
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer and Edge */
+}
+
+.advanced-search-dialog {
+  width: clamp(44rem, 80vw, 52rem);
+  height: 80vh;
+}
+
+@media screen and (max-width: 770px) {
+  .advanced-search-dialog {
+    width: 90vw;
+    height: 95vh;
   }
 }
 </style>

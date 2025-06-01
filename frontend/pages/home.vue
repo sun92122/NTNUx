@@ -137,6 +137,11 @@ const searchModeList = ref({
     value: "quick",
     route: "/",
   },
+  advanced: {
+    label: "進階搜尋",
+    value: "advanced",
+    route: "/?m=advanced",
+  },
   general: {
     label: "通識",
     value: "general",
@@ -221,9 +226,9 @@ onMounted(async () => {
 
 .tabs-container {
   margin: 0.5rem auto 1rem;
-  width: clamp(0px, 100%, 670px);
+  width: clamp(0px, 100%, 760px);
 
-  @media screen and (min-width: 600px) {
+  @media screen and (min-width: 760px) {
     .p-tablist-tab-list {
       justify-content: center;
     }
