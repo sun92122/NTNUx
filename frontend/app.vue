@@ -4,13 +4,15 @@
     <Menubar :model="items" :sticky="true" breakpoint="340px">
       <template #start>
         <Button
-          icon="pi pi-fw pi-calendar"
-          label="課表"
-          class="p-button-text"
-          severity="secondary"
-          @click="isShowSchedule = true"
-          aria-label="Show Schedule"
-        ></Button>
+          class="p-button-rounded p-button-secondary me-2"
+          as="router-link"
+          to="/home"
+          aria-label="Home"
+        >
+          <template #icon>
+            <img src="/favicon.svg" alt="Home Icon" width="24" height="24" />
+          </template>
+        </Button>
       </template>
 
       <template #end>
@@ -31,7 +33,8 @@
           <Button
             icon="pi pi-github"
             class="p-button-rounded p-button-secondary"
-            :url="'https://github.com/sun92122/NTNUx'"
+            as="a"
+            href="https://github.com/sun92122/NTNUx"
             target="_blank"
             aria-label="Github"
           ></Button>
@@ -41,6 +44,7 @@
 
     <NuxtPage />
 
+    <!-- Schedule -->
     <Dialog
       v-model:visible="isShowSchedule"
       maximizable
@@ -57,6 +61,20 @@
     >
       <FloatingSchedule />
     </Dialog>
+
+    <!-- Advanced search -->
+    <Dialog
+      v-model:visible="isShowAdvancedSearch"
+      modal
+      header="進階搜尋"
+      class="advanced-search-dialog"
+      :content-style="{
+        margin: '0 0 1rem',
+      }"
+      content-class="hide-scrollbar"
+    >
+      <AdvancedSearch />
+    </Dialog>
   </div>
 </template>
 
@@ -68,7 +86,7 @@ import ToggleSwitch from "primevue/toggleswitch";
 import Toast from "primevue/toast";
 
 import Dialog from "primevue/dialog";
-import { FloatingSchedule } from "#components";
+import { FloatingSchedule, AdvancedSearch } from "#components";
 
 const updateMenubar = useState("updateMenubar");
 onMounted(() => {
@@ -76,11 +94,19 @@ onMounted(() => {
 });
 
 const isShowSchedule = ref(false); // 控制課表顯示的變數
+const isShowAdvancedSearch = useState("isShowAdvancedSearch", () => false);
 
 const currentTerm = useState("currentTerm", () => null);
 const terms = useState("terms", () => []);
 const loadTermData = useState("loadTermData");
 const items = ref([
+  {
+    label: "課表",
+    icon: "pi pi-fw pi-calendar",
+    command: () => {
+      isShowSchedule.value = true;
+    },
+  },
   {
     label: "選擇學期",
     icon: "pi pi-fw pi-book",
@@ -120,16 +146,21 @@ const toggleSwitchDt = ref({
 });
 
 function updateMenubarItems() {
-  const termLabelItem = items.value[0];
+  const termLabelItem = items.value[1];
 
   // 更新學期選單
   termLabelItem.items = terms.value.map((term) => ({
     label: term,
-    command: () => {
-      currentTerm.value = term;
-      loadTermData.value();
-      termLabelItem.label = `學期：${term}`; // 更新學期顯示
-    },
+    items: [1, 2, 3].map((subTerm) => ({
+      label: ["1", "2", "暑期"][subTerm - 1],
+      command: () => {
+        currentTerm.value = `${term}-${subTerm}`;
+        loadTermData.value();
+        termLabelItem.label = `學期：${term}-${
+          ["1", "2", "暑期"][subTerm - 1]
+        }`; // 更新學期顯示
+      },
+    })),
   }));
   // 更新學期顯示
   if (!currentTerm.value) {
@@ -155,7 +186,7 @@ function updateMenubarItems() {
 .menubar-end {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 </style>
 
@@ -171,5 +202,34 @@ html {
 
 .p-menubar-submenu {
   z-index: 1000 !important;
+  min-width: 10rem;
+}
+
+.p-button-icon-only {
+  text-decoration: none;
+}
+
+@media screen and (max-width: 375px) {
+  :root {
+    --p-navigation-item-padding: 0.5rem 0.25rem;
+    --p-menubar-gap: 0rem;
+  }
+}
+
+.hide-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer and Edge */
+}
+
+.advanced-search-dialog {
+  width: clamp(44rem, 80vw, 52rem);
+  height: 80vh;
+}
+
+@media screen and (max-width: 770px) {
+  .advanced-search-dialog {
+    width: 90vw;
+    height: 95vh;
+  }
 }
 </style>

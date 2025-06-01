@@ -1,0 +1,108 @@
+{
+  "year": "113",
+  "term": "2",
+  "schedule": [
+    {},
+    {
+      "info": "課程公告",
+      "date": {
+        "date": "113/7/1"
+      },
+      "color": "#FF5733",
+      "icon": "pi pi-megaphone",
+      "steps": [
+        {
+          "title": "課程公告",
+          "description": "113/7/1"
+        },
+        {
+          "title": "課程預選",
+          "description": "1/6\n預選作業由課務組統一進行，學生無需於系統登記"
+        }
+      ]
+    },
+    {
+      "info": "第一階段網路初選",
+      "start": {
+        "date": "1/7",
+        "time": "09:00"
+      },
+      "end": {
+        "date": "1/10",
+        "time": "23:59"
+      },
+      "color": "#4CAF50",
+      "icon": "pi pi-check",
+      "steps": [
+        {
+          "title": "第一階段選課",
+          "description": "1/7 - 1/10"
+        },
+        {
+          "title": "公告第一階段結果",
+          "description": "1/17 17:00"
+        }
+      ]
+    },
+    {
+      "info": "第二階段網路選課",
+      "start": {
+        "date": "2/4",
+        "time": "09:00"
+      },
+      "end": {
+        "date": "2/6",
+        "time": "23:59"
+      },
+      "color": "#2196F3",
+      "icon": "pi pi-check",
+      "steps": [
+        {
+          "title": "第二階段選課",
+          "description": "2/4 - 2/6"
+        },
+        {
+          "title": "公告第二階段結果",
+          "description": "2/14 17:00"
+        }
+      ]
+    },
+    {
+      "info": "全校加退選",
+      "start": {
+        "date": "2/17",
+        "time": "09:00"
+      },
+      "end": {
+        "date": "3/2",
+        "time": "23:59"
+      },
+      "color": "#FF9800",
+      "icon": "pi pi-plus",
+      "steps": [
+        {
+          "title": "全校加退選",
+          "description": "2/17 - 3/2\n即時線上選課\n授權碼線上加選、特殊原因紙本專案申請"
+        },
+        {
+          "title": "僅能課程加選",
+          "description": "3/3"
+        }
+      ]
+    },
+    {
+      "info": "期中停修",
+      "start": {
+        "date": "3/31"
+      },
+      "end": {
+        "date": "5/9"
+      },
+      "color": "#9C27B0",
+      "icon": "pi pi-pause",
+      "moreInfo": "期中停修",
+      "moreInfoUrl": "https://www.aa.ntnu.edu.tw/zh_tw/selectives/Dayschool/mid_suspension"
+    },
+    {}
+  ]
+}
