@@ -51,7 +51,7 @@
       <p>學分數</p>
       <div class="advanced-search-options">
         <Button
-          v-for="credit in [1, 2, 3, 4, '>= 5']"
+          v-for="credit in ['1', '2', '3', '4', '>= 5']"
           :key="credit"
           severity="secondary"
           variant="outlined"

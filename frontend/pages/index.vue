@@ -27,14 +27,14 @@
             ? 'multi-search-input-main-filter'
             : 'single-search-input',
         ]"
-        @click="isAdvancedSearch ? openAdvancedSearch() : null"
+        @click="isShowAdvancedSearch ? openAdvancedSearch() : null"
       >
         <IconField>
           <InputIcon>
             <i class="pi pi-search" />
           </InputIcon>
           <InputText
-            v-if="!isAdvancedSearch"
+            v-if="!isShowAdvancedSearch"
             id="globalFilter"
             v-model="filters['global'].value"
             :autocapitalize="false"
@@ -50,7 +50,7 @@
             :style="{ width: '100%', cursor: 'pointer' }"
           />
         </IconField>
-        <label for="globalFilter" v-if="!isAdvancedSearch"
+        <label for="globalFilter" v-if="!isShowAdvancedSearch"
           >課程名稱/教師/開課序號</label
         >
         <label for="globalFilter" v-else>進階搜尋</label>
@@ -238,7 +238,6 @@ const filters = ref({
   },
 });
 
-const isAdvancedSearch = ref(false);
 const searchModeList = ref({
   quick: {
     label: "快速搜尋",
@@ -249,7 +248,7 @@ const searchModeList = ref({
     label: "進階搜尋",
     value: "advanced",
     command: () => {
-      isAdvancedSearch.value = true;
+      isShowAdvancedSearch.value = true;
       filterMutatou({ global: null });
     },
   },
