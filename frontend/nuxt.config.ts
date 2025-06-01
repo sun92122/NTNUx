@@ -112,6 +112,9 @@ export default defineNuxtConfig({
   },
   nitro: {
     preset: "static",
+    prerender: {
+      autoSubfolderIndex: false,
+    },
   },
   router: {
     options: {
