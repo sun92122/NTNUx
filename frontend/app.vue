@@ -222,7 +222,7 @@ html {
 }
 
 .advanced-search-dialog {
-  width: clamp(44rem, 80vw, 52rem);
+  width: clamp(44rem, 85vw, 56rem);
   height: 80vh;
 }
 
