@@ -12,23 +12,31 @@
           </th>
         </tr>
       </thead>
-      <tbody @mouseup="handleMouseUp" @mouseleave="handleMouseUp">
-        <tr v-for="(row, row_index) in rows" :key="`row-${row_index}`">
-          <td
-            v-for="(_, col_index) in cols"
-            :key="`${row_index}-${col_index}`"
-            :data-id="`${row_index}-${col_index}`"
-            :class="{
-              selected: selectedCells.has(`${row_index}-${col_index}`),
-            }"
-            @mousedown="handleMouseDown(`${row_index}-${col_index}`)"
-            @mouseover="handleMouseOver(`${row_index}-${col_index}`)"
-          >
-            {{ row }}
-          </td>
-        </tr>
-      </tbody>
     </table>
+    <div class="tbody-wrapper">
+      <table>
+        <tbody @mouseup="handleMouseUp" @mouseleave="handleMouseUp">
+          <tr v-for="(row, row_index) in rows" :key="`row-${row_index}`">
+            <td
+              v-for="(_, col_index) in cols"
+              :key="`${row_index}-${col_index}`"
+              :data-id="`${row_index}-${col_index}`"
+              :class="{
+                selected: selectedCells.has(`${row_index}-${col_index}`),
+                'td-l': col_index === 0,
+                'td-r': col_index === cols.length - 1,
+                'td-t': row_index === 0,
+                'td-b': row_index === rows.length - 1,
+              }"
+              @mousedown="handleMouseDown(`${row_index}-${col_index}`)"
+              @mouseover="handleMouseOver(`${row_index}-${col_index}`)"
+            >
+              {{ row }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -148,21 +156,44 @@ th {
   width: 60px;
   height: 30px;
   text-align: center;
-  border: 1px solid #ccc;
-  background-color: #f0f0f0;
+  border: 0;
+  color: var(--p-surface-500);
   cursor: pointer;
+}
+.tbody-wrapper {
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  display: inline-block;
 }
 
 td {
   width: 60px;
   height: 30px;
   text-align: center;
-  border: 1px solid #ccc;
+  border: 1px solid var(--p-surface-300);
   cursor: cell;
   transition: background-color 0.2s;
+  color: var(--p-surface-500);
+}
+
+.td-l {
+  border-left: 0;
+}
+
+.td-r {
+  border-right: 0;
+}
+
+.td-t {
+  border-top: 0;
+}
+
+.td-b {
+  border-bottom: 0;
 }
 
 td.selected {
-  background-color: #7fd2ff;
+  background-color: var(--p-surface-300);
 }
 </style>
