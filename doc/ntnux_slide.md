@@ -198,7 +198,7 @@ UI 套件對現代網頁來講就是能用就用，
 
 電腦（螢幕寬度～1528px）
 
-![image](https://hackmd.io/_uploads/BkWTVy5Gex.png)
+![image](https://github.com/sun92122/NTNUx/blob/main/doc/img_0.png?raw=true)
 
 Note:
 這個就是他大概的樣子，
@@ -207,7 +207,7 @@ Note:
 
 手機（螢幕寬度 390px）
 
-![ntnux.sun92122.com__m=advanced&s(iPhone 12 Pro)](https://hackmd.io/_uploads/ByuzsJ5fll.png =286x586)
+![ntnux.sun92122.com__m=advanced&s(iPhone 12 Pro)](https://github.com/sun92122/NTNUx/blob/main/doc/img_1.png?raw=true =286x586)
 
 Note:
 手機大概會長這樣，
@@ -234,7 +234,7 @@ Note:
 
 ----
 
-![image](https://hackmd.io/_uploads/By2Cgg9Gex.png)
+![image](https://github.com/sun92122/NTNUx/blob/main/doc/img_3.png?raw=true)
 
 | 可以開始查詢<br/>（含點擊至查詢頁面） | 查詢時間 |
 |:--------------------------------:|:--------:|
@@ -253,7 +253,7 @@ Note:
 
 ----
 
-![image](https://hackmd.io/_uploads/B1hQ1eqfxg.png)
+![image](https://github.com/sun92122/NTNUx/blob/main/doc/img_2.png?raw=true)
 
 | 可以開始查詢 | 查詢時間 |
 |:------------:|:--------:|
