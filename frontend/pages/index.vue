@@ -203,30 +203,30 @@ const subFilterValue = ref({
   label: null,
 });
 
-const filters = ref({
+const filters = useState("filters", () => ({
   global: {
     value: searchText,
     matchMode: FilterMatchMode.CONTAINS,
   },
   option_code: {
-    value: null,
-    matchMode: FilterMatchMode.EQUALS,
+    operator: FilterOperator.OR,
+    constraints: [],
   },
   course_name: {
-    value: null,
-    matchMode: FilterMatchMode.CONTAINS,
+    operator: FilterOperator.OR,
+    constraints: [],
   },
   chn_name: {
-    value: null,
-    matchMode: FilterMatchMode.CONTAINS,
+    operator: FilterOperator.OR,
+    constraints: [],
   },
   dept_chiabbr: {
-    value: null,
-    matchMode: FilterMatchMode.CONTAINS,
+    operator: FilterOperator.OR,
+    constraints: [],
   },
   eng_teach: {
-    value: null,
-    matchMode: FilterMatchMode.EQUALS,
+    operator: FilterOperator.OR,
+    constraints: [],
   },
   generalCore: {
     operator: FilterOperator.OR,
@@ -236,7 +236,19 @@ const filters = ref({
     operator: FilterOperator.OR,
     constraints: [],
   },
-});
+  time_inf: {
+    operator: FilterOperator.OR,
+    constraints: [],
+  },
+  comment: {
+    operator: FilterOperator.OR,
+    constraints: [],
+  },
+  credit: {
+    operator: FilterOperator.OR,
+    constraints: [],
+  },
+}));
 
 const searchModeList = ref({
   quick: {
@@ -257,47 +269,28 @@ const searchModeList = ref({
     value: "general",
     command: () =>
       filterMutatou(
-        { option_code: "通" },
+        {
+          option_code: {
+            operator: FilterOperator.OR,
+            constraints: [{ value: "通", matchMode: FilterMatchMode.EQUALS }],
+          },
+        },
         {
           label: "選擇通識領域",
-          select_list: [
-            {
-              label: "人文藝術",
-              value: { value: "A1UG", matchMode: FilterMatchMode.CONTAINS },
-            },
-            {
-              label: "社會科學",
-              value: { value: "A2UG", matchMode: FilterMatchMode.CONTAINS },
-            },
-            {
-              label: "自然科學",
-              value: { value: "A3UG", matchMode: FilterMatchMode.CONTAINS },
-            },
-            {
-              label: "邏輯運算",
-              value: { value: "A4UG", matchMode: FilterMatchMode.CONTAINS },
-            },
-            {
-              label: "學院共同課程",
-              value: { value: "B1UG", matchMode: FilterMatchMode.CONTAINS },
-            },
-            {
-              label: "跨域專業探索課程",
-              value: { value: "B2UG", matchMode: FilterMatchMode.CONTAINS },
-            },
-            {
-              label: "大學入門",
-              value: { value: "B3UG", matchMode: FilterMatchMode.CONTAINS },
-            },
-            {
-              label: "專題探究",
-              value: { value: "C1UG", matchMode: FilterMatchMode.CONTAINS },
-            },
-            {
-              label: "MOOCs",
-              value: { value: "C2UG", matchMode: FilterMatchMode.CONTAINS },
-            },
-          ],
+          select_list: Object.entries({
+            人文藝術: "A1UG",
+            社會科學: "A2UG",
+            自然科學: "A3UG",
+            邏輯運算: "A4UG",
+            學院共同課程: "B1UG",
+            跨域專業探索課程: "B2UG",
+            大學入門: "B3UG",
+            專題探究: "C1UG",
+            MOOCs: "C2UG",
+          }).map(([label, value]) => ({
+            label,
+            value: { value, matchMode: FilterMatchMode.CONTAINS },
+          })),
           filter_field: "generalCore",
         }
       ),
@@ -306,13 +299,27 @@ const searchModeList = ref({
     label: "體育",
     activeLabel: "普通體育",
     value: "physical",
-    command: () => filterMutatou({ dept_chiabbr: "普通體育" }),
+    command: () =>
+      filterMutatou({
+        dept_chiabbr: {
+          operator: FilterOperator.OR,
+          constraints: [{ value: "體育", matchMode: FilterMatchMode.CONTAINS }],
+        },
+      }),
   },
   defense: {
     label: "國防",
     activeLabel: "全民國防教育",
     value: "defense",
-    command: () => filterMutatou({ chn_name: "全民國防" }),
+    command: () =>
+      filterMutatou({
+        chn_name: {
+          operator: FilterOperator.OR,
+          constraints: [
+            { value: "全民國防", matchMode: FilterMatchMode.CONTAINS },
+          ],
+        },
+      }),
   },
   interschool: {
     label: "校際",
@@ -320,19 +327,23 @@ const searchModeList = ref({
     value: "interschool",
     command: () =>
       filterMutatou(
-        { dept_chiabbr: "校際" },
+        {
+          dept_chiabbr: {
+            operator: FilterOperator.OR,
+            constraints: [
+              { value: "校際", matchMode: FilterMatchMode.CONTAINS },
+            ],
+          },
+        },
         {
           label: "選擇開課學校",
-          select_list: [
-            {
-              label: "國立臺灣大學",
-              value: { value: "AA", matchMode: FilterMatchMode.ENDS_WITH },
-            },
-            {
-              label: "國立臺灣科技大學",
-              value: { value: "AB", matchMode: FilterMatchMode.ENDS_WITH },
-            },
-          ],
+          select_list: Object.entries({
+            國立臺灣大學: "AA",
+            國立臺灣科技大學: "AB",
+          }).map(([label, value]) => ({
+            label,
+            value: { value, matchMode: FilterMatchMode.ENDS_WITH },
+          })),
           filter_field: "dept_code",
         }
       ),
@@ -340,17 +351,39 @@ const searchModeList = ref({
   program: {
     label: "學分學程",
     value: "program",
-    command: () => filterMutatou({ chn_name: "學分學程" }),
+    command: () =>
+      filterMutatou({
+        chn_name: {
+          operator: FilterOperator.OR,
+          constraints: [
+            { value: "學分學程", matchMode: FilterMatchMode.CONTAINS },
+          ],
+        },
+      }),
   },
   english: {
     label: "英文三",
     value: "english",
-    command: () => filterMutatou({ course_name: "英文（三）" }),
+    command: () =>
+      filterMutatou({
+        course_name: {
+          operator: FilterOperator.OR,
+          constraints: [
+            { value: "英文（三）", matchMode: FilterMatchMode.CONTAINS },
+          ],
+        },
+      }),
   },
   emi: {
     label: "英文授課",
     value: "emi",
-    command: () => filterMutatou({ eng_teach: "是" }),
+    command: () =>
+      filterMutatou({
+        eng_teach: {
+          operator: FilterOperator.OR,
+          constraints: [{ value: "是", matchMode: FilterMatchMode.EQUALS }],
+        },
+      }),
   },
   "": {
     label: "",
@@ -394,9 +427,8 @@ function filterMutatou(updateValue, subFilter = null) {
   for (const key in filters.value) {
     if (key === "global") continue;
     if (key in updateValue) {
-      filters.value[key].value = updateValue[key];
+      filters.value[key] = updateValue[key];
     } else {
-      filters.value[key].value = null;
       filters.value[key].constraints &&= [];
     }
   }
