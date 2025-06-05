@@ -56,11 +56,11 @@
           >{{ generalCoreMap[item] || item }}</Message
         >
         <Message icon="pi pi-book" severity="secondary" class="custom-message"
-          >{{ Math.floor(course.credit) }} 學分</Message
+          >{{ course.credit }} 學分</Message
         >
         <Message
           icon="pi pi-users"
-          severity="secondary"
+          :severity="course.limit_count_h > 0 ? 'secondary' : 'warn'"
           class="custom-message"
           >{{ `${course.limit_count_h} 人` }}</Message
         >

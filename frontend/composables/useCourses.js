@@ -16,6 +16,7 @@ export function useCourses() {
 
     return data.map((item) => ({
       ...item,
+      credit: Math.round(item.credit * 10) / 10,
       course_name: item.chn_name.replace(/<\/br>.*/g, ""),
       time: timeFormatter(item.time_loc),
       location: locationFormatter(item.time_loc),
