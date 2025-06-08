@@ -30,6 +30,10 @@
               }"
               @mousedown="handleMouseDown(`${row_index}-${col_index}`)"
               @mouseover="handleMouseOver(`${row_index}-${col_index}`)"
+              @touchstart.prevent="
+                handleTouchStart($event, `${row_index}-${col_index}`)
+              "
+              @touchmove.prevent="handleTouchMove($event)"
             >
               {{ row }}
             </td>
@@ -42,6 +46,13 @@
 
 <script setup>
 import { ref } from "vue";
+
+const props = defineProps({
+  timeFilterHandler: {
+    type: Function,
+    required: true,
+  },
+});
 
 const rows = ref([
   "0",
@@ -62,7 +73,7 @@ const rows = ref([
 ]);
 const cols = ref(["一", "二", "三", "四", "五", "六"]);
 
-const selectedCells = ref(new Set());
+const selectedCells = useState("timeSelectedCells", () => new Set());
 const isSelecting = ref(false);
 const startCell = ref(null);
 const isDeselecting = ref(false);
@@ -112,12 +123,36 @@ function handleMouseUp() {
   startCell.value = null;
   isDeselecting.value = false;
   previewSet.clear();
+
+  props.timeFilterHandler(selectedCells.value);
+}
+
+// 追蹤觸控位置
+let lastTouchedId = null;
+
+function handleTouchStart(event, id) {
+  handleMouseDown(id); // 重用邏輯
+  lastTouchedId = id;
+}
+
+function handleTouchMove(event) {
+  const touch = event.touches[0];
+  const element = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (!element) return;
+
+  const id = element?.dataset?.id;
+  if (id && id !== lastTouchedId) {
+    handleMouseOver(id); // 重用邏輯
+    lastTouchedId = id;
+  }
 }
 
 function handleColumnClick(colIndex) {
   const cells = rows.value.map((row, rowIndex) => `${rowIndex}-${colIndex}`);
   isDeselecting.value = cells.every((cell) => selectedCells.value.has(cell));
   toggleCells(cells);
+
+  props.timeFilterHandler(selectedCells.value);
 }
 
 // --- 處理選取預覽 ---

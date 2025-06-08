@@ -2,7 +2,20 @@
   <div class="advanced-search-box">
     <div class="advanced-search-box-item">
       <p>上課時間</p>
-      <TimeSelectionTable />
+      <div class="time-hard-switch-container">
+        <label class="time-hard-switch-label" for="time-hard-switch">
+          <p style="font-size: small; margin: 0">嚴格節次搜尋</p>
+          <span style="font-size: small; color: var(--p-text-500)"
+            >課程需完全為於所選範圍才會顯示</span
+          >
+        </label>
+        <ToggleSwitch
+          v-model="isTimeHardFilter"
+          inputId="time-hard-switch"
+          @change="timeFilterHandler(timeSelectedCells)"
+        />
+      </div>
+      <TimeSelectionTable :timeFilterHandler="timeFilterHandler" />
     </div>
     <div class="advanced-search-box-item">
       <div
@@ -38,7 +51,7 @@
 import { ref, onMounted } from "vue";
 import { FilterMatchMode, FilterOperator } from "@primevue/core/api";
 
-import { Button } from "primevue";
+import { Button, ToggleSwitch } from "primevue";
 
 import { TimeSelectionTable } from "#components";
 
@@ -49,6 +62,7 @@ const advancedSearchDisplayValue = useState(
   "advancedSearchDisplayValue",
   () => "點擊進行進階搜尋"
 );
+const timeSelectedCells = useState("timeSelectedCells", () => new Set());
 
 const advancedSearchFilters = useState("advancedSearchFilters", () => ({
   上課地點: [
@@ -96,6 +110,23 @@ const advancedSearchFilters = useState("advancedSearchFilters", () => ({
   ],
 }));
 
+function advancedSearchRebuild() {
+  for (const filterKey in advancedSearchFilters.value) {
+    const filter = advancedSearchFilters.value[filterKey][0];
+    if (filter.onChange) {
+      filter.onChange(filter.value);
+    }
+  }
+  timeFilterHandler(timeSelectedCells.value);
+}
+
+useState("advancedSearchRebuildFunction", () => {
+  return advancedSearchRebuild;
+});
+
+const isTimeHardFilter = useState("isTimeHardFilter", () => true);
+
+const timeFilterFormatList = useState("timeFilterFormatList", () => []);
 function updateFilters(updatefilter) {
   const updatedFilters = { ...filters.value, ...updatefilter };
   filters.value = updatedFilters;
@@ -109,6 +140,13 @@ function updateFilters(updatefilter) {
       filterDescriptions.push(`${key}：${selectedOptions.join("、")}`);
     }
   }
+  if (timeFilterFormatList.value.length > 0) {
+    filterDescriptions.push(
+      `上課時間：${timeFilterFormatList.value.join("、")}` +
+        (isTimeHardFilter.value ? "" : "（軟篩選）")
+    );
+  }
+
   if (filterDescriptions.length > 0) {
     advancedSearchDisplayValue.value = filterDescriptions.join("｜");
   } else {
@@ -289,6 +327,94 @@ function creditFilterHandler(credits) {
     credit: creditFilter,
   });
 }
+
+const days = ["一", "二", "三", "四", "五", "六"];
+const slots = [
+  "0",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "X",
+  "A",
+  "B",
+  "C",
+  "D",
+];
+const daySlots = Object.fromEntries(
+  days.map((day) => [day, new Set(slots.map((slot) => `${day}${slot}`))])
+);
+function timeFilterHandler(time) {
+  const timeListStrFilter = {
+    operator: isTimeHardFilter.value ? FilterOperator.AND : FilterOperator.OR,
+    constraints: [],
+  };
+  timeFilterFormatList.value = [];
+
+  if (time.size === 0) {
+    updateFilters({ timeListStr: timeListStrFilter });
+    return;
+  }
+
+  // "row-col" 格式的時間選擇格子轉換為 "day-slot" 格式
+  // 例如 "0-1" 轉換為 "二0"
+  const timeFormat = new Set(
+    Array.from(time).map((cellId) => {
+      const [slotIndex, dayIndex] = cellId.split("-").map(Number);
+      return `${days[dayIndex]}${slots[slotIndex]}`;
+    })
+  );
+
+  if (isTimeHardFilter.value) {
+    for (const day of days) {
+      const theDaySlots = daySlots[day];
+      // if all slots for a day are selected, skip
+      if (theDaySlots.intersection(timeFormat).size === slots.length) {
+        timeFilterFormatList.value.push(day);
+        continue;
+      }
+      for (const slot of slots) {
+        if (!timeFormat.has(`${day}${slot}`)) {
+          timeListStrFilter.constraints.push({
+            value: `${day}${slot}`,
+            matchMode: FilterMatchMode.NOT_CONTAINS,
+          });
+        } else {
+          timeFilterFormatList.value.push(`${day}${slot.replace("X", "10")}`);
+        }
+      }
+    }
+    timeListStrFilter.constraints.push({
+      value: "◎",
+      matchMode: FilterMatchMode.NOT_EQUALS,
+    });
+  } else {
+    for (const day of days) {
+      const theDaySlots = daySlots[day];
+      if (theDaySlots.intersection(timeFormat).size === slots.length) {
+        timeFilterFormatList.value.push(day);
+        // remove all slots for this day from timeFormat
+        for (const slot of theDaySlots) {
+          timeFormat.delete(slot);
+        }
+      }
+    }
+    for (const cell of timeFormat) {
+      timeListStrFilter.constraints.push({
+        value: cell,
+        matchMode: FilterMatchMode.CONTAINS,
+      });
+      timeFilterFormatList.value.push(`${cell.replace("X", "10")}`);
+    }
+  }
+
+  updateFilters({ timeListStr: timeListStrFilter });
+}
 </script>
 
 <style scoped lang="scss">
@@ -315,6 +441,17 @@ function creditFilterHandler(credits) {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 1rem;
+}
+
+.time-hard-switch-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.5rem;
+}
+
+.time-hard-switch-label {
+  cursor: pointer;
 }
 
 p {

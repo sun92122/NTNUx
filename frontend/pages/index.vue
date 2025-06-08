@@ -52,12 +52,18 @@
             @click="openAdvancedSearch"
           />
         </IconField>
-        <label for="globalFilter" v-if="searchMode != 'advanced'"
+        <label
+          class="global-filter-label"
+          for="globalFilter"
+          v-if="searchMode != 'advanced'"
           >課程名稱/教師/開課序號</label
         >
-        <label for="globalFilter" v-else>{{
-          advancedSearchDisplayValue || "點擊進行進階搜尋"
-        }}</label>
+        <label
+          class="global-filter-label advanced-search-label"
+          for="globalFilter"
+          v-else
+          >{{ advancedSearchDisplayValue || "點擊進行進階搜尋" }}</label
+        >
       </FloatLabel>
       <div
         v-if="subFilterValue.filter_field"
@@ -203,6 +209,8 @@ const advancedSearchDisplayValue = useState(
   () => "點擊進行進階搜尋"
 );
 
+const advancedSearchRebuild = useState("advancedSearchRebuildFunction");
+
 // 搜尋模式與子篩選器
 const searchMode = ref("");
 const searchText = null;
@@ -254,6 +262,10 @@ const filters = useState("filters", () => ({
     operator: FilterOperator.OR,
     constraints: [],
   },
+  timeListStr: {
+    operator: FilterOperator.OR,
+    constraints: [],
+  },
   comment: {
     operator: FilterOperator.OR,
     constraints: [],
@@ -275,8 +287,11 @@ const searchModeList = ref({
     value: "advanced",
     command: () => {
       isShowAdvancedSearch.value = true;
-      filterMutatou({ global: null });
-      rebuildAdvancedSearchFilters();
+      filterMutatou({});
+      filters.value["global"].value = null;
+      if (advancedSearchRebuild && advancedSearchRebuild.value) {
+        advancedSearchRebuild.value();
+      }
     },
   },
   general: {
@@ -487,16 +502,6 @@ function selectCourse(course) {
     });
   }
 }
-
-function rebuildAdvancedSearchFilters() {
-  const advancedSearchFilters = useState("advancedSearchFilters");
-  for (const filterKey in advancedSearchFilters.value) {
-    const filter = advancedSearchFilters.value[filterKey][0];
-    if (filter.onChange) {
-      filter.onChange(filter.value);
-    }
-  }
-}
 </script>
 
 <style lang="scss">
@@ -633,5 +638,17 @@ function rebuildAdvancedSearchFilters() {
 
 .p-datatable-table-container {
   scrollbar-width: none;
+}
+
+.advanced-search-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+
+  --p-floatlabel-in-active-top: 50% !important;
+  --p-floatlabel-over-active-top: 0 !important;
+  font-size: inherit !important;
+  transform: translateY(-50%) !important;
 }
 </style>

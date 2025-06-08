@@ -27,7 +27,9 @@
         >
         <Message
           icon="pi pi-clock"
-          :severity="course.time.match(/.* 1[-/$]/) ? 'warn' : 'secondary'"
+          :severity="
+            course.time.match(/.* (0|1)([-/\n\r]|$)/) ? 'warn' : 'secondary'
+          "
           class="custom-message"
           v-if="course.time"
           >{{ course.time }}</Message
