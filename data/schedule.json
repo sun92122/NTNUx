@@ -2,7 +2,6 @@
   "year": "113",
   "term": "2",
   "schedule": [
-    {},
     {
       "info": "課程公告",
       "date": {
@@ -102,7 +101,6 @@
       "icon": "pi pi-pause",
       "moreInfo": "期中停修",
       "moreInfoUrl": "https://www.aa.ntnu.edu.tw/zh_tw/selectives/Dayschool/mid_suspension"
-    },
-    {}
+    }
   ]
 }
