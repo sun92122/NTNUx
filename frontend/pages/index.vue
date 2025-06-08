@@ -52,12 +52,18 @@
             @click="openAdvancedSearch"
           />
         </IconField>
-        <label for="globalFilter" v-if="searchMode != 'advanced'"
+        <label
+          class="global-filter-label"
+          for="globalFilter"
+          v-if="searchMode != 'advanced'"
           >課程名稱/教師/開課序號</label
         >
-        <label for="globalFilter" v-else>{{
-          advancedSearchDisplayValue || "點擊進行進階搜尋"
-        }}</label>
+        <label
+          class="global-filter-label advanced-search-label"
+          for="globalFilter"
+          v-else
+          >{{ advancedSearchDisplayValue || "點擊進行進階搜尋" }}</label
+        >
       </FloatLabel>
       <div
         v-if="subFilterValue.filter_field"
@@ -632,5 +638,17 @@ function selectCourse(course) {
 
 .p-datatable-table-container {
   scrollbar-width: none;
+}
+
+.advanced-search-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
+
+  --p-floatlabel-in-active-top: 50% !important;
+  --p-floatlabel-over-active-top: 0 !important;
+  font-size: inherit !important;
+  transform: translateY(-50%) !important;
 }
 </style>
