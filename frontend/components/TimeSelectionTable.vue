@@ -43,6 +43,13 @@
 <script setup>
 import { ref } from "vue";
 
+const props = defineProps({
+  timeFilterHandler: {
+    type: Function,
+    required: true,
+  },
+});
+
 const rows = ref([
   "0",
   "1",
@@ -62,7 +69,7 @@ const rows = ref([
 ]);
 const cols = ref(["一", "二", "三", "四", "五", "六"]);
 
-const selectedCells = ref(new Set());
+const selectedCells = useState("timeSelectedCells", () => new Set());
 const isSelecting = ref(false);
 const startCell = ref(null);
 const isDeselecting = ref(false);
@@ -112,12 +119,16 @@ function handleMouseUp() {
   startCell.value = null;
   isDeselecting.value = false;
   previewSet.clear();
+
+  props.timeFilterHandler(selectedCells.value);
 }
 
 function handleColumnClick(colIndex) {
   const cells = rows.value.map((row, rowIndex) => `${rowIndex}-${colIndex}`);
   isDeselecting.value = cells.every((cell) => selectedCells.value.has(cell));
   toggleCells(cells);
+
+  props.timeFilterHandler(selectedCells.value);
 }
 
 // --- 處理選取預覽 ---
