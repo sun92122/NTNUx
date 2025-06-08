@@ -474,6 +474,7 @@ function selectCourse(course) {
       summary: "已取消選課",
       detail: `${course.serial_no} ${course.course_name}`,
       life: 3000,
+      group: windowWidth.value < 768 ? "bottom" : null,
     });
   } else {
     selected[course.serial_no] = course;
@@ -482,6 +483,7 @@ function selectCourse(course) {
       summary: "已選課",
       detail: `${course.serial_no} ${course.course_name}`,
       life: 3000,
+      group: windowWidth.value < 768 ? "bottom" : null,
     });
   }
 }
@@ -528,7 +530,7 @@ function rebuildAdvancedSearchFilters() {
 }
 
 .grid-container {
-  margin-top: 2rem;
+  margin-top: 0.5rem;
   width: 100vw;
   padding: 0;
   --p-datatable-body-cell-padding: 0.75rem 0;
@@ -550,6 +552,7 @@ function rebuildAdvancedSearchFilters() {
     padding-right: 1rem;
     margin-left: auto;
     margin-right: auto;
+    margin-top: 2rem;
   }
 
   @media (min-width: 992px) {

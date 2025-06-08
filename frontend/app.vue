@@ -1,6 +1,8 @@
 <template>
   <div id="app">
     <Toast />
+    <Toast position="bottom-center" group="bottom" />
+
     <Menubar :model="items" :sticky="true" breakpoint="340px">
       <template #start>
         <Button
@@ -23,6 +25,7 @@
             @change="toggleDarkMode"
             aria-label="Toggle Dark Mode"
             :dt="toggleSwitchDt"
+            v-if="windowWidth > 600"
           >
             <template #handle>
               <i
@@ -30,6 +33,19 @@
               ></i>
             </template>
           </ToggleSwitch>
+          <Button
+            v-else
+            :icon="darkMode ? 'pi pi-moon' : 'pi pi-sun'"
+            :severity="darkMode ? 'secondary' : 'primary'"
+            class="p-button-rounded p-button-secondary me-2"
+            @click="
+              () => {
+                darkMode = !darkMode;
+                toggleDarkMode();
+              }
+            "
+            aria-label="Toggle Dark Mode"
+          ></Button>
           <Button
             icon="pi pi-github"
             class="p-button-rounded p-button-secondary"
@@ -89,8 +105,19 @@ import Dialog from "primevue/dialog";
 import { FloatingSchedule, AdvancedSearch } from "#components";
 
 const updateMenubar = useState("updateMenubar");
+const windowWidth = useState("windowWidth", () => window.innerWidth);
+
+function updateWidth() {
+  windowWidth.value = window.innerWidth;
+}
+
 onMounted(() => {
   updateMenubar.value = updateMenubarItems;
+  window.addEventListener("resize", updateWidth);
+});
+
+onBeforeMount(() => {
+  window.removeEventListener("resize", updateWidth);
 });
 
 const isShowSchedule = ref(false); // 控制課表顯示的變數
