@@ -34,7 +34,7 @@
             <i class="pi pi-search" />
           </InputIcon>
           <InputText
-            v-if="!isShowAdvancedSearch"
+            v-if="searchMode != 'advanced'"
             id="globalFilter"
             v-model="filters['global'].value"
             :autocapitalize="false"
@@ -44,16 +44,20 @@
           <InputText
             v-else
             id="globalFilter"
-            v-model="filters['global'].value"
+            value=""
+            readonly
             :autocapitalize="false"
             size="large"
             :style="{ width: '100%', cursor: 'pointer' }"
+            @click="openAdvancedSearch"
           />
         </IconField>
-        <label for="globalFilter" v-if="!isShowAdvancedSearch"
+        <label for="globalFilter" v-if="searchMode != 'advanced'"
           >課程名稱/教師/開課序號</label
         >
-        <label for="globalFilter" v-else>進階搜尋</label>
+        <label for="globalFilter" v-else>{{
+          advancedSearchDisplayValue || "點擊進行進階搜尋"
+        }}</label>
       </FloatLabel>
       <div
         v-if="subFilterValue.filter_field"
@@ -93,7 +97,7 @@
         :showGridlines="false"
         :show-headers="false"
         :scrollable="true"
-        scrollHeight="calc(100vh - 20rem)"
+        scrollHeight="calc(100vh - 22rem)"
         :rows="50"
         :rowsPerPageOptions="[10, 20, 50, 100]"
         :loading="loading"
@@ -192,6 +196,12 @@ const updateMenubar = useState("updateMenubar");
 const selectedCourses = useState("selectedCourses", () => ({}));
 const selectedRows = useState("selectedRows", () => ({}));
 const isShowAdvancedSearch = useState("isShowAdvancedSearch", () => false);
+const windowWidth = useState("windowWidth", () => window.innerWidth);
+
+const advancedSearchDisplayValue = useState(
+  "advancedSearchDisplayValue",
+  () => "點擊進行進階搜尋"
+);
 
 // 搜尋模式與子篩選器
 const searchMode = ref("");
@@ -240,6 +250,10 @@ const filters = useState("filters", () => ({
     operator: FilterOperator.OR,
     constraints: [],
   },
+  time_loc: {
+    operator: FilterOperator.OR,
+    constraints: [],
+  },
   comment: {
     operator: FilterOperator.OR,
     constraints: [],
@@ -262,6 +276,7 @@ const searchModeList = ref({
     command: () => {
       isShowAdvancedSearch.value = true;
       filterMutatou({ global: null });
+      rebuildAdvancedSearchFilters();
     },
   },
   general: {
@@ -468,6 +483,16 @@ function selectCourse(course) {
       detail: `${course.serial_no} ${course.course_name}`,
       life: 3000,
     });
+  }
+}
+
+function rebuildAdvancedSearchFilters() {
+  const advancedSearchFilters = useState("advancedSearchFilters");
+  for (const filterKey in advancedSearchFilters.value) {
+    const filter = advancedSearchFilters.value[filterKey][0];
+    if (filter.onChange) {
+      filter.onChange(filter.value);
+    }
   }
 }
 </script>

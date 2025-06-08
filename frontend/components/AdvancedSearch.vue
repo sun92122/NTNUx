@@ -44,6 +44,12 @@ import { TimeSelectionTable } from "#components";
 
 const filters = useState("filters");
 
+// const Advanced Search Display Value
+const advancedSearchDisplayValue = useState(
+  "advancedSearchDisplayValue",
+  () => "點擊進行進階搜尋"
+);
+
 const advancedSearchFilters = useState("advancedSearchFilters", () => ({
   上課地點: [
     {
@@ -69,13 +75,13 @@ const advancedSearchFilters = useState("advancedSearchFilters", () => ({
         自然科學: false,
         邏輯運算: false,
       },
-      onChange: () => {
+      onChange: (value) => {
         generalFilterHandler();
       },
     },
     {
       value: { 學院共同課程: false, 跨域專業探索課程: false, 大學入門: false },
-      onChange: () => {
+      onChange: (value) => {
         generalFilterHandler();
       },
     },
@@ -93,6 +99,21 @@ const advancedSearchFilters = useState("advancedSearchFilters", () => ({
 function updateFilters(updatefilter) {
   const updatedFilters = { ...filters.value, ...updatefilter };
   filters.value = updatedFilters;
+
+  const filterDescriptions = [];
+  for (const [key, filter] of Object.entries(advancedSearchFilters.value)) {
+    const selectedOptions = Object.entries(filter[0].value)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([option]) => option);
+    if (selectedOptions.length > 0) {
+      filterDescriptions.push(`${key}：${selectedOptions.join("、")}`);
+    }
+  }
+  if (filterDescriptions.length > 0) {
+    advancedSearchDisplayValue.value = filterDescriptions.join("｜");
+  } else {
+    advancedSearchDisplayValue.value = "點擊進行進階搜尋";
+  }
 }
 
 function locationFilterHandler(location) {
