@@ -10,6 +10,12 @@ type: slide
 
 ##### 物理114 林子敬
 
+[![hackmd-github-sync-badge](https://hackmd.io/91StSZb3QUmy9EJHnHtqLA/badge)](https://hackmd.io/91StSZb3QUmy9EJHnHtqLA)
+
+Note:
+大家早安，
+今天為大家帶來
+
 ----
 
 這份簡報
@@ -18,10 +24,20 @@ https://hackmd.io/@magical/NTNUx
 
 ![image](https://hackmd.io/_uploads/Byx2NecMee.png)
 
+Note:
+首先，如果你想看這份簡報，
+這裡有他的連結跟 QRcode
 
 ---
 
 ## 專案發想
+
+Note:
+關於這個專案，有個小故事，
+2024/7/26，就是大約1年前，
+當時我人在北捷上班，
+看著課程查詢系統發呆，
+想著，
 
 ----
 
@@ -31,6 +47,12 @@ https://hackmd.io/@magical/NTNUx
 - 查詢緩慢、查詢條件不友好
 - 行動裝置很難過
 
+Note:
+這東西怎麼那麼難用啊，
+按鈕小，手一抖就歪掉
+搜尋選項一定要填，
+手機別說搜尋了連瀏覽都有障礙
+
 ----
 
 ### 改善
@@ -38,6 +60,11 @@ https://hackmd.io/@magical/NTNUx
 - 現代化網頁框架
 - 前端篩選
 - 響應式網站設計
+
+Note:
+簡單來說，
+要改的很單純，
+好看、好用、快一點
 
 ---
 
@@ -49,18 +76,39 @@ https://hackmd.io/@magical/NTNUx
 
 ![image alt](https://github.com/sun92122/NTNUx/blob/main/doc/gif_0.gif?raw=true)
 
+Note:
+課程的資料部分，
+期中有分享過，
+搭配瀏覽器自動化和封包監聽，
+可以輕鬆的用 python 把課程查詢系統的資料爬下來存
+
 ----
 
 - 瀏覽器控制：`selenium`
 - 封包監聽：`mitmproxy`
 
+Note:
+這是兩個比較重要的庫，
+給有相關需求的人參考，
+其他的都是 python 的標準庫，
+
 ----
 
 格式化與整理
 
-|          |  原始  | 格式化 | 拆分 |
-|:--------:|:------:|:------:|:----:|
-| 檔案大小 | 5~8 MB | 3~5 MB | 數個檔案<br/>最大~700KB     |
+|               | 原始  | 稍微<br/>整理 | 格式化 |          拆分           |
+|:-------------:| ----- |:-------------:|:------:|:-----------------------:|
+| 檔案<br/>大小 | >9 MB |    5~8 MB     | 3~5 MB | 數個檔案<br/>最大~700KB |
+
+Note:
+爬下來的資料只能說相當可怕，
+學校的資料中有很多是學生不知道也不需要的資訊，
+格式也不適合一次性網路傳輸，
+這裡就是在取得原始資料後做數次整理，
+最後拆分成大約 10 個，
+大小適合傳輸的 json 檔，
+拆分的原因主要是善用 http 多路復用，
+藉此加快從伺服器獲取資料
 
 ----
 
@@ -108,13 +156,20 @@ https://hackmd.io/@magical/NTNUx
 <div style="flex-direction: row; display: flex">
     <div>
         <a href="https://ntnux.sun92122.com">ntnux.sun92122.com</a>
-        <img src="https://hackmd.io/_uploads/S1rfHk9Ggl.png" style="width: 80%">
+        <img src="https://hackmd.io/_uploads/S1rfHk9Ggl.png" style="width: 25vw">
     </div>
     <div>
         <a href="https://ntnux2.sun92122.com">ntnux2.sun92122.com</a>
-        <img src="https://hackmd.io/_uploads/Hk9XB1qfel.png"  style="width: 80%">
+        <img src="https://hackmd.io/_uploads/Hk9XB1qfel.png"  style="width: 25vw">
     </div>
 </div>
+
+Note:
+那這是網站的部分，
+理論上兩個只是部署方式不一樣應該不會差太多，
+可以先掃起來玩，
+避免覺得我講得太無聊
+（等大家 5 秒）
 
 ----
 
@@ -124,23 +179,42 @@ https://hackmd.io/@magical/NTNUx
 
 ![](https://nuxt.com/assets/design-kit/logo-green-white.png)
 
+Note:
+Nuxt 是基於 Vue.js 的 js 框架，
+如果不知道 Vue 是甚麼 或是 框架是甚麼，
+痾，可以問問 AI，他解釋的肯定比我好
+
 ----
 
 ### UI 套件 － PrimeVue
 
 按鈕、導覽列、資料表格、彈出視窗...
 
+Note:
+UI 套件對現代網頁來講就是能用就用，
+工程師還是儘量不要重複造輪子
+
 ----
 
 電腦（螢幕寬度～1528px）
 
-![image](https://hackmd.io/_uploads/BkWTVy5Gex.png)
+![image](https://github.com/sun92122/NTNUx/blob/main/doc/img_0.png?raw=true)
+
+Note:
+這個就是他大概的樣子，
 
 ----
 
 手機（螢幕寬度 390px）
 
-![ntnux.sun92122.com__m=advanced&s(iPhone 12 Pro)](https://hackmd.io/_uploads/ByuzsJ5fll.png =x700)
+![ntnux.sun92122.com__m=advanced&s(iPhone 12 Pro)](https://github.com/sun92122/NTNUx/blob/main/doc/img_1.png?raw=true =286x586)
+
+Note:
+手機大概會長這樣，
+這個比例應該接近 iPhone 12 pro，
+那響應式網站通常會在意的是螢幕寬度，
+因為現代人相對擅長往下滑、滾動，
+所以會更需要注意怎麼把資訊塞進行動裝置的螢幕
 
 ---
 
@@ -149,27 +223,55 @@ https://hackmd.io/@magical/NTNUx
 ----
 
 ## 比較
+
 ### 速度
+
+Note:
+查詢速度，
+對於像我一樣雙主修，
+或是想把自己課表塞成高中生的同學，
+原版的速度相信你肯定抱怨過
 
 ----
 
-![image](https://hackmd.io/_uploads/By2Cgg9Gex.png)
+![image](https://github.com/sun92122/NTNUx/blob/main/doc/img_3.png?raw=true)
 
 | 可以開始查詢<br/>（含點擊至查詢頁面） | 查詢時間 |
 |:--------------------------------:|:--------:|
 |              ~ 2 秒              |  ~ 7 秒  |
 
+Note:
+先來看看原版，
+我們可以觀察到，
+學校網站因為介面陽春，
+出現到可以操作的時間並不會太久，
+但缺點是查詢頁面不是一點進去就是，
+更痛苦的絕對是查詢時間，
+當然與查詢大小根伺服器快取有關，
+這裡的大約 7 秒，是對於本學期通識搜尋，
+算是比較大的搜尋條件
+
 ----
 
-![image](https://hackmd.io/_uploads/B1hQ1eqfxg.png)
+![image](https://github.com/sun92122/NTNUx/blob/main/doc/img_2.png?raw=true)
 
 | 可以開始查詢 | 查詢時間 |
 |:------------:|:--------:|
-|    ~ 2 秒    |  < 1 秒  |
+|    ~ 3 秒    |  < 1 秒  |
+
+Note:
+再來是我們的網站，
+LCP，就是最大內容繪製大約需要 3 秒，
+但之後只要在同一個學期，
+所有操作都在瀏覽器內運作，
+絕大多數搜尋操作都能在一秒內完成，
+如果你剛剛掃左邊，網址裡沒有2的，會再更快一點，
+感謝 cloudflare
 
 ----
 
 ## 比較
+
 ### 顯示資訊
 
 ----
@@ -178,19 +280,36 @@ https://hackmd.io/@magical/NTNUx
 
 ![image](https://hackmd.io/_uploads/ryuS7xqzeg.png)
 
+Note:
+資訊部分，
+我們肯定希望他能涵蓋所有原版選課系統有的資訊
+那目前，除了修課人數我還沒放上去，
+你能在課程查詢看到的應該應該都能看的到
+
 ----
 
 ## 比較
+
 ### 查詢方式
 
 ----
 
 ![image](https://hackmd.io/_uploads/rkax4gqMgx.png)
 
+Note:
+查詢的部分，
+這是你們熟悉的
+
 ----
 
 ![image](https://hackmd.io/_uploads/HJLX4ecGee.png)
+
 ![image](https://hackmd.io/_uploads/B1HENeqfex.png =800x)
+
+Note:
+這是你們不熟悉的，
+這裡除了上課時間和學分學程的查詢我還寫好，
+那 bug 那是肯定有，歡迎上 github 開 issue
 
 ----
 
@@ -202,6 +321,13 @@ https://hackmd.io/@magical/NTNUx
 
 ![image](https://hackmd.io/_uploads/rJc9Sg9zle.png)
 
+Note:
+首頁的部分，
+應該還會有多修改，
+不過有鑑於大學四年，
+我都是負責在群組提醒大家選課時間的，
+希望他多少有一點幫助
+
 ----
 
 簡易課表（beta）
@@ -210,9 +336,42 @@ https://hackmd.io/@magical/NTNUx
 
 ----
 
-暗色模式，防止手機變光劍
+- 暗色模式，防止手機變光劍
+- 早八黃色標註
+- ...
 
-![image](https://hackmd.io/_uploads/HkFwIx5Mle.png)
+----
+
+## {近期更新|`來不及做完`}
+
+----
+
+時間搜尋，把課表塞成高中生
+
+![image](https://hackmd.io/_uploads/SklCD60zlx.png)
+
+![image](https://hackmd.io/_uploads/SJ1g_60Ggl.png)
+
+Note:
+時間搜尋是來自選課系統的查詢功能，
+我一直不知道為什麼不放進課程查詢，
+但總之我近期內會刻一個出來，
+比較不一樣的是，
+選課系統的查詢是只要有重疊就會出現，
+不過比較合理的是，
+課程時間要完全在你框選的時間範圍才應該呈現，
+摁，我的之後會是這樣，敬請期待
+
+----
+
+- 更好看的課表、課表分享
+- 更多篩選（歡迎許願）
+- ...
+
+Note:
+能做的很多，
+你需要的我不一定想的到，
+歡迎大家有想要的功能都去丟 issue
 
 ---
 
@@ -327,6 +486,11 @@ flowchart TD
     classDef external fill:#f0f0f0,stroke:#666,stroke-width:1px
 ```
 
+Note:
+這是我用 AI 畫的，
+我覺得蠻清楚呈現這個 Github 庫的架構，
+有興趣可以看看
+
 ---
 
 ## 特別感謝
@@ -334,3 +498,15 @@ flowchart TD
 - Cloudflare 的便宜網域和免費 pages
 - 問題本人 a.k.a. 國立臺灣師範大學
 - 最大靈感來源 [臺大課程網](https://course.ntu.edu.tw/)
+
+Note:
+最後，照慣例，下學年課程會在 7/1 公布，
+我可以承諾會持續維護這個專案大概兩年，
+歡迎大家使用，
+然後一階選課 7/29 - 8/1
+
+---
+
+## 感謝聆聽
+
+![](https://i.imgflip.com/26nlrs.jpg)
