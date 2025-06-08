@@ -30,6 +30,10 @@
               }"
               @mousedown="handleMouseDown(`${row_index}-${col_index}`)"
               @mouseover="handleMouseOver(`${row_index}-${col_index}`)"
+              @touchstart.prevent="
+                handleTouchStart($event, `${row_index}-${col_index}`)
+              "
+              @touchmove.prevent="handleTouchMove($event)"
             >
               {{ row }}
             </td>
@@ -121,6 +125,26 @@ function handleMouseUp() {
   previewSet.clear();
 
   props.timeFilterHandler(selectedCells.value);
+}
+
+// 追蹤觸控位置
+let lastTouchedId = null;
+
+function handleTouchStart(event, id) {
+  handleMouseDown(id); // 重用邏輯
+  lastTouchedId = id;
+}
+
+function handleTouchMove(event) {
+  const touch = event.touches[0];
+  const element = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (!element) return;
+
+  const id = element?.dataset?.id;
+  if (id && id !== lastTouchedId) {
+    handleMouseOver(id); // 重用邏輯
+    lastTouchedId = id;
+  }
 }
 
 function handleColumnClick(colIndex) {
