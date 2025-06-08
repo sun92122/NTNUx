@@ -180,7 +180,7 @@ function courseTypeFilterHandler(courseType) {
 
   if (intensive) {
     updateFilters({
-      time_inf: {
+      time_loc: {
         operator: FilterOperator.OR,
         constraints: [
           { value: "◎密集課程", matchMode: FilterMatchMode.CONTAINS },
@@ -189,7 +189,7 @@ function courseTypeFilterHandler(courseType) {
     });
   } else {
     updateFilters({
-      time_inf: {
+      time_loc: {
         operator: FilterOperator.OR,
         constraints: [],
       },
