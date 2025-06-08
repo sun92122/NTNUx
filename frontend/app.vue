@@ -66,14 +66,10 @@
       maximizable
       modal
       header="課表"
-      :style="{
-        width: '850px',
-        height: '80vh',
-      }"
+      class="floating-schedule-dialog"
       :content-style="{
         margin: '0 0 1rem',
       }"
-      :breakpoints="{ '960px': '75vw', '640px': '90vw' }"
     >
       <FloatingSchedule />
     </Dialog>
@@ -248,13 +244,15 @@ html {
   -ms-overflow-style: none; /* Internet Explorer and Edge */
 }
 
-.advanced-search-dialog {
+.advanced-search-dialog,
+.floating-schedule-dialog {
   width: clamp(44rem, 85vw, 56rem);
-  height: 80vh;
+  height: 90vh;
 }
 
 @media screen and (max-width: 770px) {
-  .advanced-search-dialog {
+  .advanced-search-dialog,
+  .floating-schedule-dialog {
     width: 90vw;
     height: 95vh;
   }
