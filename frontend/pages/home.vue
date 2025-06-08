@@ -45,14 +45,14 @@
               <span v-if="data.date.time">
                 {{ data.date.time }}
               </span>
-              <span :style="{ fontSize: 'x-large', color: data.color }">
+              <span class="card-title-date" :style="{ color: data.color }">
                 {{ data.date.date }}
               </span>
             </div>
             <div v-if="data.start">
               <div style="text-align: center">
                 <span v-if="data.start.time"> {{ data.start.time }} </span>
-                <span :style="{ fontSize: 'x-large', color: data.color }">
+                <span class="card-title-date" :style="{ color: data.color }">
                   {{ data.start.date }}-{{ data.end.date }}
                 </span>
                 <span v-if="data.end.time"> {{ data.end.time }}</span>
@@ -271,5 +271,11 @@ onMounted(async () => {
 <style lang="scss" scoped>
 h3 {
   text-align: center;
+}
+
+.card-title-date {
+  font-size: x-large;
+  font-weight: bolder;
+  margin: 0 0.25rem;
 }
 </style>
