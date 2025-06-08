@@ -203,6 +203,8 @@ const advancedSearchDisplayValue = useState(
   () => "點擊進行進階搜尋"
 );
 
+const advancedSearchRebuild = useState("advancedSearchRebuildFunction");
+
 // 搜尋模式與子篩選器
 const searchMode = ref("");
 const searchText = null;
@@ -254,6 +256,10 @@ const filters = useState("filters", () => ({
     operator: FilterOperator.OR,
     constraints: [],
   },
+  timeListStr: {
+    operator: FilterOperator.OR,
+    constraints: [],
+  },
   comment: {
     operator: FilterOperator.OR,
     constraints: [],
@@ -275,8 +281,11 @@ const searchModeList = ref({
     value: "advanced",
     command: () => {
       isShowAdvancedSearch.value = true;
-      filterMutatou({ global: null });
-      rebuildAdvancedSearchFilters();
+      filterMutatou({});
+      filters.value["global"].value = null;
+      if (advancedSearchRebuild && advancedSearchRebuild.value) {
+        advancedSearchRebuild.value();
+      }
     },
   },
   general: {
@@ -485,16 +494,6 @@ function selectCourse(course) {
       life: 3000,
       group: windowWidth.value < 768 ? "bottom" : null,
     });
-  }
-}
-
-function rebuildAdvancedSearchFilters() {
-  const advancedSearchFilters = useState("advancedSearchFilters");
-  for (const filterKey in advancedSearchFilters.value) {
-    const filter = advancedSearchFilters.value[filterKey][0];
-    if (filter.onChange) {
-      filter.onChange(filter.value);
-    }
   }
 }
 </script>

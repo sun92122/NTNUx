@@ -14,14 +14,20 @@ export function useCourses() {
     const data = await res.json();
     if (data.length === 0) return null;
 
+    // prepare data
+    data.forEach((item) => {
+      item.credit = Math.round(item.credit * 10) / 10;
+      item.course_name = item.chn_name.replace(/<\/br>.*/g, "");
+      item.time = timeFormatter(item.time_loc);
+      item.location = locationFormatter(item.time_loc);
+      item.timeLocList = parseTimeSlots(item.time_loc);
+      item.teacher = teacherNameFormatter(item.teacher);
+      item.generalCore = item.generalCore.join("/");
+    });
+
     return data.map((item) => ({
       ...item,
-      credit: Math.round(item.credit * 10) / 10,
-      course_name: item.chn_name.replace(/<\/br>.*/g, ""),
-      time: timeFormatter(item.time_loc),
-      location: locationFormatter(item.time_loc),
-      teacher: teacherNameFormatter(item.teacher),
-      generalCore: item.generalCore.join("/"),
+      timeListStr: parseTimeListStr(item.timeLocList),
     }));
   };
 
@@ -97,4 +103,55 @@ function locationFormatter(location) {
   const values = Object.values(location).filter((v) => v !== "");
   const unique = [...new Set(values)];
   return unique.length === 1 ? unique[0] : values.join("/");
+}
+
+function parseTimeSlots(timeObj) {
+  const result = [];
+  if (typeof timeObj !== "object" || !timeObj) {
+    return result;
+  }
+
+  for (const seg of Object.keys(timeObj)) {
+    const match = seg.match(
+      /([一二三四五六])\s*(\d+|A|B|C|D)(?:-(\d+|A|B|C|D))?/
+    );
+    if (match) {
+      const [_, day, start, end] = match;
+      const range = getRange(start, end || start);
+      for (const period of range) {
+        result.push({ day, period, loc: timeObj[seg] });
+      }
+    }
+  }
+  return result;
+}
+
+function getRange(start, end) {
+  const periodOrder = [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "A",
+    "B",
+    "C",
+    "D",
+  ];
+  const s = periodOrder.indexOf(start);
+  const e = periodOrder.indexOf(end);
+  return periodOrder.slice(s, e + 1);
+}
+
+function parseTimeListStr(timeLocList) {
+  if (!Array.isArray(timeLocList) || timeLocList.length === 0) {
+    return "◎";
+  }
+  return timeLocList.map(({ day, period }) => `${day}${period.replace('10', 'X')}`).join("/");
 }
