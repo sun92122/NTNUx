@@ -126,7 +126,7 @@ useState("advancedSearchRebuildFunction", () => {
 
 const isTimeHardFilter = useState("isTimeHardFilter", () => true);
 
-const timeFilterFormatList = ref([]);
+const timeFilterFormatList = useState("timeFilterFormatList", () => []);
 function updateFilters(updatefilter) {
   const updatedFilters = { ...filters.value, ...updatefilter };
   filters.value = updatedFilters;
