@@ -1,21 +1,29 @@
 <template>
   <div class="advanced-search-box">
     <div class="advanced-search-box-item">
-      <p>上課時間</p>
-      <div class="time-hard-switch-container">
-        <label class="time-hard-switch-label" for="time-hard-switch">
-          <p style="font-size: small; margin: 0">嚴格節次搜尋</p>
-          <span style="font-size: small; color: var(--p-text-500)"
-            >課程需完全為於所選範圍才會顯示</span
-          >
-        </label>
-        <ToggleSwitch
-          v-model="isTimeHardFilter"
-          inputId="time-hard-switch"
-          @change="timeFilterHandler(timeSelectedCells)"
-        />
-      </div>
-      <TimeSelectionTable :timeFilterHandler="timeFilterHandler" />
+      <Accordion :activeIndex="0">
+        <AccordionPanel>
+          <AccordionHeader :style="{ padding: '0 var(--p-accordion-header-padding) 0 0' }">
+            <p>上課時間</p>
+          </AccordionHeader>
+          <AccordionContent>
+            <div class="time-hard-switch-container">
+              <label class="time-hard-switch-label" for="time-hard-switch">
+                <p style="font-size: small; margin: 0">嚴格節次搜尋</p>
+                <span style="font-size: small; color: var(--p-text-500)"
+                  >課程需完全為於所選範圍才會顯示</span
+                >
+              </label>
+              <ToggleSwitch
+                v-model="isTimeHardFilter"
+                inputId="time-hard-switch"
+                @change="timeFilterHandler(timeSelectedCells)"
+              />
+            </div>
+            <TimeSelectionTable :timeFilterHandler="timeFilterHandler" />
+          </AccordionContent>
+        </AccordionPanel>
+      </Accordion>
     </div>
     <div class="advanced-search-box-item">
       <div
@@ -51,7 +59,14 @@
 import { ref, onMounted } from "vue";
 import { FilterMatchMode, FilterOperator } from "@primevue/core/api";
 
-import { Button, ToggleSwitch } from "primevue";
+import {
+  Button,
+  ToggleSwitch,
+  Accordion,
+  AccordionPanel,
+  AccordionHeader,
+  AccordionContent,
+} from "primevue";
 
 import { TimeSelectionTable } from "#components";
 
@@ -458,5 +473,6 @@ p {
   margin: 0.5rem 0;
   font-weight: bold;
   font-size: 1.2rem;
+  color: var(--p-dialog-color) !important;
 }
 </style>
