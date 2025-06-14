@@ -28,12 +28,12 @@
     <h1 class="center">選課時程</h1>
     <Carousel
       :value="selectionSchedule?.schedule"
+      :page="carouselPage"
       :numVisible="3"
       :numScroll="1"
       :showNavigators="false"
-      :showIndicators="true"
+      :showIndicators="false"
       :responsiveOptions="responsiveOptions"
-      ref="carousel"
     >
       <template #item="{ data, _ }">
         <Card class="p-mb-3" :style="data?.info ? {} : { boxShadow: 'none' }">
@@ -45,14 +45,14 @@
               <span v-if="data.date.time">
                 {{ data.date.time }}
               </span>
-              <span :style="{ fontSize: 'x-large', color: data.color }">
+              <span class="card-title-date" :style="{ color: data.color }">
                 {{ data.date.date }}
               </span>
             </div>
             <div v-if="data.start">
               <div style="text-align: center">
                 <span v-if="data.start.time"> {{ data.start.time }} </span>
-                <span :style="{ fontSize: 'x-large', color: data.color }">
+                <span class="card-title-date" :style="{ color: data.color }">
                   {{ data.start.date }}-{{ data.end.date }}
                 </span>
                 <span v-if="data.end.time"> {{ data.end.time }}</span>
@@ -97,12 +97,21 @@
     <div>
       <!-- carousel navigation buttons -->
       <Button
-        icon="pi pi-chevron-left"
-        class="p-button-rounded p-button-secondary p-mr-2"
+        icon="pi pi-angle-left"
+        variant="text"
+        rounded
+        size="large"
+        @click="scrollToPage(carouselPage - 1)"
+        :disabled="carouselPage <= 0"
+        style="margin-right: 0.5rem"
       ></Button>
       <Button
-        icon="pi pi-chevron-right"
-        class="p-button-rounded p-button-secondary"
+        icon="pi pi-angle-right"
+        variant="text"
+        rounded
+        size="large"
+        @click="scrollToPage(carouselPage + 1)"
+        :disabled="carouselPage >= selectionSchedule?.schedule.length - 3"
       ></Button>
     </div>
   </div>
@@ -114,7 +123,7 @@ import { useRoute } from "vue-router";
 
 import { useCourses } from "~/composables/useCourses";
 
-import { Tabs, Tab, TabList, Avatar, Card, Timeline, Carousel } from "primevue";
+import { Tabs, Tab, TabList, Button, Card, Timeline, Carousel } from "primevue";
 
 const route = useRoute();
 
@@ -188,8 +197,8 @@ const searchModeList = ref({
 });
 
 const selectionSchedule = useState("courseSelectionSchedule", () => {});
+const carouselPage = ref(1);
 
-const carousel = ref(null);
 const responsiveOptions = ref([
   {
     breakpoint: "1280px",
@@ -203,11 +212,63 @@ const responsiveOptions = ref([
   },
 ]);
 
+function findNowSchedule() {
+  const now = new Date();
+  const year = now.getFullYear() - 1911; // 民國年轉換
+  const month = now.getMonth() + 1; // 月份從0開始
+  const day = now.getDate();
+
+  for (const [index, schedule] of selectionSchedule.value.schedule.entries()) {
+    if (schedule.date && schedule.date.date) {
+      const [scheduleYear, scheduleMonth, scheduleDay] = schedule.date.date
+        .split("/")
+        .map(Number);
+      if (
+        year > scheduleYear ||
+        (year === scheduleYear && month > scheduleMonth) ||
+        (year === scheduleYear && month === scheduleMonth && day > scheduleDay)
+      ) {
+        continue;
+      }
+      return index;
+    } else if (schedule.end && schedule.end.date) {
+      const [endYear, endMonth, endDay] = schedule.end.date
+        .split("/")
+        .map(Number);
+      if (
+        year > endYear ||
+        (year === endYear && month > endMonth) ||
+        (year === endYear && month === endMonth && day > endDay)
+      ) {
+        continue;
+      }
+      return index;
+    }
+  }
+}
+
+function clip(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function scrollToPage(page) {
+  carouselPage.value = clip(
+    page,
+    0,
+    selectionSchedule.value.schedule.length - 3
+  );
+}
+
 onMounted(async () => {
   await fetch("/data/schedule.json")
     .then((response) => response.json())
     .then((data) => {
       selectionSchedule.value = data;
+      const nowIndex = findNowSchedule();
+      if (nowIndex !== undefined) {
+        carouselPage.value =
+          clip(nowIndex, 1, selectionSchedule.value.schedule.length - 1) - 1;
+      }
     })
     .catch((error) => {
       console.error("Error fetching course selection schedule:", error);
@@ -271,5 +332,11 @@ onMounted(async () => {
 <style lang="scss" scoped>
 h3 {
   text-align: center;
+}
+
+.card-title-date {
+  font-size: x-large;
+  font-weight: bolder;
+  margin: 0 0.25rem;
 }
 </style>

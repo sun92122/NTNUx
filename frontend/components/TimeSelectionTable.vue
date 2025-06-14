@@ -15,7 +15,7 @@
     </table>
     <div class="tbody-wrapper">
       <table>
-        <tbody @mouseup="handleMouseUp" @mouseleave="handleMouseUp">
+        <tbody @mouseup="handleMouseUp" @mouseleave="handleMouseUp" @touchend="handleMouseUp">
           <tr v-for="(row, row_index) in rows" :key="`row-${row_index}`">
             <td
               v-for="(_, col_index) in cols"
