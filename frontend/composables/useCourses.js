@@ -6,7 +6,7 @@ export function useCourses() {
   const rowData = useState("rowData", () => []);
   const loading = useState("loading", () => true);
 
-  const defultGlobalFilterFields = ["course_name", "teacher", "serial_no"];
+  const defaultGlobalFilterFields = ["course_name", "teacher", "serial_no"];
 
   const fetchData = async (i) => {
     const res = await fetch(`data/${currentTerm.value}/${i}.min.json`);
@@ -82,7 +82,7 @@ export function useCourses() {
     rowData,
     loading,
     reloadCurrentTerm,
-    defultGlobalFilterFields,
+    defaultGlobalFilterFields,
     initTermData,
   };
 }

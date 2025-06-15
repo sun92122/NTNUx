@@ -98,7 +98,7 @@
         :paginator="true"
         :filters="filters"
         :global-filter-fields="
-          searchMode.filter_field || defultGlobalFilterFields
+          searchMode.filter_field || defaultGlobalFilterFields
         "
         :showGridlines="false"
         :show-headers="false"
@@ -195,7 +195,7 @@ const {
   loading,
   reloadCurrentTerm,
   initTermData,
-  defultGlobalFilterFields,
+  defaultGlobalFilterFields,
 } = useCourses();
 
 const updateMenubar = useState("updateMenubar");
