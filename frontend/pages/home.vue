@@ -131,6 +131,7 @@ const {
   terms,
   currentTerm,
   rowData,
+  tempDatas,
   loading,
   reloadCurrentTerm,
   defaultGlobalFilterFields,

@@ -143,6 +143,7 @@ const {
   terms,
   currentTerm,
   rowData,
+  tempDatas,
   loading,
   reloadCurrentTerm,
   defaultGlobalFilterFields,
@@ -221,12 +222,35 @@ async function getCourseData() {
       }
     }
   }
+  if (
+    tempDatas.value[acadm] &&
+    tempDatas.value[acadm][(Math.floor(course.value.serial_no / 1000) + 1) % 10]
+  ) {
+    for (const rowData of tempDatas.value[acadm][
+      Math.floor(course.value.serial_no / 1000) + 1
+    ]) {
+      if (rowData.serial_no === course.value.serial_no) {
+        course.value = {
+          ...courseFormatter(rowData),
+          description: await getDescription(rowData.course_code),
+        };
+        return;
+      }
+    }
+  }
+
   // If the course data is not found in the state, fetch it from the API
   fetch(
-    `data/${acadm}/${Math.floor(course.value.serial_no / 1000) + 1}.min.json`
+    `data/${acadm}/${
+      (Math.floor(course.value.serial_no / 1000) + 1) % 10
+    }.min.json`
   )
     .then((response) => response.json())
     .then(async (data) => {
+      tempDatas.value[acadm] = tempDatas.value[acadm] || {};
+      tempDatas.value[acadm][
+        (Math.floor(course.value.serial_no / 1000) + 1) % 10
+      ] = data;
       for (const rowData of data) {
         if (rowData.serial_no === course.value.serial_no) {
           course.value = {

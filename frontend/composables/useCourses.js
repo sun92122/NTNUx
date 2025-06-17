@@ -4,6 +4,7 @@ export function useCourses() {
   const loadTermData = useState("loadTermData");
   const rowDatas = useState("rowDatas", () => ({}));
   const rowData = useState("rowData", () => []);
+  const tempDatas = useState("tempDatas", () => ({}));
   const loading = useState("loading", () => true);
 
   const defaultGlobalFilterFields = ["course_name", "teacher", "serial_no"];
@@ -14,27 +15,17 @@ export function useCourses() {
     const data = await res.json();
     if (data.length === 0) return null;
 
-    // prepare data
-    data.forEach((item) => {
-      item.credit = Math.round(item.credit * 10) / 10;
-      item.course_name = item.chn_name.replace(/<\/br>.*/g, "");
-      item.time = timeFormatter(item.time_loc);
-      item.location = locationFormatter(item.time_loc);
-      item.timeLocList = parseTimeSlots(item.time_loc);
-      item.teacher = teacherNameFormatter(item.teacher);
-      item.generalCore = item.generalCore.join("/");
-    });
-
-    return data.map((item) => ({
-      ...item,
-      timeListStr: parseTimeListStr(item.timeLocList),
-    }));
+    return coursesFormatter(data);
   };
 
   const fetchAllData = async () => {
     const fetchPromises = [];
     for (let i = 0; i < 10; i++) {
-      fetchPromises.push(fetchData(i));
+      if (tempDatas.value[currentTerm.value]?.[i]) {
+        fetchPromises.push(Promise.resolve(coursesFormatter(tempDatas.value[currentTerm.value][i])));
+      } else {
+        fetchPromises.push(fetchData(i));
+      }
     }
 
     for await (const page of fetchPromises) {
@@ -91,10 +82,27 @@ export function useCourses() {
     };
   }
 
+  const coursesFormatter = (courses) => {
+    courses.forEach((item) => {
+      item.credit = Math.round(item.credit * 10) / 10;
+      item.course_name = item.chn_name.replace(/<\/br>.*/g, "");
+      item.time = timeFormatter(item.time_loc);
+      item.location = locationFormatter(item.time_loc);
+      item.timeLocList = parseTimeSlots(item.time_loc);
+      item.teacher = teacherNameFormatter(item.teacher);
+      item.generalCore = item.generalCore.join("/");
+      item.timeListStr = parseTimeListStr(item.timeLocList);
+    });
+
+    return courses;
+  };
+
+
   return {
     terms,
     currentTerm,
     rowData,
+    tempDatas,
     loading,
     reloadCurrentTerm,
     defaultGlobalFilterFields,
