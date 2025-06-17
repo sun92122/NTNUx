@@ -168,6 +168,9 @@ const toggleSwitchDt = ref({
   },
 });
 
+const selectedCourses = useState("selectedCourses", () => ({}));
+const selectedRows = useState("selectedRows", () => ({}));
+
 function updateMenubarItems() {
   const termLabelItem = items.value[1];
 
@@ -178,6 +181,8 @@ function updateMenubarItems() {
       label: ["1", "2", "暑期"][subTerm - 1],
       command: () => {
         currentTerm.value = `${term}-${subTerm}`;
+        selectedRows.value = selectedCourses.value[currentTerm.value] || {};
+        selectedCourses.value[currentTerm.value] = selectedRows.value;
         loadTermData.value();
         termLabelItem.label = `學期：${term}-${
           ["1", "2", "暑期"][subTerm - 1]
