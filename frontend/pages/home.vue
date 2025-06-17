@@ -133,8 +133,9 @@ const {
   rowData,
   loading,
   reloadCurrentTerm,
-  initTermData,
   defaultGlobalFilterFields,
+  initTermData,
+  courseFormatter
 } = useCourses();
 
 const updateMenubar = useState("updateMenubar");

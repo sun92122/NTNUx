@@ -67,7 +67,7 @@ export function useCourses() {
     const termRespData = await termResp.json();
     terms.value = termRespData.terms;
 
-    currentTerm.value = route.query.term;
+    currentTerm.value = route?.query.term;
     if (!currentTerm.value || terms.value.indexOf(currentTerm.value) === -1) {
       currentTerm.value = termRespData.defaultValue;
     }
@@ -75,6 +75,21 @@ export function useCourses() {
     loadTermData.value = reloadCurrentTerm;
     await reloadCurrentTerm();
   };
+
+  const courseFormatter = (course) => {
+    const timeLocList = parseTimeSlots(course.time_loc);
+    return {
+      ...course,
+      credit: Math.round(course.credit * 10) / 10,
+      course_name: course.chn_name.replace(/<\/br>.*/g, ""),
+      time: timeFormatter(course.time_loc),
+      location: locationFormatter(course.time_loc),
+      timeLocList: timeLocList,
+      teacher: teacherNameFormatter(course.teacher),
+      generalCore: course.generalCore.join("/"),
+      timeListStr: parseTimeListStr(timeLocList),
+    };
+  }
 
   return {
     terms,
@@ -84,6 +99,7 @@ export function useCourses() {
     reloadCurrentTerm,
     defaultGlobalFilterFields,
     initTermData,
+    courseFormatter,
   };
 }
 
