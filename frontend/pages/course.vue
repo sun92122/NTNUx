@@ -1,105 +1,235 @@
-<!-- <script>
-const course = {
-  acadm_year: "113",
-  acadm_term: "2",
-  authorize_p: "5",
-  authorize_using: "0",
-  chn_name: "壓力紓解與管理 </br>[ 學分學程：金牌書院 ]",
-  classes: "",
-  comment: "",
-  counter: "13",
-  counter_exceptAuth: "13",
-  course_avg: "",
-  course_code: "A0U0006",
-  course_group: "",
-  course_kind: "半",
-  credit: 2,
-  dept_chiabbr: "運休學院",
-  dept_code: "A",
-  dept_group_name: "",
-  eng_name:
-    "Stress Management </br>[ Program: The Program of Elite Athletes College ]",
-  eng_teach: "",
-  form_s: "",
-  limit: "5",
-  limit_count_h: "50",
-  option_code: "選",
-  restrict: "◎初選 金牌書院學程 研究生得下修",
-  rt: "N",
-  serial_no: "0001",
-  teacher: "季力康",
-  time_inf: "四 3-4 和平 樸402",
-  time_loc: { "四 3-4": "和平 樸402" },
-  generalCore: "",
-  course_name: "壓力紓解與管理 ",
-  time: "四 3-4",
-  location: "和平 樸402",
-  timeLocList: [
-    { day: "四", period: "3", loc: "和平 樸402" },
-    { day: "四", period: "4", loc: "和平 樸402" },
-  ],
-  timeListStr: "四3/四4",
-  description: {
-    description:
-      "<p>This course is mainly to introduce the source of stress, the theory of stress and the methods of stress relief and management, and transform it into theory and method to practically use competitive sports and life posture.</p>",
-    brief:
-      "本課程主要是介紹壓力的來源、壓力的理論以及壓力紓解與管理的方法，並將理論與方法實際應用於競技運動與生活層面。",
-  },
-};
-</script> -->
 <template>
   <div class="course-details" v-if="course.course_name">
     <h1>{{ course.course_name }}</h1>
-    <p>{{ course.acadm_year }}-{{ course.acadm_term }} 開課</p>
+    <div class="course-details-subtitle">
+      <p>{{ course.acadm_year }}-{{ course.acadm_term }} 開課</p>
+      <div class="course-details-subtitle-right">
+        <Button
+          :icon="
+            checkSelectCode(course.course_code)
+              ? 'pi pi-heart-fill'
+              : 'pi pi-heart'
+          "
+          :severity="
+            checkSelectCode(course.course_code) ? 'danger' : 'secondary'
+          "
+          variant="text"
+          @click="selectCodeHandler(course.course_code, course.course_name)"
+          rounded
+        ></Button>
+        <Button
+          :label="
+            checkSelectedCourse(
+              course.serial_no,
+              `${course.acadm_year}-${course.acadm_term}`
+            )
+              ? '取消'
+              : '加入'
+          "
+          :severity="
+            checkSelectedCourse(
+              course.serial_no,
+              `${course.acadm_year}-${course.acadm_term}`
+            )
+              ? 'warn'
+              : 'secondary'
+          "
+          @click="
+            selectCourseWithTerm(
+              course,
+              `${course.acadm_year}-${course.acadm_term}`
+            )
+          "
+        ></Button>
+      </div>
+    </div>
     <Card class="course-card">
       <template #content>
         <div class="course-info-first">
-          <div
-            class="course-info-item"
-            v-for="item in showInfo"
-            :key="item.label"
-          >
-            <i :class="item.icon" style="font-size: 1.2rem"></i>
-            <div style="flex: 1; display: flex; flex-direction: column">
-              <span style="color: var(--p-surface-500); font-size: 12px">{{
-                item.label
-              }}</span>
-              <span style="font-size: 1.25rem">{{
-                course[item.value] || ""
-              }}</span>
+          <div v-for="item in showInfo" :key="item.label">
+            <div
+              v-if="item.childen && item.childen.length > 0"
+              class="course-info-item"
+              :style="{
+                color: item.isNullValue
+                  ? 'var(--p-surface-400)'
+                  : 'var(--p-text)',
+              }"
+            >
+              <Accordion :value="'1'" style="width: 100%">
+                <AccordionPanel
+                  value="1"
+                  :style="{ width: '100%', border: '0' }"
+                >
+                  <AccordionHeader :style="{ padding: '0', width: '100%' }">
+                    <div class="course-info-item">
+                      <i :class="item.icon" style="font-size: 1.2rem"></i>
+                      <div
+                        style="flex: 1; display: flex; flex-direction: column"
+                      >
+                        <span
+                          style="color: var(--p-surface-500); font-size: 12px"
+                          >{{ item.label }}</span
+                        >
+                        <span style="font-size: 1.25rem">{{
+                          item.value || ""
+                        }}</span>
+                      </div>
+                    </div>
+                  </AccordionHeader>
+                  <AccordionContent
+                    :style="{ '--p-accordion-content-padding': '0 1.25rem' }"
+                  >
+                    <div
+                      v-for="child in item.childen"
+                      :key="child"
+                      :style="{ margin: '0.5rem 0', fontSize: '1.1rem' }"
+                    >
+                      <span>{{ child }}</span>
+                    </div>
+                  </AccordionContent>
+                </AccordionPanel>
+              </Accordion>
+            </div>
+            <div
+              v-else
+              class="course-info-item"
+              :style="{
+                color: item.isNullValue
+                  ? 'var(--p-surface-400)'
+                  : 'var(--p-text)',
+              }"
+            >
+              <i :class="item.icon" style="font-size: 1.2rem"></i>
+              <div style="flex: 1; display: flex; flex-direction: column">
+                <span style="color: var(--p-surface-500); font-size: 12px">{{
+                  item.label
+                }}</span>
+                <span style="font-size: 1.25rem">{{ item.value || "" }}</span>
+              </div>
             </div>
           </div>
         </div>
-        <div class="course-info-second">
-          <Accordion>
-            <AccordionPanel>
-              <AccordionHeader> 備註 </AccordionHeader>
+        <div
+          class="course-info-second"
+          :style="
+            windowWidth < 600
+              ? { '--p-accordion-content-padding': '0 0 1.125rem 0' }
+              : {}
+          "
+        >
+          <Accordion multiple :value="['1', '2', '3']">
+            <AccordionPanel value="1">
+              <AccordionHeader :style="{ fontSize: '1.25rem' }">
+                備註/限修
+              </AccordionHeader>
               <AccordionContent>
                 <div v-if="course.comment" class="course-info-item">
                   <i class="pi pi-comment" style="font-size: 1.2rem"></i>
-                  <span>{{ course.comment }}</span>
+                  <span style="font-size: 1.1rem">{{ course.comment }}</span>
                 </div>
                 <div v-if="course.restrict" class="course-info-item">
                   <i
                     class="pi pi-exclamation-triangle"
                     style="font-size: 1.2rem"
                   ></i>
-                  <span>{{ course.restrict }}</span>
+                  <span style="font-size: 1.1rem">{{ course.restrict }}</span>
+                </div>
+                <div
+                  v-if="!course.comment && !course.restrict"
+                  class="course-info-item"
+                >
+                  <span style="font-size: 1.1rem; color: var(--p-surface-500)"
+                    >無</span
+                  >
                 </div>
               </AccordionContent>
             </AccordionPanel>
-            <AccordionPanel>
-              <AccordionHeader> 選課資訊 </AccordionHeader>
-              <AccordionContent> </AccordionContent>
-            </AccordionPanel>
-            <AccordionPanel>
-              <AccordionHeader> 課程簡介 </AccordionHeader>
+            <AccordionPanel value="2">
+              <AccordionHeader :style="{ fontSize: '1.25rem' }">
+                選課資訊
+              </AccordionHeader>
               <AccordionContent>
-                <div v-if="course.description" class="course-info-item">
-                  <i class="pi pi-info-circle" style="font-size: 1.2rem"></i>
+                <div
+                  :style="{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gap: '2rem',
+                  }"
+                >
+                  <div
+                    v-for="[label, current, max] in [
+                      [
+                        '選課總人數',
+                        course.counter_exceptAuth,
+                        course.limit_count_h,
+                      ],
+                      [
+                        '已使用授權碼',
+                        course.counter - course.counter_exceptAuth,
+                        course.authorize_p,
+                      ],
+                      ['系統各校開放名額', null, course.limit],
+                    ]"
+                    :style="{
+                      minWidth: '20%',
+                    }"
+                  >
+                    <div
+                      :style="{ fontSize: '1.1rem', marginBottom: '0.5rem' }"
+                    >
+                      <span>{{ label }}</span>
+                    </div>
+                    <div
+                      class="course-info-item"
+                      :style="{
+                        fontSize: '1.2rem',
+                        fontFamily: 'sans-serif',
+                        alignItems: 'flex-end',
+                        gap: '0.2rem',
+                      }"
+                    >
+                      <div
+                        v-if="current !== null"
+                        :style="{
+                          fontSize: '1.75rem',
+                          fontWeight: '900',
+                        }"
+                      >
+                        {{ current }}
+                      </div>
+                      <div v-if="current !== null">/</div>
+                      <div
+                        :style="{
+                          fontSize: current !== null ? '1.2rem' : '1.75rem',
+                          fontWeight: current !== null ? '400' : '900',
+                        }"
+                      >
+                        {{ max }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionPanel>
+            <AccordionPanel value="3">
+              <AccordionHeader :style="{ fontSize: '1.25rem' }">
+                課程簡介
+              </AccordionHeader>
+              <AccordionContent>
+                <div
+                  v-if="course.description"
+                  class="course-info-item"
+                  style="flex-direction: column"
+                >
                   <span
                     v-html="
                       course.description.brief || course.description.description
+                    "
+                    style="
+                      font-size: 1.1rem;
+                      white-space: pre-wrap;
+                      text-indent: 2em;
                     "
                   ></span>
                 </div>
@@ -109,7 +239,18 @@ const course = {
         </div>
       </template>
     </Card>
+    <Button
+      v-if="!showIframe || showIframeLoading"
+      label="顯示課程大綱"
+      icon="pi pi-file"
+      severity="contrast"
+      variant="outlined"
+      @click="showIframeEvent"
+      :loading="showIframeLoading"
+      :style="{ marginTop: '20px', width: '100%' }"
+    ></Button>
     <iframe
+      v-show="showIframe"
       :src="
         'https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/SyllabusCtrl?' +
         `year=${course.acadm_year}&term=${course.acadm_term}&courseCode=${course.course_code}&courseGroup=${course.course_group}&deptCode=${course.dept_code}&formS=${course.form_s}&classes1=${course.classes}&deptGroup=${course.dept_group_name}`
@@ -120,8 +261,8 @@ const course = {
       style="margin-top: 20px; background: #fff"
     ></iframe>
   </div>
-  <div v-else>
-    <p>Loading course details...</p>
+  <div v-else class="course-details">
+    <h2>Loading course details...</h2>
   </div>
 </template>
 
@@ -133,9 +274,11 @@ import {
   AccordionPanel,
   AccordionHeader,
   AccordionContent,
+  Knob,
 } from "primevue";
 
 import { useCourses } from "~/composables/useCourses";
+import { useSelectCourse } from "~/composables/useSelectCourse";
 
 const route = useRoute();
 
@@ -151,49 +294,45 @@ const {
   courseFormatter,
 } = useCourses();
 
+const {
+  selectedCourses,
+  selectedRows,
+  selectCode,
+  toast,
+  windowWidth,
+  selectCourse,
+  selectCourseWithTerm,
+  checkSelectedCourse,
+  selectCodeHandler,
+  checkSelectCode,
+} = useSelectCourse();
+
 const course = ref({
   year: route.query.year,
   term: route.query.term,
   serial_no: route.query.id,
 });
 
-const showInfo = ref([
-  {
-    label: "開課序號",
-    icon: "pi pi-hashtag",
-    value: "serial_no",
-  },
-  {
-    label: "科目代碼",
-    icon: "pi pi-code",
-    value: "course_code",
-  },
-  {
-    label: "開課單位",
-    icon: "pi pi-building",
-    value: "dept_chiabbr",
-  },
-  {
-    label: "學分",
-    icon: "pi pi-book",
-    value: "credit",
-  },
-  {
-    label: "授課教師",
-    icon: "pi pi-user",
-    value: "teacher",
-  },
-  {
-    label: "上課時間",
-    icon: "pi pi-clock",
-    value: "time",
-  },
-  {
-    label: "上課地點",
-    icon: "pi pi-map-marker",
-    value: "location",
-  },
-]);
+const showIframe = ref(false);
+const showIframeLoading = ref(false);
+
+const showInfo = ref([]);
+const optionMap = {
+  必: "必修",
+  選: "選修",
+  通: "通識",
+};
+const generalCoreMap = {
+  A1UG: "人文藝術",
+  A2UG: "社會科學",
+  A3UG: "自然科學",
+  A4UG: "邏輯運算",
+  B1UG: "學院共同課程",
+  B2UG: "跨域專業探索課程",
+  B3UG: "大學入門",
+  C1UG: "專題探究",
+  C2UG: "MOOCs",
+};
 
 if (course.value.year && course.value.term && course.value.serial_no) {
   getCourseData();
@@ -206,18 +345,43 @@ if (course.value.year && course.value.term && course.value.serial_no) {
   });
 }
 
-async function getCourseData() {
+function getCourseData() {
   const rowDatas = useState("rowDatas", () => ({}));
 
   const acadm = `${course.value.year}-${course.value.term}`;
+
+  function beforeReturn() {
+    setTimeout(() => {
+      getDescription(course.value.course_code).then((description) => {
+        course.value.description = description;
+        useHead({
+          title: `${acadm} ${course.value.course_name} | NTNUx`,
+          meta: [
+            {
+              name: "description",
+              content: description
+                ? description.brief || description.description
+                : "",
+            },
+            {
+              name: "viewport",
+              content: "width=device-width, initial-scale=1",
+            },
+          ],
+        });
+      });
+    });
+  }
 
   if (rowDatas.value[acadm]) {
     for (const rowData of rowDatas.value[acadm]) {
       if (rowData.serial_no === course.value.serial_no) {
         course.value = {
           ...rowData,
-          description: await getDescription(rowData.course_code),
+          description: null,
         };
+        showInfo.value = getShowInfo(course.value);
+        beforeReturn();
         return;
       }
     }
@@ -232,8 +396,10 @@ async function getCourseData() {
       if (rowData.serial_no === course.value.serial_no) {
         course.value = {
           ...courseFormatter(rowData),
-          description: await getDescription(rowData.course_code),
+          description: null,
         };
+        showInfo.value = getShowInfo(course.value);
+        beforeReturn();
         return;
       }
     }
@@ -255,8 +421,10 @@ async function getCourseData() {
         if (rowData.serial_no === course.value.serial_no) {
           course.value = {
             ...courseFormatter(rowData),
-            description: await getDescription(rowData.course_code),
+            description: null,
           };
+          showInfo.value = getShowInfo(course.value);
+          beforeReturn();
           return;
         }
       }
@@ -293,6 +461,87 @@ async function getDescription(course_code) {
     });
 }
 
+function getShowInfo(course) {
+  return [
+    {
+      label: "開課序號",
+      icon: "pi pi-hashtag",
+      value: course.serial_no,
+    },
+    {
+      label: "科目代碼",
+      icon: "pi pi-code",
+      value: course.course_code,
+    },
+    {
+      label: "開課單位",
+      icon: "pi pi-building",
+      value: course.dept_chiabbr,
+    },
+    {
+      icon: "pi pi-objects-column",
+      value: optionMap[course.option_code] || course.option_code,
+      childen: course.generalCore
+        ? course.generalCore.split("/").map((item) => {
+            return generalCoreMap[item] || item;
+          })
+        : [],
+    },
+    {
+      icon: "pi pi-graduation-cap",
+      value: `${course.credit} 學分`,
+      isNullValue: !course.credit,
+    },
+    {
+      label: "授課教師",
+      icon: "pi pi-user",
+      value: course.teacher || "無",
+      isNullValue: !course.teacher,
+    },
+    {
+      label: "上課時間",
+      icon: "pi pi-clock",
+      value: course.time || "無",
+      isNullValue: !course.time,
+    },
+    {
+      label: "上課地點",
+      icon: "pi pi-map-marker",
+      value: course.location || "無",
+      isNullValue: !course.location,
+    },
+    {
+      icon: "pi pi-language",
+      value:
+        course.eng_teach === "是"
+          ? "英文授課"
+          : course.comment.match(/◎*語\s*授課/)
+          ? "國家語言授課"
+          : "中文授課",
+    },
+    {
+      label: course.programs.split("/").length === 1 ? "學分學程" : null,
+      icon: "pi pi-book",
+      value: course.programs
+        ? course.programs.split("/").length > 1
+          ? `${course.programs.split("/").length} 個學分學程`
+          : course.programs
+        : "無學分學程",
+      isNullValue: !course.programs,
+      childen:
+        course.programs.split("/").length > 1 ? course.programs.split("/") : [],
+    },
+  ];
+}
+
+function showIframeEvent() {
+  showIframeLoading.value = true;
+  setTimeout(() => {
+    showIframeLoading.value = false;
+    showIframe.value = true;
+  }, 500);
+}
+
 onMounted(async () => {
   const updateMenubar = useState("updateMenubar");
 
@@ -303,9 +552,35 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
+h1 {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+}
+
 .course-details {
   padding: 20px;
   overflow: auto;
+  scrollbar-width: none;
+}
+@media screen and (min-width: 992px) {
+  .course-details {
+    width: clamp(992px, 88%, 1632px);
+    margin: 0 auto;
+  }
+}
+
+.course-details-subtitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+}
+
+.course-details-subtitle-right {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .course-info-item {
@@ -314,6 +589,7 @@ onMounted(async () => {
   margin-bottom: 10px;
   align-items: center;
   gap: 1rem;
+  min-height: 2.5rem;
 }
 
 @media screen and (max-width: 600px) {
