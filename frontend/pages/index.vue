@@ -23,7 +23,7 @@
         variant="in"
         :class="[
           'search-input',
-          subFilterValue.filter_field
+          subFilterValue.select_list || subFilterValue.grouped_select_list
             ? 'multi-search-input-main-filter'
             : 'single-search-input',
         ]"
@@ -66,7 +66,7 @@
         >
       </FloatLabel>
       <div
-        v-if="subFilterValue.filter_field"
+        v-if="subFilterValue.select_list"
         class="search-input multi-search-input-sub-filter"
       >
         <MultiSelect
@@ -75,12 +75,12 @@
           :options="subFilterValue.select_list"
           :optionLabel="'label'"
           :optionValue="'value'"
-          :style="{ width: '100%' }"
           :showClear="true"
           :showToggleAll="false"
           :showFilter="true"
           :placeholder="subFilterValue.label"
           display="chip"
+          :style="{ width: '100%' }"
           @change="
             (e) => {
               filters[subFilterValue.filter_field].constraints = e.value || [
@@ -88,6 +88,23 @@
               ];
             }
           "
+        />
+      </div>
+      <div
+        v-if="subFilterValue.grouped_select_list"
+        class="search-input multi-search-input-sub-filter"
+      >
+        <TreeSelect
+          id="sub-filter-grouped"
+          v-model="subFilterValue.value"
+          :options="subFilterValue.grouped_select_list"
+          selectionMode="checkbox"
+          filter
+          filterMode="lenient"
+          :showClear="true"
+          :placeholder="subFilterValue.label"
+          :style="{ width: '100%' }"
+          @change="selectDeptToFilter()"
         />
       </div>
     </div>
@@ -181,6 +198,7 @@ import {
   Tabs,
   Tab,
   TabList,
+  TreeSelect,
 } from "primevue";
 import { CourseCell } from "#components";
 
@@ -203,6 +221,7 @@ const {
 const updateMenubar = useState("updateMenubar");
 const selectedCourses = useState("selectedCourses", () => ({}));
 const selectedRows = useState("selectedRows", () => ({}));
+const deptList = useState("deptList");
 const isShowAdvancedSearch = useState("isShowAdvancedSearch", () => false);
 const windowWidth = useState("windowWidth", () => window.innerWidth);
 
@@ -212,6 +231,21 @@ const advancedSearchDisplayValue = useState(
 );
 
 const advancedSearchRebuild = useState("advancedSearchRebuildFunction");
+
+const collegeMap = {
+  "": "其他",
+  E: "教育學院",
+  L: "文學院",
+  S: "理學院",
+  T: "藝術學院",
+  H: "科技學院",
+  A: "運休學院",
+  I: "國社學院",
+  M: "音樂學院",
+  O: "管理學院",
+  C: "產創學院",
+  Z: "學程",
+};
 
 // 搜尋模式與子篩選器
 const searchMode = ref("");
@@ -283,6 +317,121 @@ const searchModeList = ref({
     label: "快速搜尋",
     value: "quick",
     command: () => filterMutatou({}),
+  },
+  dept: {
+    label: "開課單位",
+    value: "dept",
+    command: () =>
+      filterMutatou(
+        {
+          dept_chiabbr: {
+            operator: FilterOperator.OR,
+            constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }],
+          },
+        },
+        {
+          label: "選擇開課單位",
+          // grouped_select_list: Object.entries(deptList.value || {}).map(
+          //   ([label, value]) => ({
+          //     label: collegeMap[label] || label,
+          //     data: { label, matchMode: FilterMatchMode.STARTS_WITH },
+          //     children: Object.entries(value).map(([subLabel, subValue]) =>
+          //       typeof subValue === "string"
+          //         ? {
+          //             label: subValue,
+          //             data: {
+          //               value: subLabel,
+          //               matchMode: FilterMatchMode.EQUALS,
+          //             },
+          //           }
+          //         : Object.keys(subValue).length === 1
+          //         ? {
+          //             label: subValue[Object.keys(subValue)[0]],
+          //             data: {
+          //               value: subValue[Object.values(subValue)[0]],
+          //               matchMode: FilterMatchMode.EQUALS,
+          //             },
+          //           }
+          //         : {
+          //             // label: subValue[Object.keys(subValue)[0]] 的第5個字 到 '（' 前,
+          //             label: subValue[Object.keys(subValue)[0]].slice(
+          //               5,
+          //               subValue[Object.keys(subValue)[0]].indexOf("（")
+          //             ),
+          //             data: {
+          //               value: subLabel.slice(1),
+          //               matchMode: FilterMatchMode.ENDS_WITH,
+          //             },
+          //             children: Object.entries(subValue).map(
+          //               ([subSubLabel, subSubValue]) => ({
+          //                 label: subSubValue,
+          //                 data: {
+          //                   value: subSubLabel,
+          //                   matchMode: FilterMatchMode.EQUALS,
+          //                 },
+          //               })
+          //             ),
+          //           }
+          //     ),
+          //   })
+          // ),
+          grouped_select_list: Object.entries(collegeMap).map(
+            ([collegeID, collegeName], id) => ({
+              key: id,
+              label: collegeName,
+              data: {
+                value: collegeID,
+                matchMode: FilterMatchMode.STARTS_WITH,
+              },
+              children: Object.entries(deptList.value[collegeID] || {}).map(
+                ([deptCode, deptName], subId) =>
+                  typeof deptName === "string"
+                    ? {
+                        key: `${id}-${subId}`,
+                        label: deptName,
+                        data: {
+                          value: deptCode,
+                          matchMode: FilterMatchMode.EQUALS,
+                        },
+                      }
+                    : Object.keys(deptName).length === 1
+                    ? {
+                        key: `${id}-${subId}`,
+                        label: deptName[Object.keys(deptName)[0]],
+                        data: {
+                          value: Object.keys(deptName)[0],
+                          matchMode: FilterMatchMode.EQUALS,
+                        },
+                      }
+                    : {
+                        key: `${id}-${subId}`,
+                        label: `${deptCode.slice(0)} ${deptName[
+                          Object.keys(deptName)[0]
+                        ].slice(
+                          5,
+                          deptName[Object.keys(deptName)[0]].indexOf("（")
+                        )}`,
+                        data: {
+                          value: deptCode.slice(0),
+                          matchMode: FilterMatchMode.ENDS_WITH,
+                        },
+                        children: Object.entries(deptName).map(
+                          ([subDeptCode, subDeptName], subSubId) => ({
+                            key: `${id}-${subId}-${subSubId}`,
+                            label: subDeptName,
+                            data: {
+                              value: subDeptCode,
+                              matchMode: FilterMatchMode.EQUALS,
+                            },
+                          })
+                        ),
+                      }
+              ),
+            })
+          ),
+          filter_field: "dept_code",
+        }
+      ),
   },
   advanced: {
     label: "進階搜尋",
@@ -470,11 +619,13 @@ function filterMutatou(updateValue, subFilter = null) {
       ...subFilterValue.value,
       value: null,
       filter_field: subFilter.filter_field,
-      select_list: subFilter.select_list,
+      select_list: subFilter.select_list || null,
+      grouped_select_list: subFilter.grouped_select_list || null,
       label: subFilter.label,
     };
   } else {
-    subFilterValue.value.filter_field = null;
+    subFilterValue.value.select_list = null;
+    subFilterValue.value.grouped_select_list = null;
   }
 }
 
@@ -503,6 +654,35 @@ function selectCourse(course) {
       group: windowWidth.value < 768 ? "bottom" : null,
     });
   }
+}
+
+function selectDeptToFilter() {
+  const dept = subFilterValue.value.value;
+  if (!dept || Object.keys(dept).length === 0) {
+    filters.value[subFilterValue.value.filter_field].constraints = [
+      { value: null, matchMode: FilterMatchMode.CONTAINS },
+    ];
+    return;
+  }
+  const deptList = subFilterValue.value.grouped_select_list;
+  filters.value[subFilterValue.value.filter_field].constraints = Object.entries(
+    dept
+  ).map(([key, value]) => {
+    if (!value.checked) {
+      return { value: null, matchMode: FilterMatchMode.CONTAINS };
+    }
+    const keyParts = key.split("-");
+    if (keyParts.length === 1) {
+      return deptList[key].data;
+    }
+    if (keyParts.length === 2) {
+      return deptList[keyParts[0]].children[keyParts[1]].data;
+    }
+    {
+      return deptList[keyParts[0]].children[keyParts[1]].children[keyParts[2]]
+        .data;
+    }
+  });
 }
 </script>
 
@@ -576,9 +756,14 @@ function selectCourse(course) {
   .p-multiselect-chip {
     height: auto;
   }
-  .p-multiselect-label-container {
+  .p-multiselect-label-container,
+  .p-treeselect-label-container {
     align-content: center;
   }
+  .p-treeselect-label {
+    display: block;
+  }
+
   width: 100%;
   max-width: 48rem;
 
@@ -599,10 +784,17 @@ function selectCourse(course) {
 }
 
 .multi-search-input-sub-filter {
-  .p-multiselect {
+  .p-multiselect,
+  .p-treeselect {
     border-left: 0;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
+  }
+
+  .p-treeselect,
+  .p-treeselect-dropdown {
+    border-end-end-radius: 25px;
+    border-start-end-radius: 25px;
   }
 }
 
@@ -627,7 +819,8 @@ function selectCourse(course) {
     }
   }
   .multi-search-input-sub-filter {
-    .p-multiselect {
+    .p-multiselect,
+    .p-treeselect {
       border-left: 1px solid var(--p-multiselect-border-color);
       border-radius: 0 0 1rem 1rem;
     }

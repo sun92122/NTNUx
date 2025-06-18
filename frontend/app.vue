@@ -171,8 +171,16 @@ const toggleSwitchDt = ref({
 const selectedCourses = useState("selectedCourses", () => ({}));
 const selectedRows = useState("selectedRows", () => ({}));
 
+const deptLists = useState("deptLists", () => ({}));
+const deptList = useState("deptList");
+
 function updateMenubarItems() {
   const termLabelItem = items.value[1];
+
+  if (!deptList.value) {
+    deptList.value = getDeptList(useState("rowData").value);
+    deptLists.value[currentTerm.value] = deptList.value;
+  }
 
   // 更新學期選單
   termLabelItem.items = terms.value.map((term) => ({
@@ -183,6 +191,10 @@ function updateMenubarItems() {
         currentTerm.value = `${term}-${subTerm}`;
         selectedRows.value = selectedCourses.value[currentTerm.value] || {};
         selectedCourses.value[currentTerm.value] = selectedRows.value;
+        deptList.value =
+          deptLists.value[currentTerm.value] ||
+          getDeptList(useState("rowData").value);
+        deptLists.value[currentTerm.value] = deptList.value;
         loadTermData.value();
         termLabelItem.label = `學期：${term}-${
           ["1", "2", "暑期"][subTerm - 1]
@@ -196,6 +208,48 @@ function updateMenubarItems() {
     return;
   }
   termLabelItem.label = `學期：${currentTerm.value}`;
+}
+
+function getDeptList(data) {
+  // dept_code 格式 "AB12" -> A 為學院代碼，12 為系所代碼, "A" -> 學院, other -> 系所
+  // dept_chiabbr 對應中文
+
+  // return { "": { other0: "other 中文", other1: "other1 中文" }, A: { A: "A 中文", A01: { AU01: "AU01 中文", AM01: "AM01 中文" }, ... }, ...  }
+  const deptSet = {};
+  data.forEach((course) => {
+    const deptCode = course.dept_code;
+    const deptChiaAbbr = `${deptCode} ${course.dept_chiabbr}`;
+
+    // 非英文開頭或長度不是1或4碼，歸類為 other
+    if (
+      !/^[A-Za-z]/.test(deptCode) ||
+      (deptCode.length !== 1 && deptCode.length !== 4)
+    ) {
+      if (!deptSet[""]) {
+        deptSet[""] = {};
+      }
+      deptSet[""][deptCode] = deptChiaAbbr;
+      return;
+    }
+
+    if (!deptSet[deptCode[0]]) {
+      deptSet[deptCode[0]] = {};
+    }
+
+    if (deptCode.length === 1) {
+      // 學院
+      deptSet[deptCode[0]][deptCode] = deptChiaAbbr;
+    } else {
+      // 系所
+      const subDeptCode = deptCode.slice(2);
+      if (!deptSet[deptCode[0]][subDeptCode]) {
+        deptSet[deptCode[0]][subDeptCode] = {};
+      }
+      deptSet[deptCode[0]][subDeptCode][deptCode] = deptChiaAbbr;
+    }
+  });
+
+  return deptSet;
 }
 </script>
 
