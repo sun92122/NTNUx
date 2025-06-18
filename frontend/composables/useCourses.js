@@ -79,6 +79,7 @@ export function useCourses() {
       teacher: teacherNameFormatter(course.teacher),
       generalCore: course.generalCore.join("/"),
       timeListStr: parseTimeListStr(timeLocList),
+      programs: parseProgram(course.chn_name),
     };
   }
 
@@ -92,6 +93,7 @@ export function useCourses() {
       item.teacher = teacherNameFormatter(item.teacher);
       item.generalCore = item.generalCore.join("/");
       item.timeListStr = parseTimeListStr(item.timeLocList);
+      item.programs = parseProgram(item.chn_name);
     });
 
     return courses;
@@ -178,4 +180,12 @@ function parseTimeListStr(timeLocList) {
     return "◎";
   }
   return timeLocList.map(({ day, period }) => `${day}${period.replace('10', 'X')}`).join("/");
+}
+
+function parseProgram(course_name) {
+  const match = course_name.match(/.*\[ 學分學程：(.+?) \].*/)
+  if (!match) return []
+
+  const programs = match[1].split(/\s+/).filter(Boolean)
+  return programs.join("/")
 }
