@@ -520,16 +520,25 @@ function getShowInfo(course) {
           : "中文授課",
     },
     {
-      label: course.programs.split("/").length === 1 ? "學分學程" : null,
+      label:
+        typeof course.programs === "string" &&
+        course.programs.split("/").length === 1
+          ? "學分學程"
+          : "",
       icon: "pi pi-book",
-      value: course.programs
-        ? course.programs.split("/").length > 1
-          ? `${course.programs.split("/").length} 個學分學程`
-          : course.programs
-        : "無學分學程",
-      isNullValue: !course.programs,
+      value:
+        typeof course.programs === "string"
+          ? course.programs.split("/").length > 1
+            ? `${course.programs.split("/").length} 個學分學程`
+            : course.programs
+          : "無學分學程",
+      isNullValue:
+        typeof course.programs !== "string" || course.programs === "",
       childen:
-        course.programs.split("/").length > 1 ? course.programs.split("/") : [],
+        typeof course.programs === "string" &&
+        course.programs.split("/").length > 1
+          ? course.programs.split("/")
+          : [],
     },
   ];
 }

@@ -186,6 +186,6 @@ function parseProgram(course_name) {
   const match = course_name.match(/.*\[ 學分學程：(.+?) \].*/)
   if (!match) return []
 
-  const programs = match[1].split(/\s+/).filter(Boolean)
-  return programs.join("/")
+  const programs = match[1].split(" ");
+  return programs.length > 0 ? programs.join("/") : "";
 }
