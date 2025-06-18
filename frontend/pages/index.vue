@@ -158,18 +158,49 @@
 
         <!-- Selecte button -->
         <Column
-          :headerStyle="{ width: '5rem', textAlign: 'center' }"
+          :headerStyle="{
+            width: 'clamp(5rem, 10vw, 10rem)',
+            textAlign: 'center',
+          }"
           :bodyStyle="{ textAlign: 'center' }"
           :sortable="false"
-          :style="{ width: '5rem', textAlign: 'center', paddingRight: '1rem' }"
+          :style="{
+            width: 'clamp(5rem, 10vw, 10rem)',
+            textAlign: 'center',
+            paddingRight: '1rem',
+          }"
           :header="''"
         >
           <template #body="{ data }">
-            <Button
-              :label="selectedRows[data.serial_no] ? '取消' : '加入'"
-              :severity="selectedRows[data.serial_no] ? 'warn' : 'secondary'"
-              @click="selectCourse(data)"
-            ></Button>
+            <div
+              style="
+                display: flex;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+                justify-content: center;
+              "
+            >
+              <Button
+                :icon="
+                  checkSelectCode(data.course_code)
+                    ? 'pi pi-heart-fill'
+                    : 'pi pi-heart'
+                "
+                :severity="
+                  checkSelectCode(data.course_code) ? 'danger' : 'secondary'
+                "
+                variant="text"
+                @click="selectCodeHandler(data.course_code, data.course_name)"
+                rounded
+              ></Button>
+              <Button
+                :label="checkSelectedCourse(data.serial_no) ? '取消' : '加入'"
+                :severity="
+                  checkSelectedCourse(data.serial_no) ? 'warn' : 'secondary'
+                "
+                @click="selectCourse(data)"
+              ></Button>
+            </div>
           </template>
         </Column>
       </DataTable>
@@ -184,6 +215,7 @@ import { useToast } from "primevue/usetoast";
 import { FilterMatchMode, FilterOperator } from "@primevue/core/api";
 
 import { useCourses } from "~/composables/useCourses";
+import { useSelectCourse } from "~/composables/useSelectCourse";
 
 import {
   DataTable,
@@ -204,7 +236,6 @@ import { CourseCell } from "#components";
 
 const router = useRouter();
 const route = useRoute();
-const toast = useToast();
 
 const {
   terms,
@@ -218,12 +249,22 @@ const {
   courseFormatter,
 } = useCourses();
 
+const {
+  selectedCourses,
+  selectedRows,
+  selectCode,
+  toast,
+  windowWidth,
+  selectCourse,
+  selectCourseWithTerm,
+  checkSelectedCourse,
+  selectCodeHandler,
+  checkSelectCode,
+} = useSelectCourse();
+
 const updateMenubar = useState("updateMenubar");
-const selectedCourses = useState("selectedCourses", () => ({}));
-const selectedRows = useState("selectedRows", () => ({}));
 const deptList = useState("deptList");
 const isShowAdvancedSearch = useState("isShowAdvancedSearch", () => false);
-const windowWidth = useState("windowWidth", () => window.innerWidth);
 
 const advancedSearchDisplayValue = useState(
   "advancedSearchDisplayValue",
@@ -519,29 +560,6 @@ function filterMutatou(updateValue, subFilter = null) {
 
 function openAdvancedSearch() {
   isShowAdvancedSearch.value = true;
-}
-
-function selectCourse(course) {
-  const selected = selectedRows.value;
-  if (selected[course.serial_no]) {
-    delete selected[course.serial_no];
-    toast.add({
-      severity: "info",
-      summary: "已取消選課",
-      detail: `${course.serial_no} ${course.course_name}`,
-      life: 3000,
-      group: windowWidth.value < 768 ? "bottom" : null,
-    });
-  } else {
-    selected[course.serial_no] = course;
-    toast.add({
-      severity: "success",
-      summary: "已選課",
-      detail: `${course.serial_no} ${course.course_name}`,
-      life: 3000,
-      group: windowWidth.value < 768 ? "bottom" : null,
-    });
-  }
 }
 
 function selectDeptToFilter() {
