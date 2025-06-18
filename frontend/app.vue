@@ -99,6 +99,7 @@ import Toast from "primevue/toast";
 
 import Dialog from "primevue/dialog";
 import { FloatingSchedule, AdvancedSearch } from "#components";
+import { FilterMatchMode } from "@primevue/core/api";
 
 const updateMenubar = useState("updateMenubar");
 const windowWidth = useState("windowWidth", () => window.innerWidth);
@@ -210,11 +211,22 @@ function updateMenubarItems() {
   termLabelItem.label = `學期：${currentTerm.value}`;
 }
 
-function getDeptList(data) {
-  // dept_code 格式 "AB12" -> A 為學院代碼，12 為系所代碼, "A" -> 學院, other -> 系所
-  // dept_chiabbr 對應中文
+const collegeMap = {
+  "": "其他",
+  E: "教育學院",
+  L: "文學院",
+  S: "理學院",
+  T: "藝術學院",
+  H: "科技學院",
+  A: "運休學院",
+  I: "國社學院",
+  M: "音樂學院",
+  O: "管理學院",
+  C: "產創學院",
+  Z: "學程",
+};
 
-  // return { "": { other0: "other 中文", other1: "other1 中文" }, A: { A: "A 中文", A01: { AU01: "AU01 中文", AM01: "AM01 中文" }, ... }, ...  }
+function getDeptList(data) {
   const deptSet = {};
   data.forEach((course) => {
     const deptCode = course.dept_code;
@@ -249,7 +261,55 @@ function getDeptList(data) {
     }
   });
 
-  return deptSet;
+  return Object.entries(collegeMap).map(([collegeID, collegeName], id) => ({
+    key: id,
+    label: collegeName,
+    data: {
+      value: collegeID,
+      matchMode: FilterMatchMode.STARTS_WITH,
+    },
+    children: Object.entries(deptSet[collegeID] || {}).map(
+      ([deptCode, deptName], subId) =>
+        typeof deptName === "string"
+          ? {
+              key: `${id}-${subId}`,
+              label: deptName,
+              data: {
+                value: deptCode,
+                matchMode: FilterMatchMode.EQUALS,
+              },
+            }
+          : Object.keys(deptName).length === 1
+          ? {
+              key: `${id}-${subId}`,
+              label: deptName[Object.keys(deptName)[0]],
+              data: {
+                value: Object.keys(deptName)[0],
+                matchMode: FilterMatchMode.EQUALS,
+              },
+            }
+          : {
+              key: `${id}-${subId}`,
+              label: `${deptCode.slice(0)} ${deptName[
+                Object.keys(deptName)[0]
+              ].slice(5, deptName[Object.keys(deptName)[0]].indexOf("（"))}`,
+              data: {
+                value: deptCode.slice(0),
+                matchMode: FilterMatchMode.ENDS_WITH,
+              },
+              children: Object.entries(deptName).map(
+                ([subDeptCode, subDeptName], subSubId) => ({
+                  key: `${id}-${subId}-${subSubId}`,
+                  label: subDeptName,
+                  data: {
+                    value: subDeptCode,
+                    matchMode: FilterMatchMode.EQUALS,
+                  },
+                })
+              ),
+            }
+    ),
+  }));
 }
 </script>
 

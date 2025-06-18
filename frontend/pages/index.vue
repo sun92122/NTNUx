@@ -232,21 +232,6 @@ const advancedSearchDisplayValue = useState(
 
 const advancedSearchRebuild = useState("advancedSearchRebuildFunction");
 
-const collegeMap = {
-  "": "其他",
-  E: "教育學院",
-  L: "文學院",
-  S: "理學院",
-  T: "藝術學院",
-  H: "科技學院",
-  A: "運休學院",
-  I: "國社學院",
-  M: "音樂學院",
-  O: "管理學院",
-  C: "產創學院",
-  Z: "學程",
-};
-
 // 搜尋模式與子篩選器
 const searchMode = ref("");
 const searchText = null;
@@ -319,7 +304,7 @@ const searchModeList = ref({
     command: () => filterMutatou({}),
   },
   dept: {
-    label: "開課單位",
+    label: "系所",
     value: "dept",
     command: () =>
       filterMutatou(
@@ -331,104 +316,7 @@ const searchModeList = ref({
         },
         {
           label: "選擇開課單位",
-          // grouped_select_list: Object.entries(deptList.value || {}).map(
-          //   ([label, value]) => ({
-          //     label: collegeMap[label] || label,
-          //     data: { label, matchMode: FilterMatchMode.STARTS_WITH },
-          //     children: Object.entries(value).map(([subLabel, subValue]) =>
-          //       typeof subValue === "string"
-          //         ? {
-          //             label: subValue,
-          //             data: {
-          //               value: subLabel,
-          //               matchMode: FilterMatchMode.EQUALS,
-          //             },
-          //           }
-          //         : Object.keys(subValue).length === 1
-          //         ? {
-          //             label: subValue[Object.keys(subValue)[0]],
-          //             data: {
-          //               value: subValue[Object.values(subValue)[0]],
-          //               matchMode: FilterMatchMode.EQUALS,
-          //             },
-          //           }
-          //         : {
-          //             // label: subValue[Object.keys(subValue)[0]] 的第5個字 到 '（' 前,
-          //             label: subValue[Object.keys(subValue)[0]].slice(
-          //               5,
-          //               subValue[Object.keys(subValue)[0]].indexOf("（")
-          //             ),
-          //             data: {
-          //               value: subLabel.slice(1),
-          //               matchMode: FilterMatchMode.ENDS_WITH,
-          //             },
-          //             children: Object.entries(subValue).map(
-          //               ([subSubLabel, subSubValue]) => ({
-          //                 label: subSubValue,
-          //                 data: {
-          //                   value: subSubLabel,
-          //                   matchMode: FilterMatchMode.EQUALS,
-          //                 },
-          //               })
-          //             ),
-          //           }
-          //     ),
-          //   })
-          // ),
-          grouped_select_list: Object.entries(collegeMap).map(
-            ([collegeID, collegeName], id) => ({
-              key: id,
-              label: collegeName,
-              data: {
-                value: collegeID,
-                matchMode: FilterMatchMode.STARTS_WITH,
-              },
-              children: Object.entries(deptList.value[collegeID] || {}).map(
-                ([deptCode, deptName], subId) =>
-                  typeof deptName === "string"
-                    ? {
-                        key: `${id}-${subId}`,
-                        label: deptName,
-                        data: {
-                          value: deptCode,
-                          matchMode: FilterMatchMode.EQUALS,
-                        },
-                      }
-                    : Object.keys(deptName).length === 1
-                    ? {
-                        key: `${id}-${subId}`,
-                        label: deptName[Object.keys(deptName)[0]],
-                        data: {
-                          value: Object.keys(deptName)[0],
-                          matchMode: FilterMatchMode.EQUALS,
-                        },
-                      }
-                    : {
-                        key: `${id}-${subId}`,
-                        label: `${deptCode.slice(0)} ${deptName[
-                          Object.keys(deptName)[0]
-                        ].slice(
-                          5,
-                          deptName[Object.keys(deptName)[0]].indexOf("（")
-                        )}`,
-                        data: {
-                          value: deptCode.slice(0),
-                          matchMode: FilterMatchMode.ENDS_WITH,
-                        },
-                        children: Object.entries(deptName).map(
-                          ([subDeptCode, subDeptName], subSubId) => ({
-                            key: `${id}-${subId}-${subSubId}`,
-                            label: subDeptName,
-                            data: {
-                              value: subDeptCode,
-                              matchMode: FilterMatchMode.EQUALS,
-                            },
-                          })
-                        ),
-                      }
-              ),
-            })
-          ),
+          grouped_select_list: deptList.value || {},
           filter_field: "dept_code",
         }
       ),
