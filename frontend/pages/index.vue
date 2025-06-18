@@ -23,7 +23,7 @@
         variant="in"
         :class="[
           'search-input',
-          subFilterValue.filter_field
+          subFilterValue.select_list || subFilterValue.grouped_select_list
             ? 'multi-search-input-main-filter'
             : 'single-search-input',
         ]"
@@ -66,7 +66,7 @@
         >
       </FloatLabel>
       <div
-        v-if="subFilterValue.filter_field"
+        v-if="subFilterValue.select_list"
         class="search-input multi-search-input-sub-filter"
       >
         <MultiSelect
@@ -75,12 +75,12 @@
           :options="subFilterValue.select_list"
           :optionLabel="'label'"
           :optionValue="'value'"
-          :style="{ width: '100%' }"
           :showClear="true"
           :showToggleAll="false"
           :showFilter="true"
           :placeholder="subFilterValue.label"
           display="chip"
+          :style="{ width: '100%' }"
           @change="
             (e) => {
               filters[subFilterValue.filter_field].constraints = e.value || [
@@ -88,6 +88,23 @@
               ];
             }
           "
+        />
+      </div>
+      <div
+        v-if="subFilterValue.grouped_select_list"
+        class="search-input multi-search-input-sub-filter"
+      >
+        <TreeSelect
+          id="sub-filter-grouped"
+          v-model="subFilterValue.value"
+          :options="subFilterValue.grouped_select_list"
+          selectionMode="checkbox"
+          filter
+          filterMode="lenient"
+          :showClear="true"
+          :placeholder="subFilterValue.label"
+          :style="{ width: '100%' }"
+          @change="selectDeptToFilter()"
         />
       </div>
     </div>
@@ -98,7 +115,7 @@
         :paginator="true"
         :filters="filters"
         :global-filter-fields="
-          searchMode.filter_field || defultGlobalFilterFields
+          searchMode.filter_field || defaultGlobalFilterFields
         "
         :showGridlines="false"
         :show-headers="false"
@@ -141,18 +158,49 @@
 
         <!-- Selecte button -->
         <Column
-          :headerStyle="{ width: '5rem', textAlign: 'center' }"
+          :headerStyle="{
+            width: 'clamp(5rem, 10vw, 10rem)',
+            textAlign: 'center',
+          }"
           :bodyStyle="{ textAlign: 'center' }"
           :sortable="false"
-          :style="{ width: '5rem', textAlign: 'center', paddingRight: '1rem' }"
+          :style="{
+            width: 'clamp(5rem, 10vw, 10rem)',
+            textAlign: 'center',
+            paddingRight: '1rem',
+          }"
           :header="''"
         >
           <template #body="{ data }">
-            <Button
-              :label="selectedRows[data.serial_no] ? '取消' : '加入'"
-              :severity="selectedRows[data.serial_no] ? 'warn' : 'secondary'"
-              @click="selectCourse(data)"
-            ></Button>
+            <div
+              style="
+                display: flex;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+                justify-content: center;
+              "
+            >
+              <Button
+                :icon="
+                  checkSelectCode(data.course_code)
+                    ? 'pi pi-heart-fill'
+                    : 'pi pi-heart'
+                "
+                :severity="
+                  checkSelectCode(data.course_code) ? 'danger' : 'secondary'
+                "
+                variant="text"
+                @click="selectCodeHandler(data.course_code, data.course_name)"
+                rounded
+              ></Button>
+              <Button
+                :label="checkSelectedCourse(data.serial_no) ? '取消' : '加入'"
+                :severity="
+                  checkSelectedCourse(data.serial_no) ? 'warn' : 'secondary'
+                "
+                @click="selectCourse(data)"
+              ></Button>
+            </div>
           </template>
         </Column>
       </DataTable>
@@ -167,6 +215,7 @@ import { useToast } from "primevue/usetoast";
 import { FilterMatchMode, FilterOperator } from "@primevue/core/api";
 
 import { useCourses } from "~/composables/useCourses";
+import { useSelectCourse } from "~/composables/useSelectCourse";
 
 import {
   DataTable,
@@ -181,28 +230,41 @@ import {
   Tabs,
   Tab,
   TabList,
+  TreeSelect,
 } from "primevue";
 import { CourseCell } from "#components";
 
 const router = useRouter();
 const route = useRoute();
-const toast = useToast();
 
 const {
   terms,
   currentTerm,
   rowData,
+  tempDatas,
   loading,
   reloadCurrentTerm,
+  defaultGlobalFilterFields,
   initTermData,
-  defultGlobalFilterFields,
+  courseFormatter,
 } = useCourses();
 
+const {
+  selectedCourses,
+  selectedRows,
+  selectCode,
+  toast,
+  windowWidth,
+  selectCourse,
+  selectCourseWithTerm,
+  checkSelectedCourse,
+  selectCodeHandler,
+  checkSelectCode,
+} = useSelectCourse();
+
 const updateMenubar = useState("updateMenubar");
-const selectedCourses = useState("selectedCourses", () => ({}));
-const selectedRows = useState("selectedRows", () => ({}));
+const deptList = useState("deptList");
 const isShowAdvancedSearch = useState("isShowAdvancedSearch", () => false);
-const windowWidth = useState("windowWidth", () => window.innerWidth);
 
 const advancedSearchDisplayValue = useState(
   "advancedSearchDisplayValue",
@@ -281,6 +343,24 @@ const searchModeList = ref({
     label: "快速搜尋",
     value: "quick",
     command: () => filterMutatou({}),
+  },
+  dept: {
+    label: "系所",
+    value: "dept",
+    command: () =>
+      filterMutatou(
+        {
+          dept_chiabbr: {
+            operator: FilterOperator.OR,
+            constraints: [{ value: null, matchMode: FilterMatchMode.CONTAINS }],
+          },
+        },
+        {
+          label: "選擇開課單位",
+          grouped_select_list: deptList.value || {},
+          filter_field: "dept_code",
+        }
+      ),
   },
   advanced: {
     label: "進階搜尋",
@@ -468,11 +548,13 @@ function filterMutatou(updateValue, subFilter = null) {
       ...subFilterValue.value,
       value: null,
       filter_field: subFilter.filter_field,
-      select_list: subFilter.select_list,
+      select_list: subFilter.select_list || null,
+      grouped_select_list: subFilter.grouped_select_list || null,
       label: subFilter.label,
     };
   } else {
-    subFilterValue.value.filter_field = null;
+    subFilterValue.value.select_list = null;
+    subFilterValue.value.grouped_select_list = null;
   }
 }
 
@@ -480,27 +562,33 @@ function openAdvancedSearch() {
   isShowAdvancedSearch.value = true;
 }
 
-function selectCourse(course) {
-  const selected = selectedRows.value;
-  if (selected[course.serial_no]) {
-    delete selected[course.serial_no];
-    toast.add({
-      severity: "info",
-      summary: "已取消選課",
-      detail: `${course.serial_no} ${course.course_name}`,
-      life: 3000,
-      group: windowWidth.value < 768 ? "bottom" : null,
-    });
-  } else {
-    selected[course.serial_no] = course;
-    toast.add({
-      severity: "success",
-      summary: "已選課",
-      detail: `${course.serial_no} ${course.course_name}`,
-      life: 3000,
-      group: windowWidth.value < 768 ? "bottom" : null,
-    });
+function selectDeptToFilter() {
+  const dept = subFilterValue.value.value;
+  if (!dept || Object.keys(dept).length === 0) {
+    filters.value[subFilterValue.value.filter_field].constraints = [
+      { value: null, matchMode: FilterMatchMode.CONTAINS },
+    ];
+    return;
   }
+  const deptList = subFilterValue.value.grouped_select_list;
+  filters.value[subFilterValue.value.filter_field].constraints = Object.entries(
+    dept
+  ).map(([key, value]) => {
+    if (!value.checked) {
+      return { value: null, matchMode: FilterMatchMode.CONTAINS };
+    }
+    const keyParts = key.split("-");
+    if (keyParts.length === 1) {
+      return deptList[key].data;
+    }
+    if (keyParts.length === 2) {
+      return deptList[keyParts[0]].children[keyParts[1]].data;
+    }
+    {
+      return deptList[keyParts[0]].children[keyParts[1]].children[keyParts[2]]
+        .data;
+    }
+  });
 }
 </script>
 
@@ -574,9 +662,14 @@ function selectCourse(course) {
   .p-multiselect-chip {
     height: auto;
   }
-  .p-multiselect-label-container {
+  .p-multiselect-label-container,
+  .p-treeselect-label-container {
     align-content: center;
   }
+  .p-treeselect-label {
+    display: block;
+  }
+
   width: 100%;
   max-width: 48rem;
 
@@ -597,10 +690,17 @@ function selectCourse(course) {
 }
 
 .multi-search-input-sub-filter {
-  .p-multiselect {
+  .p-multiselect,
+  .p-treeselect {
     border-left: 0;
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
+  }
+
+  .p-treeselect,
+  .p-treeselect-dropdown {
+    border-end-end-radius: 25px;
+    border-start-end-radius: 25px;
   }
 }
 
@@ -625,7 +725,8 @@ function selectCourse(course) {
     }
   }
   .multi-search-input-sub-filter {
-    .p-multiselect {
+    .p-multiselect,
+    .p-treeselect {
       border-left: 1px solid var(--p-multiselect-border-color);
       border-radius: 0 0 1rem 1rem;
     }

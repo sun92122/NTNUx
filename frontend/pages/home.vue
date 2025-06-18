@@ -131,10 +131,12 @@ const {
   terms,
   currentTerm,
   rowData,
+  tempDatas,
   loading,
   reloadCurrentTerm,
+  defaultGlobalFilterFields,
   initTermData,
-  defultGlobalFilterFields,
+  courseFormatter,
 } = useCourses();
 
 const updateMenubar = useState("updateMenubar");
@@ -145,6 +147,11 @@ const searchModeList = ref({
     label: "快速搜尋",
     value: "quick",
     route: "/",
+  },
+  dept: {
+    label: "系所",
+    value: "dept",
+    route: "/?m=dept",
   },
   advanced: {
     label: "進階搜尋",

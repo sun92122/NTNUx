@@ -4,9 +4,10 @@ export function useCourses() {
   const loadTermData = useState("loadTermData");
   const rowDatas = useState("rowDatas", () => ({}));
   const rowData = useState("rowData", () => []);
+  const tempDatas = useState("tempDatas", () => ({}));
   const loading = useState("loading", () => true);
 
-  const defultGlobalFilterFields = ["course_name", "teacher", "serial_no"];
+  const defaultGlobalFilterFields = ["course_name", "teacher", "serial_no"];
 
   const fetchData = async (i) => {
     const res = await fetch(`data/${currentTerm.value}/${i}.min.json`);
@@ -14,27 +15,17 @@ export function useCourses() {
     const data = await res.json();
     if (data.length === 0) return null;
 
-    // prepare data
-    data.forEach((item) => {
-      item.credit = Math.round(item.credit * 10) / 10;
-      item.course_name = item.chn_name.replace(/<\/br>.*/g, "");
-      item.time = timeFormatter(item.time_loc);
-      item.location = locationFormatter(item.time_loc);
-      item.timeLocList = parseTimeSlots(item.time_loc);
-      item.teacher = teacherNameFormatter(item.teacher);
-      item.generalCore = item.generalCore.join("/");
-    });
-
-    return data.map((item) => ({
-      ...item,
-      timeListStr: parseTimeListStr(item.timeLocList),
-    }));
+    return coursesFormatter(data);
   };
 
   const fetchAllData = async () => {
     const fetchPromises = [];
     for (let i = 0; i < 10; i++) {
-      fetchPromises.push(fetchData(i));
+      if (tempDatas.value[currentTerm.value]?.[i]) {
+        fetchPromises.push(Promise.resolve(coursesFormatter(tempDatas.value[currentTerm.value][i])));
+      } else {
+        fetchPromises.push(fetchData(i));
+      }
     }
 
     for await (const page of fetchPromises) {
@@ -67,7 +58,7 @@ export function useCourses() {
     const termRespData = await termResp.json();
     terms.value = termRespData.terms;
 
-    currentTerm.value = route.query.term;
+    currentTerm.value = route?.query.term;
     if (!currentTerm.value || terms.value.indexOf(currentTerm.value) === -1) {
       currentTerm.value = termRespData.defaultValue;
     }
@@ -76,14 +67,49 @@ export function useCourses() {
     await reloadCurrentTerm();
   };
 
+  const courseFormatter = (course) => {
+    const timeLocList = parseTimeSlots(course.time_loc);
+    return {
+      ...course,
+      credit: Math.round(course.credit * 10) / 10,
+      course_name: course.chn_name.replace(/<\/br>.*/g, ""),
+      time: timeFormatter(course.time_loc),
+      location: locationFormatter(course.time_loc),
+      timeLocList: timeLocList,
+      teacher: teacherNameFormatter(course.teacher),
+      generalCore: course.generalCore.join("/"),
+      timeListStr: parseTimeListStr(timeLocList),
+      programs: parseProgram(course.chn_name),
+    };
+  }
+
+  const coursesFormatter = (courses) => {
+    courses.forEach((item) => {
+      item.credit = Math.round(item.credit * 10) / 10;
+      item.course_name = item.chn_name.replace(/<\/br>.*/g, "");
+      item.time = timeFormatter(item.time_loc);
+      item.location = locationFormatter(item.time_loc);
+      item.timeLocList = parseTimeSlots(item.time_loc);
+      item.teacher = teacherNameFormatter(item.teacher);
+      item.generalCore = item.generalCore.join("/");
+      item.timeListStr = parseTimeListStr(item.timeLocList);
+      item.programs = parseProgram(item.chn_name);
+    });
+
+    return courses;
+  };
+
+
   return {
     terms,
     currentTerm,
     rowData,
+    tempDatas,
     loading,
     reloadCurrentTerm,
-    defultGlobalFilterFields,
+    defaultGlobalFilterFields,
     initTermData,
+    courseFormatter,
   };
 }
 
@@ -154,4 +180,12 @@ function parseTimeListStr(timeLocList) {
     return "◎";
   }
   return timeLocList.map(({ day, period }) => `${day}${period.replace('10', 'X')}`).join("/");
+}
+
+function parseProgram(course_name) {
+  const match = course_name.match(/.*\[ 學分學程：(.+?) \].*/)
+  if (!match) return []
+
+  const programs = match[1].split(/\s+/).filter(Boolean)
+  return programs.join("/")
 }

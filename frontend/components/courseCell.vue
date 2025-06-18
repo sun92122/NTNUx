@@ -6,11 +6,20 @@
     </div>
     <div class="course-cell course-title">
       <span class="course-name">
-        <a
-          :href="`https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/SyllabusCtrl?year=${course.acadm_year}&term=${course.acadm_term}&courseCode=${course.course_code}&courseGroup=${course.course_group}&deptCode=${course.dept_code}&formS=${course.form_s}&classes1=${course.classes}&deptGroup=${course.dept_group_name}`"
-          target="_blank"
-          >{{ course.course_name }}</a
-        >
+        <Button variant="link" size="large" asChild>
+          <router-link
+            :to="{
+              name: 'course',
+              query: {
+                year: course.acadm_year,
+                term: course.acadm_term,
+                id: course.serial_no,
+              },
+            }"
+          >
+            {{ course.course_name }}
+          </router-link>
+        </Button>
       </span>
       <div class="message-group">
         <Message
@@ -89,6 +98,7 @@
 
 <script setup>
 import Message from "primevue/message";
+import Button from "primevue/button";
 
 defineProps({
   course: {
@@ -122,10 +132,6 @@ const generalCoreMap = {
   align-items: center;
   padding: 0.5rem;
   gap: 0.5rem;
-
-  a {
-    color: var(--text-color);
-  }
 }
 
 .course-cell {
@@ -153,6 +159,12 @@ const generalCoreMap = {
 
 .course-name {
   font-size: medium;
+
+  a {
+    font-weight: bold;
+    color: var(--text-color);
+    padding: 0;
+  }
 }
 
 .message-group {
