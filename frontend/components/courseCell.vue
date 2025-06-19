@@ -54,20 +54,29 @@
     </div>
     <div class="course-cell">
       <div class="message-group">
-        <Message icon="pi pi-tag" severity="secondary" class="custom-message">{{
+        <Message severity="secondary" class="custom-message"
+          >{{ course.credit }} 學分</Message
+        >
+        <Message severity="secondary" class="custom-message">{{
           optionMap[course.option_code] || course.option_code
         }}</Message>
         <Message
           v-if="course.generalCore"
           v-for="item in course.generalCore.split('/')"
           :key="item"
-          icon="pi pi-tag"
+          icon="pi pi-objects-column"
           severity="secondary"
           class="custom-message"
           >{{ generalCoreMap[item] || item }}</Message
         >
-        <Message icon="pi pi-book" severity="secondary" class="custom-message"
-          >{{ course.credit }} 學分</Message
+        <Message
+          v-if="course.programs"
+          v-for="item in course.programs.split('/')"
+          :key="item"
+          icon="pi pi-book"
+          severity="secondary"
+          class="custom-message"
+          >{{ item }}</Message
         >
         <Message
           icon="pi pi-users"

@@ -316,6 +316,7 @@ const {
   rowData,
   tempDatas,
   loading,
+  programSet,
   reloadCurrentTerm,
   defaultGlobalFilterFields,
   initTermData,

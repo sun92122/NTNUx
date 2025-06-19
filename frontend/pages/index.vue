@@ -78,7 +78,7 @@
           :optionValue="'value'"
           :showClear="true"
           :showToggleAll="false"
-          :showFilter="true"
+          :filter="true"
           :placeholder="subFilterValue.label"
           display="chip"
           :style="{ width: '100%' }"
@@ -102,7 +102,7 @@
           :options="subFilterValue.grouped_select_list"
           selectionMode="checkbox"
           filter
-          filterMode="lenient"
+          filterMode="strict"
           :showClear="true"
           :placeholder="subFilterValue.label"
           :style="{ width: '100%' }"
@@ -247,6 +247,7 @@ const {
   rowData,
   tempDatas,
   loading,
+  programSet,
   reloadCurrentTerm,
   defaultGlobalFilterFields,
   initTermData,
@@ -342,6 +343,10 @@ const filters = useState("filters", () => ({
     constraints: [],
   },
   credit: {
+    operator: FilterOperator.OR,
+    constraints: [],
+  },
+  programs: {
     operator: FilterOperator.OR,
     constraints: [],
   },
@@ -471,14 +476,27 @@ const searchModeList = ref({
     label: "學分學程",
     value: "program",
     command: () =>
-      filterMutatou({
-        chn_name: {
-          operator: FilterOperator.OR,
-          constraints: [
-            { value: "學分學程", matchMode: FilterMatchMode.CONTAINS },
-          ],
+      filterMutatou(
+        {
+          chn_name: {
+            operator: FilterOperator.OR,
+            constraints: [
+              { value: "學分學程", matchMode: FilterMatchMode.CONTAINS },
+            ],
+          },
         },
-      }),
+        {
+          label: "選擇學分學程",
+          select_list: [...programSet.value].map((program) => ({
+            label: program,
+            value: {
+              value: program,
+              matchMode: FilterMatchMode.CONTAINS,
+            },
+          })),
+          filter_field: "programs",
+        }
+      ),
   },
   english: {
     label: "英文三",

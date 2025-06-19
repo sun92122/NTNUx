@@ -6,6 +6,7 @@ export function useCourses() {
   const rowData = useState("rowData", () => []);
   const tempDatas = useState("tempDatas", () => ({}));
   const loading = useState("loading", () => true);
+  const programSet = useState("programSet", () => new Set());
 
   const defaultGlobalFilterFields = ["course_name", "teacher", "serial_no"];
 
@@ -94,6 +95,12 @@ export function useCourses() {
       item.generalCore = item.generalCore.join("/");
       item.timeListStr = parseTimeListStr(item.timeLocList);
       item.programs = parseProgram(item.chn_name);
+
+      if (item.programs) {
+        item.programs.split("/").forEach((program) => {
+          programSet.value.add(program);
+        });
+      }
     });
 
     return courses;
@@ -106,6 +113,7 @@ export function useCourses() {
     rowData,
     tempDatas,
     loading,
+    programSet,
     reloadCurrentTerm,
     defaultGlobalFilterFields,
     initTermData,
@@ -184,7 +192,7 @@ function parseTimeListStr(timeLocList) {
 
 function parseProgram(course_name) {
   const match = course_name.match(/.*\[ 學分學程：(.+?) \].*/)
-  if (!match) return []
+  if (!match) return "";
 
   const programs = match[1].split(" ");
   return programs.length > 0 ? programs.join("/") : "";
