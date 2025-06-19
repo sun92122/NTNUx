@@ -280,8 +280,8 @@ function getDeptList(data) {
     key: id,
     label: collegeName,
     data: {
-      value: collegeID,
-      matchMode: FilterMatchMode.STARTS_WITH,
+      value: null,
+      matchMode: FilterMatchMode.EQUALS,
     },
     children: Object.entries(deptSet[collegeID] || {}).map(
       ([deptCode, deptName], subId) =>
