@@ -487,7 +487,7 @@ const searchModeList = ref({
         },
         {
           label: "選擇學分學程",
-          select_list: [...programSet.value].map((program) => ({
+          select_list: [...programSet.value].sort().map((program) => ({
             label: program,
             value: {
               value: program,
