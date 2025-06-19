@@ -132,7 +132,7 @@ onBeforeMount(() => {
   window.removeEventListener("resize", updateWidth);
 });
 
-const isShowSchedule = ref(false); // 控制課表顯示的變數
+const isShowSchedule = useState("isShowSchedule", () => false);
 const isShowAdvancedSearch = useState("isShowAdvancedSearch", () => false);
 
 const currentTerm = useState("currentTerm", () => null);

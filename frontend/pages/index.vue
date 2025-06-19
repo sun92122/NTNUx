@@ -70,6 +70,7 @@
         class="search-input multi-search-input-sub-filter"
       >
         <MultiSelect
+          ref="subFilterRef"
           id="sub-filter"
           v-model="subFilterValue.value"
           :options="subFilterValue.select_list"
@@ -95,6 +96,7 @@
         class="search-input multi-search-input-sub-filter"
       >
         <TreeSelect
+          ref="subFilterRef"
           id="sub-filter-grouped"
           v-model="subFilterValue.value"
           :options="subFilterValue.grouped_select_list"
@@ -266,7 +268,9 @@ const {
 
 const updateMenubar = useState("updateMenubar");
 const deptList = useState("deptList");
+const isShowSchedule = useState("isShowSchedule", () => false);
 const isShowAdvancedSearch = useState("isShowAdvancedSearch", () => false);
+const subFilterRef = ref(null);
 
 const advancedSearchDisplayValue = useState(
   "advancedSearchDisplayValue",
@@ -508,6 +512,14 @@ const searchModeList = ref({
 });
 
 function scroll(deltaY) {
+  if (
+    isShowAdvancedSearch.value ||
+    isShowSchedule.value ||
+    (subFilterRef.value && subFilterRef.value.overlayVisible)
+  ) {
+    return 0;
+  }
+
   const scrollable = scrollTableRef.value?.$el.querySelector(
     ".p-datatable-table-container"
   );
