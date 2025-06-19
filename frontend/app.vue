@@ -87,17 +87,34 @@
     >
       <AdvancedSearch />
     </Dialog>
+
+    <!-- footer -->
+    <footer class="footer">
+      <Divider />
+      <span
+        style="font-size: clamp(0.75rem, 1.5vw + 0.25rem, 12px)"
+      >
+        &copy;2025
+        <a href="https://github.com/sun92122/NTNUx" target="_blank"> NTNUx. </a>
+        <br />
+        所有課程資料為國立臺灣師範大學所有，僅供學術研究與個人使用
+        <br />
+        資料非實時更新，請以學校公告為準
+      </span>
+    </footer>
   </div>
 </template>
 
 <script setup>
-import Menubar from "primevue/menubar";
-import Button from "primevue/button";
-import ToggleSwitch from "primevue/toggleswitch";
+import {
+  Menubar,
+  Button,
+  ToggleSwitch,
+  Toast,
+  Dialog,
+  Divider,
+} from "primevue";
 
-import Toast from "primevue/toast";
-
-import Dialog from "primevue/dialog";
 import { FloatingSchedule, AdvancedSearch } from "#components";
 import { FilterMatchMode } from "@primevue/core/api";
 
@@ -323,6 +340,20 @@ function getDeptList(data) {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
+}
+
+footer {
+  font-family: sans-serif;
+  text-align: center;
+  padding: 1rem 0;
+  background-color: var(--p-content-background);
+  color: var(--p-text-secondary-color);
+  width: 100%;
+  margin-top: auto;
+
+  a {
+    color: var(--p-text-secondary-color);
+  }
 }
 
 .menubar-end {
