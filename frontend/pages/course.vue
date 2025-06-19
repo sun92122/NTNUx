@@ -255,10 +255,22 @@
         'https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/SyllabusCtrl?' +
         `year=${course.acadm_year}&term=${course.acadm_term}&courseCode=${course.course_code}&courseGroup=${course.course_group}&deptCode=${course.dept_code}&formS=${course.form_s}&classes1=${course.classes}&deptGroup=${course.dept_group_name}`
       "
-      width="100%"
-      height="600px"
+      :width="windowWidth < 950 ? `950px` : '100%'"
+      :height="windowWidth < 950 ? '2000px' : '800px'"
       frameborder="0"
-      style="margin-top: 20px; background: #fff"
+      :style="{
+        marginTop: '20px',
+        background: '#fff',
+        '-webkit-transform': `scale(${
+          windowWidth < 950 ? (windowWidth - 10) / 950 : 1
+        })`,
+        '-moz-transform': `scale(${
+          windowWidth < 950 ? (windowWidth - 10) / 950 : 1
+        })`,
+        transformOrigin: 'top left',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+      }"
     ></iframe>
   </div>
   <div v-else class="course-details">
@@ -568,7 +580,8 @@ h1 {
 
 .course-details {
   padding: 20px;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   scrollbar-width: none;
 }
 @media screen and (min-width: 992px) {
@@ -603,7 +616,7 @@ h1 {
 
 @media screen and (max-width: 600px) {
   .course-details {
-    padding: 0 10px;
+    padding: 0 10px 10px;
   }
 
   .p-accordionheader,
