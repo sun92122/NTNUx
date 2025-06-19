@@ -1,6 +1,6 @@
 <template>
   <div class="tabs-container">
-    <Tabs v-model:value="searchMode" scrollable>
+    <Tabs v-model:value="searchMode" scrollable @update:value="resetPage">
       <TabList>
         <Tab
           v-for="tab in Object.values(searchModeList)"
@@ -510,6 +510,12 @@ const searchModeList = ref({
     command: () => filterMutatou({}),
   },
 });
+
+function resetPage() {
+  if (scrollTableRef.value) {
+    scrollTableRef.value.d_first = 0;
+  }
+}
 
 function scroll(deltaY) {
   if (
