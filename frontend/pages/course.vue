@@ -1,280 +1,296 @@
 <template>
-  <div class="course-details" v-if="course.course_name">
-    <h1>{{ course.course_name }}</h1>
-    <div class="course-details-subtitle">
-      <p>{{ course.acadm_year }}-{{ course.acadm_term }} 開課</p>
-      <div class="course-details-subtitle-right">
-        <Button
-          :icon="
-            checkSelectCode(course.course_code)
-              ? 'pi pi-heart-fill'
-              : 'pi pi-heart'
-          "
-          :severity="
-            checkSelectCode(course.course_code) ? 'danger' : 'secondary'
-          "
-          variant="text"
-          @click="selectCodeHandler(course.course_code, course.course_name)"
-          rounded
-        ></Button>
-        <Button
-          :label="
-            checkSelectedCourse(
-              course.serial_no,
-              `${course.acadm_year}-${course.acadm_term}`
-            )
-              ? '取消'
-              : '加入'
-          "
-          :severity="
-            checkSelectedCourse(
-              course.serial_no,
-              `${course.acadm_year}-${course.acadm_term}`
-            )
-              ? 'warn'
-              : 'secondary'
-          "
-          @click="
-            selectCourseWithTerm(
-              course,
-              `${course.acadm_year}-${course.acadm_term}`
-            )
-          "
-        ></Button>
+  <div class="course-details-container">
+    <div class="course-details" v-if="course.course_name">
+      <h1>{{ course.course_name }}</h1>
+      <div class="course-details-subtitle">
+        <p>{{ course.acadm_year }}-{{ course.acadm_term }} 開課</p>
+        <div class="course-details-subtitle-right">
+          <Button
+            :icon="
+              checkSelectCode(course.course_code)
+                ? 'pi pi-heart-fill'
+                : 'pi pi-heart'
+            "
+            :severity="
+              checkSelectCode(course.course_code) ? 'danger' : 'secondary'
+            "
+            variant="text"
+            @click="selectCodeHandler(course.course_code, course.course_name)"
+            rounded
+          ></Button>
+          <Button
+            :label="
+              checkSelectedCourse(
+                course.serial_no,
+                `${course.acadm_year}-${course.acadm_term}`
+              )
+                ? '取消'
+                : '加入'
+            "
+            :severity="
+              checkSelectedCourse(
+                course.serial_no,
+                `${course.acadm_year}-${course.acadm_term}`
+              )
+                ? 'warn'
+                : 'secondary'
+            "
+            @click="
+              selectCourseWithTerm(
+                course,
+                `${course.acadm_year}-${course.acadm_term}`
+              )
+            "
+          ></Button>
+        </div>
       </div>
-    </div>
-    <Card class="course-card">
-      <template #content>
-        <div class="course-info-first">
-          <div v-for="item in showInfo" :key="item.label">
-            <div
-              v-if="item.childen && item.childen.length > 0"
-              class="course-info-item"
-              :style="{
-                color: item.isNullValue
-                  ? 'var(--p-surface-400)'
-                  : 'var(--p-text)',
-              }"
-            >
-              <Accordion :value="'1'" style="width: 100%">
-                <AccordionPanel
-                  value="1"
-                  :style="{ width: '100%', border: '0' }"
-                >
-                  <AccordionHeader :style="{ padding: '0', width: '100%' }">
-                    <div class="course-info-item">
-                      <i :class="item.icon" style="font-size: 1.2rem"></i>
-                      <div
-                        style="flex: 1; display: flex; flex-direction: column"
-                      >
-                        <span
-                          style="color: var(--p-surface-500); font-size: 12px"
-                          >{{ item.label }}</span
-                        >
-                        <span style="font-size: 1.25rem">{{
-                          item.value || ""
-                        }}</span>
-                      </div>
-                    </div>
-                  </AccordionHeader>
-                  <AccordionContent
-                    :style="{ '--p-accordion-content-padding': '0 1.25rem' }"
+      <Card class="course-card">
+        <template #content>
+          <div class="course-info-first">
+            <div v-for="item in showInfo" :key="item.label">
+              <div
+                v-if="item.childen && item.childen.length > 0"
+                class="course-info-item"
+                :style="{
+                  color: item.isNullValue
+                    ? 'var(--p-surface-400)'
+                    : 'var(--p-text)',
+                }"
+              >
+                <Accordion :value="'1'" style="width: 100%">
+                  <AccordionPanel
+                    value="1"
+                    :style="{ width: '100%', border: '0' }"
                   >
-                    <div
-                      v-for="child in item.childen"
-                      :key="child"
-                      :style="{ margin: '0.5rem 0', fontSize: '1.1rem' }"
+                    <AccordionHeader :style="{ padding: '0', width: '100%' }">
+                      <div class="course-info-item">
+                        <i :class="item.icon" style="font-size: 1.2rem"></i>
+                        <div
+                          style="flex: 1; display: flex; flex-direction: column"
+                        >
+                          <span
+                            style="color: var(--p-surface-500); font-size: 12px"
+                            >{{ item.label }}</span
+                          >
+                          <span style="font-size: 1.25rem">{{
+                            item.value || ""
+                          }}</span>
+                        </div>
+                      </div>
+                    </AccordionHeader>
+                    <AccordionContent
+                      :style="{ '--p-accordion-content-padding': '0 1.25rem' }"
                     >
-                      <span>{{ child }}</span>
-                    </div>
-                  </AccordionContent>
-                </AccordionPanel>
-              </Accordion>
-            </div>
-            <div
-              v-else
-              class="course-info-item"
-              :style="{
-                color: item.isNullValue
-                  ? 'var(--p-surface-400)'
-                  : 'var(--p-text)',
-              }"
-            >
-              <i :class="item.icon" style="font-size: 1.2rem"></i>
-              <div style="flex: 1; display: flex; flex-direction: column">
-                <span style="color: var(--p-surface-500); font-size: 12px">{{
-                  item.label
-                }}</span>
-                <span style="font-size: 1.25rem">{{ item.value || "" }}</span>
+                      <div
+                        v-for="child in item.childen"
+                        :key="child"
+                        :style="{ margin: '0.5rem 0', fontSize: '1.1rem' }"
+                      >
+                        <span>{{ child }}</span>
+                      </div>
+                    </AccordionContent>
+                  </AccordionPanel>
+                </Accordion>
+              </div>
+              <div
+                v-else
+                class="course-info-item"
+                :style="{
+                  color: item.isNullValue
+                    ? 'var(--p-surface-400)'
+                    : 'var(--p-text)',
+                }"
+              >
+                <i :class="item.icon" style="font-size: 1.2rem"></i>
+                <div style="flex: 1; display: flex; flex-direction: column">
+                  <span style="color: var(--p-surface-500); font-size: 12px">{{
+                    item.label
+                  }}</span>
+                  <span style="font-size: 1.25rem">{{ item.value || "" }}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div
-          class="course-info-second"
-          :style="
-            windowWidth < 600
-              ? { '--p-accordion-content-padding': '0 0 1.125rem 0' }
-              : {}
-          "
-        >
-          <Accordion multiple :value="['1', '2', '3']">
-            <AccordionPanel value="1">
-              <AccordionHeader :style="{ fontSize: '1.25rem' }">
-                備註/限修
-              </AccordionHeader>
-              <AccordionContent>
-                <div v-if="course.comment" class="course-info-item">
-                  <i class="pi pi-comment" style="font-size: 1.2rem"></i>
-                  <span style="font-size: 1.1rem">{{ course.comment }}</span>
-                </div>
-                <div v-if="course.restrict" class="course-info-item">
-                  <i
-                    class="pi pi-exclamation-triangle"
-                    style="font-size: 1.2rem"
-                  ></i>
-                  <span style="font-size: 1.1rem">{{ course.restrict }}</span>
-                </div>
-                <div
-                  v-if="!course.comment && !course.restrict"
-                  class="course-info-item"
-                >
-                  <span style="font-size: 1.1rem; color: var(--p-surface-500)"
-                    >無</span
-                  >
-                </div>
-              </AccordionContent>
-            </AccordionPanel>
-            <AccordionPanel value="2">
-              <AccordionHeader :style="{ fontSize: '1.25rem' }">
-                選課資訊
-              </AccordionHeader>
-              <AccordionContent>
-                <div
-                  :style="{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    gap: '2rem',
-                  }"
-                >
+          <div
+            class="course-info-second"
+            :style="
+              windowWidth < 600
+                ? { '--p-accordion-content-padding': '0 0 1.125rem 0' }
+                : {}
+            "
+          >
+            <Accordion multiple :value="['1', '2', '3']">
+              <AccordionPanel value="1">
+                <AccordionHeader :style="{ fontSize: '1.25rem' }">
+                  備註/限修
+                </AccordionHeader>
+                <AccordionContent>
+                  <div v-if="course.comment" class="course-info-item">
+                    <i class="pi pi-comment" style="font-size: 1.2rem"></i>
+                    <span style="font-size: 1.1rem">{{ course.comment }}</span>
+                  </div>
+                  <div v-if="course.restrict" class="course-info-item">
+                    <i
+                      class="pi pi-exclamation-triangle"
+                      style="font-size: 1.2rem"
+                    ></i>
+                    <span style="font-size: 1.1rem">{{ course.restrict }}</span>
+                  </div>
                   <div
-                    v-for="[label, current, max] in [
-                      [
-                        '選課總人數',
-                        course.counter_exceptAuth,
-                        course.limit_count_h,
-                      ],
-                      [
-                        '已使用授權碼',
-                        course.counter - course.counter_exceptAuth,
-                        course.authorize_p,
-                      ],
-                      ['系統各校開放名額', null, course.limit],
-                    ]"
+                    v-if="!course.comment && !course.restrict"
+                    class="course-info-item"
+                  >
+                    <span style="font-size: 1.1rem; color: var(--p-surface-500)"
+                      >無</span
+                    >
+                  </div>
+                </AccordionContent>
+              </AccordionPanel>
+              <AccordionPanel value="2">
+                <AccordionHeader :style="{ fontSize: '1.25rem' }">
+                  選課資訊
+                </AccordionHeader>
+                <AccordionContent>
+                  <div
                     :style="{
-                      minWidth: '20%',
+                      display: 'flex',
+                      flexDirection: 'row',
+                      gap: 'clamp(0.5rem, 3vw - 0.5rem, 2rem)',
                     }"
                   >
                     <div
-                      :style="{ fontSize: '1.1rem', marginBottom: '0.5rem' }"
-                    >
-                      <span>{{ label }}</span>
-                    </div>
-                    <div
-                      class="course-info-item"
+                      v-for="[label, current, max] in [
+                        [
+                          '選課總人數',
+                          course.counter_exceptAuth,
+                          course.limit_count_h,
+                        ],
+                        [
+                          '已使用授權碼',
+                          course.counter - course.counter_exceptAuth,
+                          course.authorize_p,
+                        ],
+                        ['系統各校開放名額', null, course.limit],
+                      ]"
                       :style="{
-                        fontSize: '1.2rem',
-                        fontFamily: 'sans-serif',
-                        alignItems: 'flex-end',
-                        gap: '0.2rem',
+                        minWidth: '20%',
                       }"
                     >
                       <div
-                        v-if="current !== null"
                         :style="{
-                          fontSize: '1.75rem',
-                          fontWeight: '900',
+                          fontSize: 'clamp(1rem, 2vw + 0.25rem, 1.2rem)',
+                          marginBottom: '0.5rem',
                         }"
                       >
-                        {{ current }}
+                        <span>{{ label }}</span>
                       </div>
-                      <div v-if="current !== null">/</div>
                       <div
+                        class="course-info-item"
                         :style="{
-                          fontSize: current !== null ? '1.2rem' : '1.75rem',
-                          fontWeight: current !== null ? '400' : '900',
+                          fontSize: '1.2rem',
+                          fontFamily: 'sans-serif',
+                          alignItems: 'flex-end',
+                          gap: '0.2rem',
                         }"
                       >
-                        {{ max }}
+                        <div
+                          v-if="current !== null"
+                          :style="{
+                            fontSize: '1.75rem',
+                            fontWeight: '900',
+                          }"
+                        >
+                          {{ current }}
+                        </div>
+                        <div v-if="current !== null">/</div>
+                        <div
+                          :style="{
+                            fontSize: current !== null ? '1.2rem' : '1.75rem',
+                            fontWeight: current !== null ? '400' : '900',
+                          }"
+                        >
+                          {{ max }}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </AccordionContent>
-            </AccordionPanel>
-            <AccordionPanel value="3">
-              <AccordionHeader :style="{ fontSize: '1.25rem' }">
-                課程簡介
-              </AccordionHeader>
-              <AccordionContent>
-                <div
-                  v-if="course.description"
-                  class="course-info-item"
-                  style="flex-direction: column"
-                >
-                  <span
-                    v-html="
-                      course.description.brief || course.description.description
-                    "
-                    style="
-                      font-size: 1.1rem;
-                      white-space: pre-wrap;
-                      text-indent: 2em;
-                    "
-                  ></span>
-                </div>
-              </AccordionContent>
-            </AccordionPanel>
-          </Accordion>
-        </div>
-      </template>
-    </Card>
-    <Button
-      v-if="!showIframe || showIframeLoading"
-      label="顯示課程大綱"
-      icon="pi pi-file"
-      severity="contrast"
-      variant="outlined"
-      @click="showIframeEvent"
-      :loading="showIframeLoading"
-      :style="{ marginTop: '20px', width: '100%' }"
-    ></Button>
-    <iframe
-      v-show="showIframe"
-      :src="
-        'https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/SyllabusCtrl?' +
-        `year=${course.acadm_year}&term=${course.acadm_term}&courseCode=${course.course_code}&courseGroup=${course.course_group}&deptCode=${course.dept_code}&formS=${course.form_s}&classes1=${course.classes}&deptGroup=${course.dept_group_name}`
-      "
-      :width="windowWidth < 950 ? `950px` : '100%'"
-      :height="windowWidth < 950 ? '2000px' : '800px'"
-      frameborder="0"
-      :style="{
-        marginTop: '20px',
-        background: '#fff',
-        '-webkit-transform': `scale(${
-          windowWidth < 950 ? (windowWidth - 10) / 950 : 1
-        })`,
-        '-moz-transform': `scale(${
-          windowWidth < 950 ? (windowWidth - 10) / 950 : 1
-        })`,
-        transformOrigin: 'top left',
-        marginLeft: 'auto',
-        marginRight: 'auto',
-      }"
-    ></iframe>
-  </div>
-  <div v-else class="course-details">
-    <h2>Loading course details...</h2>
+                </AccordionContent>
+              </AccordionPanel>
+              <AccordionPanel value="3">
+                <AccordionHeader :style="{ fontSize: '1.25rem' }">
+                  課程簡介
+                </AccordionHeader>
+                <AccordionContent>
+                  <div
+                    v-if="course.description"
+                    class="course-info-item"
+                    style="flex-direction: column"
+                  >
+                    <span
+                      v-html="
+                        course.description.brief ||
+                        course.description.description
+                      "
+                      style="
+                        font-size: 1.1rem;
+                        white-space: pre-wrap;
+                        text-indent: 2em;
+                      "
+                    ></span>
+                  </div>
+                </AccordionContent>
+              </AccordionPanel>
+            </Accordion>
+          </div>
+        </template>
+      </Card>
+      <Button
+        v-if="!showIframe || showIframeLoading"
+        label="顯示課程大綱"
+        icon="pi pi-file"
+        severity="contrast"
+        variant="outlined"
+        @click="showIframeEvent"
+        :loading="showIframeLoading"
+        :style="{ marginTop: '20px', width: '100%' }"
+      ></Button>
+      <div
+        v-show="showIframe"
+        :style="{
+          height:
+            windowWidth < 950
+              ? ((windowWidth - 10) / 950) * 2000 + 'px'
+              : '800px',
+          overflow: 'hidden',
+        }"
+      >
+        <iframe
+          :src="
+            'https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/SyllabusCtrl?' +
+            `year=${course.acadm_year}&term=${course.acadm_term}&courseCode=${course.course_code}&courseGroup=${course.course_group}&deptCode=${course.dept_code}&formS=${course.form_s}&classes1=${course.classes}&deptGroup=${course.dept_group_name}`
+          "
+          :width="windowWidth < 950 ? `950px` : '100%'"
+          :height="windowWidth < 950 ? '2000px' : '800px'"
+          frameborder="0"
+          :style="{
+            marginTop: '20px',
+            background: '#fff',
+            '-webkit-transform': `scale(${
+              windowWidth < 950 ? (windowWidth - 10) / 950 : 1
+            })`,
+            '-moz-transform': `scale(${
+              windowWidth < 950 ? (windowWidth - 10) / 950 : 1
+            })`,
+            transformOrigin: 'top left',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+          }"
+        ></iframe>
+      </div>
+    </div>
+    <div v-else class="course-details">
+      <h2>Loading course details...</h2>
+    </div>
   </div>
 </template>
 
@@ -578,11 +594,14 @@ h1 {
   margin-bottom: 0.5rem;
 }
 
-.course-details {
-  padding: 20px;
+.course-details-container {
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: none;
+}
+
+.course-details {
+  padding: 20px;
 }
 @media screen and (min-width: 992px) {
   .course-details {

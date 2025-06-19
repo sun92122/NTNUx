@@ -91,9 +91,7 @@
     <!-- footer -->
     <footer class="footer">
       <Divider />
-      <span
-        style="font-size: clamp(0.75rem, 1.5vw + 0.25rem, 12px)"
-      >
+      <span style="font-size: clamp(0.75rem, 1.5vw + 0.25rem, 12px)">
         &copy;2025
         <a href="https://github.com/sun92122/NTNUx" target="_blank"> NTNUx. </a>
         <br />
@@ -339,7 +337,9 @@ function getDeptList(data) {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
 }
 
 footer {

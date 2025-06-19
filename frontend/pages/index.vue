@@ -111,6 +111,7 @@
 
     <div class="grid-container">
       <DataTable
+        ref="scrollTableRef"
         :value="rowData"
         :paginator="true"
         :filters="filters"
@@ -128,6 +129,7 @@
           border: '1px solid var(--p-datatable-border-color)',
           borderRadius: '0.5rem',
         }"
+        @page="scroll(-Infinity)"
       >
         <template #header>
           <span>課程資訊</span>
@@ -271,6 +273,8 @@ const advancedSearchDisplayValue = useState(
   () => "點擊進行進階搜尋"
 );
 
+const scrollTableRef = ref(null);
+
 const advancedSearchRebuild = useState("advancedSearchRebuildFunction");
 
 // 搜尋模式與子篩選器
@@ -279,7 +283,8 @@ const searchText = null;
 const subFilterValue = ref({
   value: null,
   filter_field: null,
-  select_list: [],
+  select_list: null,
+  grouped_select_list: null,
   label: null,
 });
 
@@ -502,11 +507,62 @@ const searchModeList = ref({
   },
 });
 
+function scroll(deltaY) {
+  const scrollable = scrollTableRef.value?.$el.querySelector(
+    ".p-datatable-table-container"
+  );
+  if (scrollable) {
+    scrollable.scrollTop = Math.max(
+      0,
+      Math.min(
+        scrollable.scrollTop + deltaY,
+        scrollable.scrollHeight - scrollable.clientHeight
+      )
+    );
+    if (
+      scrollable.scrollTop <
+        scrollable.scrollHeight - scrollable.clientHeight &&
+      scrollable.scrollTop > 0
+    ) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 onMounted(async () => {
+  const onWheel = (e) => {
+    if (scroll(e.deltaY)) {
+      e.preventDefault();
+    }
+  };
+
+  const onKey = (e) => {
+    if (e.key === "Home") {
+      scroll(-Infinity);
+    }
+    if (e.key === "End") {
+      scroll(Infinity);
+    }
+  };
+
+  window.addEventListener("wheel", onWheel, { passive: false });
+  window.addEventListener("keydown", onKey);
+
+  onBeforeUnmount(() => {
+    window.removeEventListener("wheel", onWheel);
+    window.removeEventListener("keydown", onKey);
+  });
+
   await initTermData(route);
   updateMenubar.value();
 
   searchMode.value = route.query.m?.toLowerCase() || "quick";
+  if (route.query.s) {
+    filters.value.global.value = route.query.s;
+  } else {
+    filters.value.global.value = null;
+  }
   if (searchModeList.value[searchMode.value]) {
     searchModeList.value[searchMode.value]?.command();
   } else {
@@ -739,6 +795,7 @@ function selectDeptToFilter() {
 
 .p-datatable-table-container {
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .advanced-search-label {
