@@ -22,97 +22,126 @@
 
   <!-- 選課時程 -->
   <div class="container">
-    <h3 :style="{ marginBottom: 0 }">
-      {{ selectionSchedule?.year }} 學年度 第 {{ selectionSchedule?.term }} 學期
-    </h3>
-    <h1 class="center">選課時程</h1>
-    <Carousel
-      :value="selectionSchedule?.schedule"
-      :page="carouselPage"
-      :numVisible="3"
-      :numScroll="1"
-      :showNavigators="false"
-      :showIndicators="false"
-      :responsiveOptions="responsiveOptions"
-    >
-      <template #item="{ data, _ }">
-        <Card class="p-mb-3" :style="data?.info ? {} : { boxShadow: 'none' }">
-          <template #title>
-            <h3 style="margin: 0">{{ data?.info }}</h3>
-          </template>
-          <template #subtitle>
-            <div v-if="data?.date" style="text-align: center">
-              <span v-if="data.date.time">
-                {{ data.date.time }}
-              </span>
-              <span class="card-title-date" :style="{ color: data.color }">
-                {{ data.date.date }}
-              </span>
-            </div>
-            <div v-if="data.start">
-              <div style="text-align: center">
-                <span v-if="data.start.time"> {{ data.start.time }} </span>
-                <span class="card-title-date" :style="{ color: data.color }">
-                  {{ data.start.date }}-{{ data.end.date }}
+    <div class="search-container search-bar">
+      <FloatLabel variant="in" class="search-input single-search-input">
+        <IconField>
+          <InputIcon>
+            <i class="pi pi-search" />
+          </InputIcon>
+          <InputText
+            id="globalFilter"
+            v-model="globalFilterValue"
+            :autocapitalize="false"
+            size="large"
+            :style="{ width: '100%' }"
+            @blur="quickSearch()"
+            @keyup.enter="quickSearch()"
+          />
+        </IconField>
+        <label class="global-filter-label" for="globalFilter"
+          >課程名稱/教師/開課序號</label
+        >
+      </FloatLabel>
+    </div>
+
+    <ProgressSpinner
+      v-if="routerLoading"
+      style="margin-top: auto; margin-bottom: auto"
+    />
+    <div v-else class="container">
+      <h3 :style="{ marginBottom: 0 }">
+        {{ selectionSchedule?.year }} 學年度 第
+        {{ selectionSchedule?.term }} 學期
+      </h3>
+      <h1 class="center">選課時程</h1>
+      <Carousel
+        :value="selectionSchedule?.schedule"
+        :page="carouselPage"
+        :numVisible="3"
+        :numScroll="1"
+        :showNavigators="false"
+        :showIndicators="false"
+        :responsiveOptions="responsiveOptions"
+      >
+        <template #item="{ data, _ }">
+          <Card class="p-mb-3" :style="data?.info ? {} : { boxShadow: 'none' }">
+            <template #title>
+              <h3 style="margin: 0">{{ data?.info }}</h3>
+            </template>
+            <template #subtitle>
+              <div v-if="data?.date" style="text-align: center">
+                <span v-if="data.date.time">
+                  {{ data.date.time }}
                 </span>
-                <span v-if="data.end.time"> {{ data.end.time }}</span>
+                <span class="card-title-date" :style="{ color: data.color }">
+                  {{ data.date.date }}
+                </span>
               </div>
-            </div>
-          </template>
-          <template #content>
-            <Timeline :value="data?.steps" :align="'left'" class="p-mt-3">
-              <template #content="{ item }">
-                <div class="p-d-flex p-ai-center">
-                  <div>
-                    <h4 style="margin: 0">{{ item.title }}</h4>
-                    <div
-                      :style="{
-                        whiteSpace: 'break-spaces',
-                        marginTop: '0.5rem',
-                      }"
-                      class="p-card-subtitle"
-                    >
-                      {{ item.description }}
+              <div v-if="data.start">
+                <div style="text-align: center">
+                  <span v-if="data.start.time"> {{ data.start.time }} </span>
+                  <span class="card-title-date" :style="{ color: data.color }">
+                    {{ data.start.date }}-{{ data.end.date }}
+                  </span>
+                  <span v-if="data.end.time"> {{ data.end.time }}</span>
+                </div>
+              </div>
+            </template>
+            <template #content>
+              <Timeline :value="data?.steps" :align="'left'" class="p-mt-3">
+                <template #content="{ item }">
+                  <div class="p-d-flex p-ai-center">
+                    <div>
+                      <h4 style="margin: 0">{{ item.title }}</h4>
+                      <div
+                        :style="{
+                          whiteSpace: 'break-spaces',
+                          marginTop: '0.5rem',
+                        }"
+                        class="p-card-subtitle"
+                      >
+                        {{ item.description }}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </template>
-            </Timeline>
-          </template>
-          <template #footer>
-            <div v-if="data?.moreInfo" style="margin-top: 8rem">
-              <a
-                :href="data.moreInfoUrl"
-                target="_blank"
-                style="color: inherit; text-decoration: none; cursor: pointer"
-              >
-                <i class="pi pi-external-link" style="margin-right: 1rem"></i>
-                {{ data.moreInfo }}
-              </a>
-            </div>
-          </template>
-        </Card>
-      </template>
-    </Carousel>
-    <div>
-      <!-- carousel navigation buttons -->
-      <Button
-        icon="pi pi-angle-left"
-        variant="text"
-        rounded
-        size="large"
-        @click="scrollToPage(carouselPage - 1)"
-        :disabled="carouselPage <= 0"
-        style="margin-right: 0.5rem"
-      ></Button>
-      <Button
-        icon="pi pi-angle-right"
-        variant="text"
-        rounded
-        size="large"
-        @click="scrollToPage(carouselPage + 1)"
-        :disabled="carouselPage >= selectionSchedule?.schedule.length - 3"
-      ></Button>
+                </template>
+              </Timeline>
+            </template>
+            <template #footer>
+              <div v-if="data?.moreInfo" style="margin-top: 8rem">
+                <a
+                  :href="data.moreInfoUrl"
+                  target="_blank"
+                  style="color: inherit; text-decoration: none; cursor: pointer"
+                >
+                  <i class="pi pi-external-link" style="margin-right: 1rem"></i>
+                  {{ data.moreInfo }}
+                </a>
+              </div>
+            </template>
+          </Card>
+        </template>
+      </Carousel>
+      <div>
+        <!-- carousel navigation buttons -->
+        <Button
+          icon="pi pi-angle-left"
+          variant="text"
+          rounded
+          size="large"
+          @click="scrollToPage(carouselPage - 1)"
+          :disabled="carouselPage <= 0"
+          style="margin-right: 0.5rem"
+        ></Button>
+        <Button
+          icon="pi pi-angle-right"
+          variant="text"
+          rounded
+          size="large"
+          @click="scrollToPage(carouselPage + 1)"
+          :disabled="carouselPage >= selectionSchedule?.schedule.length - 3"
+        ></Button>
+      </div>
     </div>
   </div>
 </template>
@@ -123,9 +152,23 @@ import { useRoute } from "vue-router";
 
 import { useCourses } from "~/composables/useCourses";
 
-import { Tabs, Tab, TabList, Button, Card, Timeline, Carousel } from "primevue";
+import {
+  Tabs,
+  Tab,
+  TabList,
+  Button,
+  Card,
+  Timeline,
+  Carousel,
+  InputText,
+  FloatLabel,
+  IconField,
+  InputIcon,
+  ProgressSpinner,
+} from "primevue";
 
 const route = useRoute();
+const router = useRouter();
 
 const {
   terms,
@@ -141,6 +184,14 @@ const {
 
 const updateMenubar = useState("updateMenubar");
 
+const routerLoading = ref(false);
+const globalFilterValue = ref("");
+const quickSearch = () => {
+  if (globalFilterValue.value) {
+    routerLoading.value = true;
+    router.push(`/?s=${globalFilterValue.value}`);
+  }
+};
 // 搜尋模式與子篩選器
 const searchModeList = ref({
   quick: {
@@ -300,6 +351,37 @@ onMounted(async () => {
     .p-tablist-tab-list {
       justify-content: center;
     }
+  }
+}
+
+.search-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+.search-bar {
+  .p-component {
+    height: 48px;
+  }
+
+  width: 100%;
+  max-width: 48rem;
+
+  --p-floatlabel-focus-color: var(--p-floatlabel-color);
+}
+
+.search-input {
+  width: 100%;
+  --p-inputtext-border-radius: 25px;
+  --p-multiselect-border-radius: 25px;
+}
+
+@media screen and (min-width: 768px) {
+  .single-search-input {
+    width: 100%;
   }
 }
 
