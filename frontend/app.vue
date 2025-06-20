@@ -116,6 +116,19 @@ import {
 import { FloatingSchedule, AdvancedSearch } from "#components";
 import { FilterMatchMode } from "@primevue/core/api";
 
+useHead({
+  title: "",
+  titleTemplate: (titleChunk) => {
+    return titleChunk ? `${titleChunk} | NTNUx` : "NTNUx | 課程查詢系統";
+  },
+  meta: [
+    {
+      name: "description",
+      content: "更適合師大人的課程查詢系統，更快、更強、行動裝置友好。",
+    },
+  ],
+});
+
 const updateMenubar = useState("updateMenubar");
 const windowWidth = useState("windowWidth", () => window.innerWidth);
 

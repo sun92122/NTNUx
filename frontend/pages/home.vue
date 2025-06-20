@@ -327,6 +327,18 @@ onMounted(async () => {
       if (nowIndex !== undefined) {
         carouselPage.value =
           clip(nowIndex, 1, selectionSchedule.value.schedule.length - 1) - 1;
+        const nowSchedule = selectionSchedule.value.schedule[nowIndex];
+        useSeoMeta({
+          title: "選課時程",
+          description: `查看選課時程並快速搜尋課程。${
+            nowSchedule.info
+              ? `${nowSchedule.info} ${
+                  nowSchedule?.date?.date || nowSchedule?.start?.date || ""
+                }`
+              : ""
+          }`,
+          keywords: "師大課程查詢, 師大課程, 師大選課, NTNU Course Search",
+        });
       }
     })
     .catch((error) => {

@@ -380,11 +380,13 @@ function getCourseData() {
   const acadm = `${course.value.year}-${course.value.term}`;
 
   function beforeReturn() {
+    useSeoMeta({
+      title: `${acadm} ${course.value.course_name}`,
+    });
     setTimeout(() => {
       getDescription(course.value.course_code).then((description) => {
         course.value.description = description;
-        useHead({
-          title: `${acadm} ${course.value.course_name} | NTNUx`,
+        useHeadSafe({
           meta: [
             {
               name: "description",

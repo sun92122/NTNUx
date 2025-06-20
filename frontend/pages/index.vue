@@ -356,13 +356,14 @@ const searchModeList = ref({
   quick: {
     label: "快速搜尋",
     value: "quick",
-    command: () => filterMutatou({}),
+    command: () => initSearchMode({}),
   },
   dept: {
     label: "系所",
+    activeLabel: "開課系所",
     value: "dept",
     command: () =>
-      filterMutatou(
+      initSearchMode(
         {
           dept_chiabbr: {
             operator: FilterOperator.OR,
@@ -381,7 +382,7 @@ const searchModeList = ref({
     value: "advanced",
     command: () => {
       isShowAdvancedSearch.value = true;
-      filterMutatou({});
+      initSearchMode({});
       filters.value["global"].value = null;
       if (advancedSearchRebuild && advancedSearchRebuild.value) {
         advancedSearchRebuild.value();
@@ -392,7 +393,7 @@ const searchModeList = ref({
     label: "通識",
     value: "general",
     command: () =>
-      filterMutatou(
+      initSearchMode(
         {
           option_code: {
             operator: FilterOperator.OR,
@@ -424,7 +425,7 @@ const searchModeList = ref({
     activeLabel: "普通體育",
     value: "physical",
     command: () =>
-      filterMutatou({
+      initSearchMode({
         dept_chiabbr: {
           operator: FilterOperator.OR,
           constraints: [{ value: "體育", matchMode: FilterMatchMode.CONTAINS }],
@@ -436,7 +437,7 @@ const searchModeList = ref({
     activeLabel: "全民國防教育",
     value: "defense",
     command: () =>
-      filterMutatou({
+      initSearchMode({
         chn_name: {
           operator: FilterOperator.OR,
           constraints: [
@@ -450,7 +451,7 @@ const searchModeList = ref({
     activeLabel: "臺大系統校際課程",
     value: "interschool",
     command: () =>
-      filterMutatou(
+      initSearchMode(
         {
           dept_chiabbr: {
             operator: FilterOperator.OR,
@@ -476,7 +477,7 @@ const searchModeList = ref({
     label: "學分學程",
     value: "program",
     command: () =>
-      filterMutatou(
+      initSearchMode(
         {
           chn_name: {
             operator: FilterOperator.OR,
@@ -502,7 +503,7 @@ const searchModeList = ref({
     label: "英文三",
     value: "english",
     command: () =>
-      filterMutatou({
+      initSearchMode({
         course_name: {
           operator: FilterOperator.OR,
           constraints: [
@@ -515,7 +516,7 @@ const searchModeList = ref({
     label: "英文授課",
     value: "emi",
     command: () =>
-      filterMutatou({
+      initSearchMode({
         eng_teach: {
           operator: FilterOperator.OR,
           constraints: [{ value: "是", matchMode: FilterMatchMode.EQUALS }],
@@ -525,7 +526,7 @@ const searchModeList = ref({
   "": {
     label: "",
     value: "quick",
-    command: () => filterMutatou({}),
+    command: () => initSearchMode({}),
   },
 });
 
@@ -625,7 +626,15 @@ watch(
   }
 );
 
-function filterMutatou(updateValue, subFilter = null) {
+function initSearchMode(updateValue, subFilter = null) {
+  useSeoMeta({
+    title:
+      searchModeList.value[searchMode.value]?.activeLabel ||
+      searchModeList.value[searchMode.value]?.label ||
+      "",
+    description: "更適合師大人的課程查詢系統，更快、更強、行動裝置友好。",
+  });
+
   for (const key in filters.value) {
     if (key === "global") continue;
     if (key in updateValue) {
