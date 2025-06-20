@@ -1,12 +1,22 @@
 <template>
   <div class="tabs-container">
-    <Tabs v-model:value="searchMode" scrollable @update:value="resetPage">
+    <Tabs
+      v-model:value="searchMode"
+      scrollable
+      @update:value="
+        () => {
+          if (searchModeList[searchMode]) {
+            searchModeList[searchMode].command?.();
+          }
+          resetPage();
+        }
+      "
+    >
       <TabList>
         <Tab
           v-for="tab in Object.values(searchModeList)"
           :key="tab.value"
           :value="tab.value"
-          @click="tab.command ? tab.command() : null"
           :class="tab.label ? '' : 'tab-disabled'"
         >
           {{

@@ -224,7 +224,7 @@
                   <div
                     v-if="course.description"
                     class="course-info-item"
-                    style="flex-direction: column"
+                    style="flex-direction: column; align-items: flex-start"
                   >
                     <span
                       v-html="
@@ -393,10 +393,6 @@ function getCourseData() {
               content: description
                 ? description.brief || description.description
                 : "",
-            },
-            {
-              name: "viewport",
-              content: "width=device-width, initial-scale=1",
             },
           ],
         });
