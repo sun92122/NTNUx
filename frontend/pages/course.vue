@@ -262,6 +262,7 @@
               ? ((windowWidth - 10) / 950) * 2000 + 'px'
               : '800px',
           overflow: 'hidden',
+          maxWidth: '95vw',
         }"
       >
         <iframe
@@ -597,6 +598,8 @@ h1 {
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: none;
+  display: table;
+  min-height: 95vh;
 }
 
 .course-details {
