@@ -8,13 +8,16 @@
         :key="footerItem.label"
       >
         <h4>{{ footerItem.label }}</h4>
-        <div v-for="item in footerItem.items" :key="item.label">
+        <div
+          v-for="item in footerItem.items"
+          :key="item.label"
+          style="padding: 2px 0"
+        >
           <Button
             v-if="item.url"
             :label="item.label"
             class="p-button-text p-button-secondary"
             asChild
-            style="padding: 2px 0"
           >
             <a
               :href="item.url"
@@ -32,13 +35,13 @@
             :label="item.label"
             class="p-button-text p-button-secondary"
             @click="item.command"
-            style="padding: 2px 0"
+            style="padding: 0; border: none"
           ></Button>
         </div>
       </div>
     </div>
     <Divider class="footer-content" />
-    <span style="font-size: clamp(0.75rem, 1.5vw + 0.25rem, 12px)">
+    <span class="footer-copyright">
       &copy; 2025
       <a
         href="https://github.com/sun92122/NTNUx"
@@ -140,11 +143,8 @@ const footerItems = [
 
 <style scoped lang="scss">
 footer {
-  font-family: sans-serif;
-  text-align: center;
   padding: 1rem 0;
   background-color: var(--p-content-background);
-  color: var(--p-text-secondary-color);
   width: 100%;
   margin-top: auto;
 }
@@ -196,5 +196,15 @@ footer {
     text-align: center;
     padding: 0.5rem 0;
   }
+}
+
+.footer-copyright {
+  font-size: clamp(0.75rem, 1.5vw + 0.25rem, 12px);
+  font-family: sans-serif;
+  text-align: center;
+  color: var(--p-text-secondary-color);
+  margin-top: 0.5rem;
+  width: 100%;
+  display: block;
 }
 </style>
