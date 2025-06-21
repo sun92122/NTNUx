@@ -225,9 +225,10 @@ function updateMenubarItems() {
           getDeptList(useState("rowData").value);
         deptLists.value[currentTerm.value] = deptList.value;
         loadTermData.value();
-        termLabelItem.label = `學期：${term}-${
-          ["1", "2", "暑期"][subTerm - 1]
-        }`; // 更新學期顯示
+        termLabelItem.label =
+          windowWidth.value > 380
+            ? `學期：${term}-${["1", "2", "暑期"][subTerm - 1]}`
+            : `${term}-${["1", "2", "暑期"][subTerm - 1]}`;
       },
     })),
   }));
@@ -236,7 +237,8 @@ function updateMenubarItems() {
     termLabelItem.label = "選擇學期";
     return;
   }
-  termLabelItem.label = `學期：${currentTerm.value}`;
+  termLabelItem.label =
+    windowWidth.value > 380 ? `學期：${currentTerm.value}` : currentTerm.value;
 }
 
 const collegeMap = {
@@ -395,10 +397,9 @@ html {
   text-decoration: none;
 }
 
-@media screen and (max-width: 375px) {
-  :root {
-    --p-navigation-item-padding: 0.5rem 0.25rem;
-    --p-menubar-gap: 0rem;
+@media screen and (max-width: 400px) {
+  .p-menubar-submenu {
+    min-width: 8rem;
   }
 }
 
