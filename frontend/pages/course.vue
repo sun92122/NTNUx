@@ -550,16 +550,16 @@ function getShowInfo(course) {
     {
       label:
         typeof course.programs === "string" &&
-        course.programs.split("/").length === 1
+        course.programs.split("/").length > 1
           ? "學分學程"
           : "",
       icon: "pi pi-book",
       value:
-        typeof course.programs === "string"
-          ? course.programs.split("/").length > 1
-            ? `${course.programs.split("/").length} 個學分學程`
-            : course.programs
-          : "無學分學程",
+        typeof course.programs !== "string" || course.programs === ""
+          ? "無學分學程"
+          : course.programs.split("/").length > 1
+          ? `${course.programs.split("/").length} 個學分學程`
+          : course.programs,
       isNullValue:
         typeof course.programs !== "string" || course.programs === "",
       childen:
