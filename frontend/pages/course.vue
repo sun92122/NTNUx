@@ -262,6 +262,7 @@
               ? ((windowWidth - 10) / 950) * 2000 + 'px'
               : '800px',
           overflow: 'hidden',
+          maxWidth: '95vw',
         }"
       >
         <iframe
@@ -549,16 +550,16 @@ function getShowInfo(course) {
     {
       label:
         typeof course.programs === "string" &&
-        course.programs.split("/").length === 1
+        course.programs.split("/").length > 1
           ? "學分學程"
           : "",
       icon: "pi pi-book",
       value:
-        typeof course.programs === "string"
-          ? course.programs.split("/").length > 1
-            ? `${course.programs.split("/").length} 個學分學程`
-            : course.programs
-          : "無學分學程",
+        typeof course.programs !== "string" || course.programs === ""
+          ? "無學分學程"
+          : course.programs.split("/").length > 1
+          ? `${course.programs.split("/").length} 個學分學程`
+          : course.programs,
       isNullValue:
         typeof course.programs !== "string" || course.programs === "",
       childen:
@@ -597,6 +598,8 @@ h1 {
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: none;
+  display: table;
+  min-height: 95vh;
 }
 
 .course-details {
