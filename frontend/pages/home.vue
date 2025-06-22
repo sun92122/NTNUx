@@ -15,7 +15,7 @@
       <Carousel
         :value="selectionSchedule?.schedule"
         :page="carouselPage"
-        :numVisible="3"
+        :numVisible="windowWidth <= 745 ? 1 : 3"
         :numScroll="1"
         :showNavigators="false"
         :showIndicators="false"
@@ -137,7 +137,13 @@ const routerLoading = useState("routerLoading", () => false);
 const selectionSchedule = useState("courseSelectionSchedule", () => {});
 const carouselPage = ref(1);
 
+const windowWidth = useState("windowWidth", () => window.innerWidth);
 const responsiveOptions = ref([
+  {
+    breakpoint: "100000px",
+    numVisible: 3,
+    numScroll: 1,
+  },
   {
     breakpoint: "745px",
     numVisible: 1,
