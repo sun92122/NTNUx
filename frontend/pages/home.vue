@@ -1,52 +1,10 @@
 <template>
-  <div class="tabs-container">
-    <Tabs scrollable>
-      <TabList>
-        <Tab
-          v-for="tab in Object.values(searchModeList)"
-          :key="tab.value"
-          :value="tab.value"
-          @click="tab.command ? tab.command() : null"
-        >
-          <RouterLink
-            v-if="tab.route"
-            :to="tab.route"
-            :style="{ textDecoration: 'none', color: 'inherit' }"
-          >
-            {{ tab.label }}
-          </RouterLink>
-        </Tab>
-      </TabList>
-    </Tabs>
-  </div>
-
   <!-- 選課時程 -->
   <div class="container">
-    <div class="search-container search-bar">
-      <FloatLabel variant="in" class="search-input single-search-input">
-        <IconField>
-          <InputIcon>
-            <i class="pi pi-search" />
-          </InputIcon>
-          <InputText
-            id="globalFilter"
-            v-model="globalFilterValue"
-            :autocapitalize="false"
-            size="large"
-            :style="{ width: '100%' }"
-            @blur="quickSearch()"
-            @keyup.enter="quickSearch()"
-          />
-        </IconField>
-        <label class="global-filter-label" for="globalFilter"
-          >課程名稱/教師/開課序號</label
-        >
-      </FloatLabel>
-    </div>
-
+    <CourseSearchBar />
     <ProgressSpinner
       v-if="routerLoading"
-      style="margin-top: auto; margin-bottom: auto"
+      style="margin-top: 30vh; margin-bottom: 20vh"
     />
     <div v-else class="container">
       <h3 :style="{ marginBottom: 0 }">
@@ -62,68 +20,81 @@
         :showNavigators="false"
         :showIndicators="false"
         :responsiveOptions="responsiveOptions"
+        @update:page="(e) => (carouselPage = e)"
       >
         <template #item="{ data, _ }">
-          <Card class="p-mb-3" :style="data?.info ? {} : { boxShadow: 'none' }">
-            <template #title>
-              <h3 style="margin: 0">{{ data?.info }}</h3>
-            </template>
-            <template #subtitle>
-              <div v-if="data?.date" style="text-align: center">
-                <span v-if="data.date.time">
-                  {{ data.date.time }}
-                </span>
-                <span class="card-title-date" :style="{ color: data.color }">
-                  {{ data.date.date }}
-                </span>
-              </div>
-              <div v-if="data.start">
-                <div style="text-align: center">
-                  <span v-if="data.start.time"> {{ data.start.time }} </span>
-                  <span class="card-title-date" :style="{ color: data.color }">
-                    {{ data.start.date }}-{{ data.end.date }}
+          <div class="card-container">
+            <Card class="schedule-card">
+              <template #title>
+                <h3 style="margin: 0">{{ data?.info }}</h3>
+              </template>
+              <template #subtitle>
+                <div v-if="data?.date" style="text-align: center">
+                  <span v-if="data.date.time">
+                    {{ data.date.time }}
                   </span>
-                  <span v-if="data.end.time"> {{ data.end.time }}</span>
+                  <span class="card-title-date" :style="{ color: data.color }">
+                    {{ data.date.date }}
+                  </span>
                 </div>
-              </div>
-            </template>
-            <template #content>
-              <Timeline :value="data?.steps" :align="'left'" class="p-mt-3">
-                <template #content="{ item }">
-                  <div class="p-d-flex p-ai-center">
-                    <div>
-                      <h4 style="margin: 0">{{ item.title }}</h4>
-                      <div
-                        :style="{
-                          whiteSpace: 'break-spaces',
-                          marginTop: '0.5rem',
-                        }"
-                        class="p-card-subtitle"
-                      >
-                        {{ item.description }}
+                <div v-if="data.start">
+                  <div style="text-align: center">
+                    <span v-if="data.start.time"> {{ data.start.time }} </span>
+                    <span
+                      class="card-title-date"
+                      :style="{ color: data.color }"
+                    >
+                      {{ data.start.date }}-{{ data.end.date }}
+                    </span>
+                    <span v-if="data.end.time"> {{ data.end.time }}</span>
+                  </div>
+                </div>
+              </template>
+              <template #content>
+                <Timeline :value="data?.steps" :align="'left'" class="p-mt-3">
+                  <template #content="{ item }">
+                    <div class="p-d-flex p-ai-center">
+                      <div>
+                        <h4 style="margin: 0">{{ item.title }}</h4>
+                        <div
+                          :style="{
+                            whiteSpace: 'break-spaces',
+                            marginTop: '0.5rem',
+                          }"
+                          class="p-card-subtitle"
+                        >
+                          {{ item.description }}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </template>
-              </Timeline>
-            </template>
-            <template #footer>
-              <div v-if="data?.moreInfo" style="margin-top: 8rem">
-                <a
-                  :href="data.moreInfoUrl"
-                  target="_blank"
-                  style="color: inherit; text-decoration: none; cursor: pointer"
-                >
-                  <i class="pi pi-external-link" style="margin-right: 1rem"></i>
-                  {{ data.moreInfo }}
-                </a>
-              </div>
-            </template>
-          </Card>
+                  </template>
+                </Timeline>
+              </template>
+              <template #footer>
+                <div v-if="data?.moreInfo" style="margin-top: 8rem">
+                  <a
+                    :href="data.moreInfoUrl"
+                    target="_blank"
+                    style="
+                      color: inherit;
+                      text-decoration: none;
+                      cursor: pointer;
+                    "
+                  >
+                    <i
+                      class="pi pi-external-link"
+                      style="margin-right: 1rem"
+                    ></i>
+                    {{ data.moreInfo }}
+                  </a>
+                </div>
+              </template>
+            </Card>
+          </div>
         </template>
       </Carousel>
+
       <div>
-        <!-- carousel navigation buttons -->
         <Button
           icon="pi pi-angle-left"
           variant="text"
@@ -152,118 +123,21 @@ import { useRoute } from "vue-router";
 
 import { useCourses } from "~/composables/useCourses";
 
-import {
-  Tabs,
-  Tab,
-  TabList,
-  Button,
-  Card,
-  Timeline,
-  Carousel,
-  InputText,
-  FloatLabel,
-  IconField,
-  InputIcon,
-  ProgressSpinner,
-} from "primevue";
+import { Button, Card, Timeline, Carousel, ProgressSpinner } from "primevue";
+import { CourseSearchBar } from "#components";
 
 const route = useRoute();
-const router = useRouter();
 
-const {
-  terms,
-  currentTerm,
-  rowData,
-  tempDatas,
-  loading,
-  programSet,
-  reloadCurrentTerm,
-  defaultGlobalFilterFields,
-  initTermData,
-  courseFormatter,
-} = useCourses();
+const { initTermData } = useCourses();
 
 const updateMenubar = useState("updateMenubar");
 
-const routerLoading = ref(false);
-const globalFilterValue = ref("");
-const quickSearch = () => {
-  if (globalFilterValue.value) {
-    routerLoading.value = true;
-    router.push(`/?s=${globalFilterValue.value}`);
-  }
-};
-// 搜尋模式與子篩選器
-const searchModeList = ref({
-  quick: {
-    label: "快速搜尋",
-    value: "quick",
-    route: "/",
-  },
-  dept: {
-    label: "系所",
-    value: "dept",
-    route: "/?m=dept",
-  },
-  advanced: {
-    label: "進階搜尋",
-    value: "advanced",
-    route: "/?m=advanced",
-  },
-  general: {
-    label: "通識",
-    value: "general",
-    route: "/?m=general",
-  },
-  physical: {
-    label: "體育",
-    activeLabel: "普通體育",
-    value: "physical",
-    route: "/?m=physical",
-  },
-  defense: {
-    label: "國防",
-    activeLabel: "全民國防教育",
-    value: "defense",
-    route: "/?m=defense",
-  },
-  interschool: {
-    label: "校際",
-    activeLabel: "臺大系統校際課程",
-    value: "interschool",
-    route: "/?m=interschool",
-  },
-  program: {
-    label: "學分學程",
-    value: "program",
-    route: "/?m=program",
-  },
-  english: {
-    label: "英文三",
-    value: "english",
-    route: "/?m=english",
-  },
-  emi: {
-    label: "英文授課",
-    value: "emi",
-    route: "/?m=emi",
-  },
-  "": {
-    label: "",
-    value: "quick",
-    route: "/",
-  },
-});
+const routerLoading = useState("routerLoading", () => false);
 
 const selectionSchedule = useState("courseSelectionSchedule", () => {});
 const carouselPage = ref(1);
 
 const responsiveOptions = ref([
-  {
-    breakpoint: "1280px",
-    numVisible: 3,
-    numScroll: 1,
-  },
   {
     breakpoint: "745px",
     numVisible: 1,
@@ -318,35 +192,52 @@ function scrollToPage(page) {
   );
 }
 
-onMounted(async () => {
-  await fetch("/data/schedule.json")
-    .then((response) => response.json())
-    .then((data) => {
-      selectionSchedule.value = data;
-      const nowIndex = findNowSchedule();
-      if (nowIndex !== undefined) {
-        carouselPage.value =
-          clip(nowIndex, 1, selectionSchedule.value.schedule.length - 1) - 1;
-        const nowSchedule = selectionSchedule.value.schedule[nowIndex];
-        useSeoMeta({
-          title: "選課時程",
-          description: `查看選課時程並快速搜尋課程。${
-            nowSchedule.info
-              ? `${nowSchedule.info} ${
-                  nowSchedule?.date?.date || nowSchedule?.start?.date || ""
-                }`
-              : ""
-          }`,
-          keywords: "師大課程查詢, 師大課程, 師大選課, NTNU Course Search",
-        });
-      }
-    })
-    .catch((error) => {
-      console.error("Error fetching course selection schedule:", error);
+function initSchedule() {
+  const nowIndex = findNowSchedule();
+  if (nowIndex !== undefined) {
+    carouselPage.value =
+      clip(nowIndex, 1, selectionSchedule.value.schedule.length - 1) - 1;
+    const nowSchedule = selectionSchedule.value.schedule[nowIndex];
+    useSeoMeta({
+      title: "選課時程",
+      description: `查看選課時程並快速搜尋課程。${
+        nowSchedule.info
+          ? `${nowSchedule.info} ${
+              nowSchedule?.date?.date || nowSchedule?.start?.date || ""
+            }`
+          : ""
+      }`,
+      keywords: "師大課程查詢, 師大課程, 師大選課, NTNU Course Search",
     });
+  }
+}
+
+onMounted(async () => {
+  if (selectionSchedule?.value?.schedule) {
+    initSchedule();
+  } else {
+    await fetch("/data/schedule.json")
+      .then((response) => response.json())
+      .then((data) => {
+        selectionSchedule.value = data;
+        initSchedule();
+      })
+      .catch((error) => {
+        console.error("Error fetching course selection schedule:", error);
+      });
+  }
   await initTermData(route);
   updateMenubar.value();
 });
+
+watch(
+  () => selectionSchedule?.value?.schedule?.length,
+  (newLength) => {
+    if (newLength > 0) {
+      initSchedule();
+    }
+  }
+);
 </script>
 
 <style lang="scss">
@@ -354,48 +245,6 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.tabs-container {
-  margin: 0.5rem auto 1rem;
-  width: clamp(0px, 100%, 760px);
-
-  @media screen and (min-width: 760px) {
-    .p-tablist-tab-list {
-      justify-content: center;
-    }
-  }
-}
-
-.search-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  padding: 0 1rem;
-}
-
-.search-bar {
-  .p-component {
-    height: 48px;
-  }
-
-  width: 100%;
-  max-width: 48rem;
-
-  --p-floatlabel-focus-color: var(--p-floatlabel-color);
-}
-
-.search-input {
-  width: 100%;
-  --p-inputtext-border-radius: 25px;
-  --p-multiselect-border-radius: 25px;
-}
-
-@media screen and (min-width: 768px) {
-  .single-search-input {
-    width: 100%;
-  }
 }
 
 .p-timeline-event-opposite {
@@ -407,33 +256,32 @@ onMounted(async () => {
   margin: auto;
 }
 
-.p-carousel-item-list {
-  padding: 1rem 0;
-  gap: 1%;
-}
-
-.p-carousel-item {
-  flex-basis: 32.5% !important;
-}
 @media screen and (max-width: 745px) {
-  .p-carousel-item {
-    flex-basis: 99% !important;
-  }
   .p-carousel-viewport {
     width: clamp(0px, 99vw, 500px);
   }
-}
-
-.p-card {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-  height: 95%;
 }
 </style>
 
 <style lang="scss" scoped>
 h3 {
   text-align: center;
+}
+
+.card-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem;
+  height: 95%;
+}
+
+.schedule-card {
+  width: 100%;
+  height: 100%;
+
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
 .card-title-date {

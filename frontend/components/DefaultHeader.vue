@@ -70,6 +70,7 @@ const updateMenubar = useState("updateMenubar");
 const loadTermData = useState("loadTermData");
 const deptLists = useState("deptLists", () => ({}));
 const deptList = useState("deptList");
+const isShowSchedule = useState("isShowSchedule", () => false);
 
 const darkMode = useState("darkMode", () => false);
 const toggleDarkMode = () => {
