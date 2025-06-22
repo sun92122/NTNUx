@@ -61,6 +61,8 @@
 <script setup>
 import { Button, Divider } from "primevue";
 
+const isShowSchedule = useState("isShowSchedule", () => false);
+
 const footerItems = [
   {
     label: "更多功能",
