@@ -225,13 +225,6 @@ function resetPage() {
 }
 
 onMounted(async () => {
-  router.replace({
-    query: {
-      m: route.query.m?.toLowerCase() || "quick",
-      ...route.query,
-    },
-  });
-
   const onWheel = (e) => {
     if (scroll(e.deltaY)) {
       e.preventDefault();

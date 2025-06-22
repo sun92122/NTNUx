@@ -31,12 +31,12 @@
         }
       "
     >
-      <TabList>
+      <TabList :class="isSearchPage ? '' : 'tab-disabled'">
         <Tab
           v-for="tab in Object.values(searchModeList)"
           :key="tab.value"
           :value="tab.value"
-          :class="tab.label ? '' : 'tab-disabled'"
+          :class="isSearchPage && tab.label ? '' : 'tab-disabled'"
         >
           {{
             searchMode == tab.value ? tab.activeLabel || tab.label : tab.label
@@ -567,17 +567,17 @@ function routerReplace({ path = null, m = null, s = null }) {
 }
 
 onMounted(() => {
-  searchMode.value = route.query.m || "";
+  searchMode.value = route.query.m || "quick";
+  if (searchModeList.value[searchMode.value]) {
+    searchModeList.value[searchMode.value]?.command();
+  } else {
+    searchMode.value = "quick";
+  }
 
   if (route.query.s) {
     filters.value.global.value = route.query.s;
   } else {
     filters.value.global.value = null;
-  }
-  if (searchModeList.value[searchMode.value]) {
-    searchModeList.value[searchMode.value]?.command();
-  } else {
-    searchMode.value = "quick";
   }
 });
 
@@ -616,7 +616,12 @@ watch(
   }
 
   .tab-disabled {
-    border-color: inherit;
+    border-color: var(--p-tabs-tab-border-color);
+    color: var(--p-tabs-tab-color);
+
+    .p-tablist-active-bar {
+      display: none;
+    }
   }
 }
 
