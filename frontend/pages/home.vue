@@ -1,52 +1,10 @@
 <template>
-  <div class="tabs-container">
-    <Tabs scrollable>
-      <TabList>
-        <Tab
-          v-for="tab in Object.values(searchModeList)"
-          :key="tab.value"
-          :value="tab.value"
-          @click="tab.command ? tab.command() : null"
-        >
-          <RouterLink
-            v-if="tab.route"
-            :to="tab.route"
-            :style="{ textDecoration: 'none', color: 'inherit' }"
-          >
-            {{ tab.label }}
-          </RouterLink>
-        </Tab>
-      </TabList>
-    </Tabs>
-  </div>
-
   <!-- 選課時程 -->
   <div class="container">
-    <div class="search-container search-bar">
-      <FloatLabel variant="in" class="search-input single-search-input">
-        <IconField>
-          <InputIcon>
-            <i class="pi pi-search" />
-          </InputIcon>
-          <InputText
-            id="globalFilter"
-            v-model="globalFilterValue"
-            :autocapitalize="false"
-            size="large"
-            :style="{ width: '100%' }"
-            @blur="quickSearch()"
-            @keyup.enter="quickSearch()"
-          />
-        </IconField>
-        <label class="global-filter-label" for="globalFilter"
-          >課程名稱/教師/開課序號</label
-        >
-      </FloatLabel>
-    </div>
-
+    <CourseSearchBar />
     <ProgressSpinner
       v-if="routerLoading"
-      style="margin-top: auto; margin-bottom: auto"
+      style="margin-top: 30vh; margin-bottom: 20vh"
     />
     <div v-else class="container">
       <h3 :style="{ marginBottom: 0 }">
@@ -166,6 +124,7 @@ import {
   InputIcon,
   ProgressSpinner,
 } from "primevue";
+import { CourseSearchBar } from "#components";
 
 const route = useRoute();
 const router = useRouter();
@@ -185,14 +144,8 @@ const {
 
 const updateMenubar = useState("updateMenubar");
 
-const routerLoading = ref(false);
-const globalFilterValue = ref("");
-const quickSearch = () => {
-  if (globalFilterValue.value) {
-    routerLoading.value = true;
-    router.push(`/?s=${globalFilterValue.value}`);
-  }
-};
+const routerLoading = useState("routerLoading", () => false);
+
 // 搜尋模式與子篩選器
 const searchModeList = ref({
   quick: {
@@ -354,48 +307,6 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.tabs-container {
-  margin: 0.5rem auto 1rem;
-  width: clamp(0px, 100%, 760px);
-
-  @media screen and (min-width: 760px) {
-    .p-tablist-tab-list {
-      justify-content: center;
-    }
-  }
-}
-
-.search-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  padding: 0 1rem;
-}
-
-.search-bar {
-  .p-component {
-    height: 48px;
-  }
-
-  width: 100%;
-  max-width: 48rem;
-
-  --p-floatlabel-focus-color: var(--p-floatlabel-color);
-}
-
-.search-input {
-  width: 100%;
-  --p-inputtext-border-radius: 25px;
-  --p-multiselect-border-radius: 25px;
-}
-
-@media screen and (min-width: 768px) {
-  .single-search-input {
-    width: 100%;
-  }
 }
 
 .p-timeline-event-opposite {
