@@ -1,42 +1,39 @@
 <template>
   <div class="tabs-container">
-    <Tabs
-      v-model:value="searchMode"
-      scrollable
-      @update:value="
-        () => {
-          if (searchModeList[searchMode]) {
-            searchModeList[searchMode].command?.();
-          }
-          if (resetPage) {
-            resetPage();
-          }
-          if (isSearchPage) {
-            router.push({
-              query: {
-                ...route.query,
-                m: searchMode,
-              },
-            });
-          } else {
-            router.push({
-              path: '/',
-              query: {
-                ...route.query,
-                m: searchMode,
-                s: filters['global'].value || undefined,
-              },
-            });
-          }
-        }
-      "
-    >
+    <Tabs v-model:value="searchMode" scrollable>
       <TabList :class="isSearchPage ? '' : 'tab-disabled'">
         <Tab
           v-for="tab in Object.values(searchModeList)"
+          as="a"
           :key="tab.value"
           :value="tab.value"
           :class="isSearchPage && tab.label ? '' : 'tab-disabled'"
+          :href="tab.route || null"
+          style="text-decoration: none"
+          @click.prevent="
+            () => {
+              if (!isSearchPage || searchMode != tab.value) {
+                searchMode = tab.value;
+              }
+              if (searchModeList[searchMode]) {
+                searchModeList[searchMode].command?.();
+              }
+              if (resetPage) {
+                resetPage();
+              }
+              if (isSearchPage) {
+                routerPush({
+                  m: searchMode,
+                });
+              } else {
+                routerReplace({
+                  path: '/',
+                  m: searchMode,
+                  s: filters['global'].value || undefined,
+                });
+              }
+            }
+          "
         >
           {{
             searchMode == tab.value ? tab.activeLabel || tab.label : tab.label
