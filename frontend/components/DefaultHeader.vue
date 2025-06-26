@@ -69,7 +69,7 @@ const { selectedCourses, selectedRows, windowWidth } = useSelectCourse();
 const updateMenubar = useState("updateMenubar");
 const loadTermData = useState("loadTermData");
 const deptLists = useState("deptLists", () => ({}));
-const deptList = useState("deptList");
+const deptList = useState("deptList", () => []);
 const isShowSchedule = useState("isShowSchedule", () => false);
 
 const darkMode = useState("darkMode", () => false);
@@ -121,7 +121,7 @@ const items = ref([
 function updateMenubarItems() {
   const termLabelItem = items.value[1];
 
-  if (!deptList.value) {
+  if (!deptList.value || deptList.value.length < 1) {
     deptList.value = getDeptList(useState("rowData").value);
     deptLists.value[currentTerm.value] = deptList.value;
   }
