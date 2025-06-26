@@ -1,42 +1,39 @@
 <template>
   <div class="tabs-container">
-    <Tabs
-      v-model:value="searchMode"
-      scrollable
-      @update:value="
-        () => {
-          if (searchModeList[searchMode]) {
-            searchModeList[searchMode].command?.();
-          }
-          if (resetPage) {
-            resetPage();
-          }
-          if (isSearchPage) {
-            router.push({
-              query: {
-                ...route.query,
-                m: searchMode,
-              },
-            });
-          } else {
-            router.push({
-              path: '/',
-              query: {
-                ...route.query,
-                m: searchMode,
-                s: filters['global'].value || undefined,
-              },
-            });
-          }
-        }
-      "
-    >
+    <Tabs v-model:value="searchMode" scrollable>
       <TabList :class="isSearchPage ? '' : 'tab-disabled'">
         <Tab
           v-for="tab in Object.values(searchModeList)"
+          as="a"
           :key="tab.value"
           :value="tab.value"
           :class="isSearchPage && tab.label ? '' : 'tab-disabled'"
+          :href="tab.route || null"
+          style="text-decoration: none"
+          @click.prevent="
+            () => {
+              if (!isSearchPage || searchMode != tab.value) {
+                searchMode = tab.value;
+              }
+              if (searchModeList[searchMode]) {
+                searchModeList[searchMode].command?.();
+              }
+              if (resetPage) {
+                resetPage();
+              }
+              if (isSearchPage) {
+                routerPush({
+                  m: searchMode,
+                });
+              } else {
+                routerReplace({
+                  path: '/',
+                  m: searchMode,
+                  s: filters['global'].value || undefined,
+                });
+              }
+            }
+          "
         >
           {{
             searchMode == tab.value ? tab.activeLabel || tab.label : tab.label
@@ -147,7 +144,11 @@
         :placeholder="subFilterValue.label"
         :style="{ width: '100%' }"
         @change="selectDeptToFilter()"
-      />
+      >
+        <template #empty>
+          <span class="p-multiselect-empty-label">系所們還在路上</span>
+        </template>
+      </TreeSelect>
     </div>
   </div>
 </template>
@@ -211,7 +212,7 @@ const {
 } = useSelectCourse();
 
 const updateMenubar = useState("updateMenubar");
-const deptList = useState("deptList");
+const deptList = useState("deptList", () => []);
 const isShowSchedule = useState("isShowSchedule", () => false);
 const isShowAdvancedSearch = useState("isShowAdvancedSearch", () => false);
 const subFilterRef = useState("subFilterRef", () => null);
@@ -583,8 +584,8 @@ onMounted(() => {
 
 // watch for route changes to update search mode and filters
 watch(
-  () => route.query,
-  (newQuery) => {
+  () => [route.query, deptList.value],
+  ([newQuery, newDeptList]) => {
     if (newQuery.m) {
       // check if the search mode exists in the list
       if (searchModeList.value[newQuery.m]) {
@@ -598,6 +599,10 @@ watch(
       filters.value.global.value = newQuery.s;
     } else {
       filters.value.global.value = null;
+    }
+
+    if (searchMode.value === "dept" && newDeptList) {
+      subFilterValue.value.grouped_select_list = newDeptList;
     }
   },
   { immediate: true }
