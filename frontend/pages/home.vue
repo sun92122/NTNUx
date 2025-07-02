@@ -171,14 +171,8 @@ function findNowSchedule() {
       }
       return index;
     } else if (schedule.end && schedule.end.date) {
-      const [endYear, endMonth, endDay] = schedule.end.date
-        .split("/")
-        .map(Number);
-      if (
-        year > endYear ||
-        (year === endYear && month > endMonth) ||
-        (year === endYear && month === endMonth && day > endDay)
-      ) {
+      const [endMonth, endDay] = schedule.end.date.split("/").map(Number);
+      if (month > endMonth || (month === endMonth && day > endDay)) {
         continue;
       }
       return index;
