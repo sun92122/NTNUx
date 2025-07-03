@@ -196,7 +196,9 @@ function initSchedule() {
   const nowIndex = findNowSchedule();
   if (nowIndex !== undefined) {
     carouselPage.value =
-      clip(nowIndex, 1, selectionSchedule.value.schedule.length - 1) - 1;
+      windowWidth.value <= 745
+        ? clip(nowIndex, 0, selectionSchedule.value.schedule.length - 1)
+        : clip(nowIndex, 1, selectionSchedule.value.schedule.length - 1) - 1;
     const nowSchedule = selectionSchedule.value.schedule[nowIndex];
     useSeoMeta({
       title: "選課時程",
