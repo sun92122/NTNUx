@@ -24,7 +24,18 @@
         @page="scroll(-Infinity)"
       >
         <template #header>
-          <span>課程資訊</span>
+          <div class="datatable-header">
+            <span>課程資訊</span>
+            <div class="datatable-header-end">
+              <span>最後更新：{{ currentlastUpdate }}</span>
+              <Button
+                icon="pi pi-cog"
+                label="顯示設定"
+                variant="text"
+                severity="secondary"
+              ></Button>
+            </div>
+          </div>
         </template>
 
         <template #loading>
@@ -148,11 +159,13 @@ const isShowSchedule = useState("isShowSchedule", () => false);
 const isShowAdvancedSearch = useState("isShowAdvancedSearch", () => false);
 const subFilterRef = useState("subFilterRef", () => null);
 const scrollTableRef = useState("scrollTableRef", () => null);
+const lastUpdate = useState("lastUpdate", () => ({}));
 
 const advancedSearchDisplayValue = useState(
   "advancedSearchDisplayValue",
   () => "點擊進行進階搜尋"
 );
+const currentlastUpdate = ref("unknown");
 
 // 搜尋模式與子篩選器
 const searchMode = ref("");
@@ -255,6 +268,25 @@ onMounted(async () => {
     selectedCourses.value[currentTerm.value] = {};
   }
   selectedRows.value = selectedCourses.value[currentTerm.value];
+
+  const [year, term] = currentTerm.value.split("-");
+  if (!lastUpdate.value[year]) {
+    await fetch(`./data/update/${year}.json`)
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error("Network response was not ok");
+        }
+      })
+      .then((data) => {
+        lastUpdate.value[year] = data;
+      })
+      .catch((error) => {
+        console.error("Error fetching last update data:", error);
+      });
+  }
+  currentlastUpdate.value = lastUpdate.value[year][term] || "unknown";
 });
 </script>
 
@@ -305,5 +337,22 @@ onMounted(async () => {
 .p-datatable-table-container {
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+}
+</style>
+
+<style lang="scss" scoped>
+.datatable-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  color: var(--p-text-secondary-color);
+}
+
+@media screen and (max-width: 350px) {
+  .datatable-header-end {
+    display: grid;
+    justify-items: end;
+  }
 }
 </style>
