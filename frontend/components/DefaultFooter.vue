@@ -83,8 +83,7 @@ const footerItems = [
       {
         label: "顯示收藏課程",
         command: () => {
-          // TODO: Implement favorite courses feature
-          // useRouter().push("/favorite");
+          useRouter().push("/favorite");
         },
       },
       {
