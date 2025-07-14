@@ -1,6 +1,14 @@
 <template>
   <div class="course-details-container">
     <div class="course-details" v-if="course.course_name">
+      <Button
+        label="返回搜尋"
+        icon="pi pi-angle-left"
+        severity="secondary"
+        variant="text"
+        @click="$router.push('/')"
+        style="padding-left: 0; padding-right: 0"
+      ></Button>
       <h1>{{ course.course_name }}</h1>
       <div class="course-details-subtitle">
         <p>{{ course.acadm_year }}-{{ course.acadm_term }} 開課</p>
