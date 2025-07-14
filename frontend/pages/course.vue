@@ -322,6 +322,7 @@ const {
   defaultGlobalFilterFields,
   initTermData,
   courseFormatter,
+  tsvToJson,
 } = useCourses();
 
 const {
@@ -434,17 +435,13 @@ function getCourseData() {
   }
 
   // If the course data is not found in the state, fetch it from the API
-  fetch(
-    `data/${acadm}/${
-      (Math.floor(course.value.serial_no / 1000) + 1) % 10
-    }.min.json`
-  )
-    .then((response) => response.json())
+  const i = Math.floor(course.value.serial_no / 1000) % 10;
+  fetch(`data/${acadm}/${i}.tsv`)
+    .then((response) => response.text())
     .then(async (data) => {
+      data = await tsvToJson(data);
       tempDatas.value[acadm] = tempDatas.value[acadm] || {};
-      tempDatas.value[acadm][
-        (Math.floor(course.value.serial_no / 1000) + 1) % 10
-      ] = data;
+      tempDatas.value[acadm][i] = data;
       for (const rowData of data) {
         if (rowData.serial_no === course.value.serial_no) {
           course.value = {
@@ -464,10 +461,6 @@ function getCourseData() {
 }
 
 async function getDescription(course_code) {
-  // https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/CourseDescCtrl?action=getCoursedesc_field&course_code=C0C8001
-  // Use a free CORS proxy for development only; remove or replace for production
-  // const proxyUrl = "https://corsproxy.io/?" +
-  // "url=https%3A%2F%2Fcourseap2.itc.ntnu.edu.tw%2FacadmOpenCourse%2FCourseDescCtrl%3Faction%3DgetCoursedesc_field%26course_code%3D";
   const proxyUrl = "https://cors.ntnux.org/?course_code=";
 
   return await fetch(proxyUrl + course_code)
@@ -509,11 +502,12 @@ function getShowInfo(course) {
     {
       icon: "pi pi-objects-column",
       value: optionMap[course.option_code] || course.option_code,
-      childen: course.generalCore
-        ? course.generalCore.split("/").map((item) => {
-            return generalCoreMap[item] || item;
-          })
-        : [],
+      childen:
+        typeof course.generalCore === "string" && course.generalCore
+          ? course.generalCore.split("/").map((item) => {
+              return generalCoreMap[item] || item;
+            })
+          : [],
     },
     {
       icon: "pi pi-graduation-cap",
