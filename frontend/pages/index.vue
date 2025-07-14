@@ -28,12 +28,12 @@
             <span>課程資訊</span>
             <div class="datatable-header-end">
               <span>最後更新：{{ currentlastUpdate }}</span>
-              <Button
+              <!-- <Button
                 icon="pi pi-cog"
                 label="顯示設定"
                 variant="text"
                 severity="secondary"
-              ></Button>
+              ></Button> -->
             </div>
           </div>
         </template>
