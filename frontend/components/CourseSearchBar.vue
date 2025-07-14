@@ -524,6 +524,9 @@ function quickSearch() {
     const routerLoading = useState("routerLoading", () => false);
     routerLoading.value = true;
     router.push(`/?s=${filters.value.global.value}`);
+    setTimeout(() => {
+      routerLoading.value = false;
+    }, 1000);
   }
 }
 
