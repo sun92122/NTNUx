@@ -51,6 +51,21 @@
       </div>
     </template>
   </Menubar>
+
+  <div
+    class="sun sun-logo"
+    :class="{ animate: darkModeFlag }"
+    :style="blocked ? {} : { opacity: 0 }"
+  >
+    <i class="pi pi-sun switch-icon"></i>
+  </div>
+  <div
+    class="moon moon-logo"
+    :class="{ animate: darkModeFlag }"
+    :style="blocked ? {} : { opacity: 0 }"
+  >
+    <i class="pi pi-moon switch-icon"></i>
+  </div>
 </template>
 
 <script setup>
@@ -72,13 +87,26 @@ const deptLists = useState("deptLists", () => ({}));
 const deptList = useState("deptList", () => []);
 const isShowSchedule = useState("isShowSchedule", () => false);
 
+const blocked = useState("blocked", () => false);
+const darkModeFlag = useState("darkModeFlag", () => false);
+
 const darkMode = useState("darkMode", () => false);
-const toggleDarkMode = () => {
-  if (darkMode.value) {
-    document.documentElement.classList.add("dark-mode-toggle");
-  } else {
-    document.documentElement.classList.remove("dark-mode-toggle");
-  }
+const toggleDarkMode = async () => {
+  blocked.value = true;
+
+  setTimeout(() => {
+    darkModeFlag.value = darkMode.value;
+    document.documentElement.classList.toggle(
+      "dark-mode-toggle",
+      darkMode.value
+    );
+  }, 100);
+
+  await nextTick().then(() => {
+    setTimeout(() => {
+      blocked.value = false;
+    }, 800);
+  });
 };
 
 const toggleSwitchDt = ref({
@@ -262,6 +290,38 @@ function getDeptList(data) {
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+.switch-icon {
+  font-size: 20rem;
+}
+.sun,
+.moon {
+  z-index: 10000;
+  position: fixed;
+  margin: auto;
+  inset: 0;
+  width: fit-content;
+  height: fit-content;
+  pointer-events: none;
+}
+.sun-logo {
+  opacity: 1;
+  transform: translateY(0) rotateZ(0deg);
+  transition: all 0.5s ease-out;
+}
+.moon-logo {
+  opacity: 0;
+  transform: translateY(20%) rotateZ(50deg);
+  transition: all 0.5s ease-out;
+}
+.sun-logo.animate {
+  opacity: 0;
+  transform: translateY(20%) rotateZ(100deg);
+}
+.moon-logo.animate {
+  opacity: 1;
+  transform: translateY(0) rotateZ(0deg);
 }
 </style>
 
