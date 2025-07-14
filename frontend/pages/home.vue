@@ -185,20 +185,20 @@ function clip(value, min, max) {
 }
 
 function scrollToPage(page) {
-  carouselPage.value = clip(
-    page,
-    0,
-    selectionSchedule.value.schedule.length - 3
-  );
+  carouselPage.value =
+    windowWidth.value <= 745
+      ? clip(page, 0, selectionSchedule.value.schedule.length - 1)
+      : clip(page, 0, selectionSchedule.value.schedule.length - 3);
 }
 
 function initSchedule() {
   const nowIndex = findNowSchedule();
   if (nowIndex !== undefined) {
-    carouselPage.value =
-      windowWidth.value <= 745
-        ? clip(nowIndex, 0, selectionSchedule.value.schedule.length - 1)
-        : clip(nowIndex, 1, selectionSchedule.value.schedule.length - 1) - 1;
+    if (windowWidth.value > 745) {
+      scrollToPage(nowIndex - 1);
+    } else {
+      scrollToPage(nowIndex);
+    }
     const nowSchedule = selectionSchedule.value.schedule[nowIndex];
     useSeoMeta({
       title: "選課時程",
