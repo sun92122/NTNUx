@@ -11,9 +11,10 @@ export function useCourses() {
   const defaultGlobalFilterFields = ["course_name", "teacher", "serial_no"];
 
   const fetchData = async (i) => {
-    const res = await fetch(`data/${currentTerm.value}/${i}.min.json`);
+    const res = await fetch(`data/${currentTerm.value}/${i}.tsv`);
     if (!res.ok) return null;
-    const data = await res.json();
+    const text = await res.text();
+    const data = tsvToJson(text);
     if (data.length === 0) return null;
 
     return coursesFormatter(data);
@@ -21,7 +22,7 @@ export function useCourses() {
 
   const fetchAllData = async () => {
     const fetchPromises = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i <= 10; i++) {
       if (tempDatas.value[currentTerm.value]?.[i]) {
         fetchPromises.push(Promise.resolve(coursesFormatter(tempDatas.value[currentTerm.value][i])));
       } else {
@@ -69,16 +70,17 @@ export function useCourses() {
   };
 
   const courseFormatter = (course) => {
-    const timeLocList = parseTimeSlots(course.time_loc);
+    const timeLoc = parseTimeInfo(course.time_inf);
+    const timeLocList = parseTimeSlots(timeLoc);
     return {
       ...course,
       credit: Math.round(course.credit * 10) / 10,
       course_name: course.chn_name.replace(/<\/br>.*/g, ""),
-      time: timeFormatter(course.time_loc),
-      location: locationFormatter(course.time_loc),
+      time_loc: timeLoc,
+      time: timeFormatter(timeLoc),
+      location: locationFormatter(timeLoc),
       timeLocList: timeLocList,
       teacher: teacherNameFormatter(course.teacher),
-      generalCore: course.generalCore.join("/"),
       timeListStr: parseTimeListStr(timeLocList),
       programs: parseProgram(course.chn_name),
     };
@@ -88,11 +90,11 @@ export function useCourses() {
     courses.forEach((item) => {
       item.credit = Math.round(item.credit * 10) / 10;
       item.course_name = item.chn_name.replace(/<\/br>.*/g, "");
+      item.time_loc = parseTimeInfo(item.time_inf);
       item.time = timeFormatter(item.time_loc);
       item.location = locationFormatter(item.time_loc);
       item.timeLocList = parseTimeSlots(item.time_loc);
       item.teacher = teacherNameFormatter(item.teacher);
-      item.generalCore = item.generalCore.join("/");
       item.timeListStr = parseTimeListStr(item.timeLocList);
       item.programs = parseProgram(item.chn_name);
 
@@ -118,6 +120,7 @@ export function useCourses() {
     defaultGlobalFilterFields,
     initTermData,
     courseFormatter,
+    tsvToJson,
   };
 }
 
@@ -137,6 +140,19 @@ function locationFormatter(location) {
   const values = Object.values(location).filter((v) => v !== "");
   const unique = [...new Set(values)];
   return unique.length === 1 ? unique[0] : values.join("/");
+}
+
+function parseTimeInfo(timeInf) {
+  if (!timeInf || timeInf.startsWith("◎")) {
+    return timeInf;
+  }
+  return timeInf.split(",").reduce((acc, part) => {
+    const [day, time, ...locArr] = part.trim().split(" ");
+    if (day && time) {
+      acc[`${day} ${time}`] = locArr.join(" ");
+    }
+    return acc;
+  }, {});
 }
 
 function parseTimeSlots(timeObj) {
@@ -196,4 +212,18 @@ function parseProgram(course_name) {
 
   const programs = match[1].split(" ");
   return programs.length > 0 ? programs.join("/") : "";
+}
+
+function tsvToJson(tsv) {
+  const lines = tsv.trim().split('\n');
+  if (lines.length === 0) return [];
+  const headers = lines[0].trim().split('\t');
+  return lines.slice(1).map(line => {
+    const values = line.trim().split('\t');
+    const obj = {};
+    headers.forEach((header, idx) => {
+      obj[header] = values[idx] ?? "";
+    });
+    return obj;
+  });
 }
