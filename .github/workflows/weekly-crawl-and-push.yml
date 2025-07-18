@@ -44,7 +44,7 @@ jobs:
           YEAR=${{ github.event.inputs.year || '114' }}
           TERM=${{ github.event.inputs.term || '1' }}
           echo "📥 抓取 ${YEAR}-${TERM} 課程資料"
-        # uv run main.py --year $YEAR --term $TERM
+          uv run main.py --year $YEAR --term $TERM
 
       - name: Set up Git
         run: |
