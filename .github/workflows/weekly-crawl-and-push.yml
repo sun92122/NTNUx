@@ -23,8 +23,21 @@ jobs:
       - name: Checkout backend repo
         uses: actions/checkout@v4
         with:
-          submodules: true
           token: ${{ secrets.GH_PAT }}
+
+      - name: Checkout backend repo
+        uses: actions/checkout@v4
+        with:
+          repository: sun92122/ntnux-backend
+          token: ${{ secrets.GH_PAT }}
+          path: backend
+
+      - name: Checkout frontend repo
+        uses: actions/checkout@v4
+        with:
+          repository: sun92122/ntnux-frontend
+          token: ${{ secrets.GH_PAT }}
+          path: frontend
 
       - name: Set up Python
         uses: actions/setup-python@v5
