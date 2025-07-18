@@ -53,21 +53,27 @@ jobs:
 
       - name: Commit and push original data
         working-directory: backend
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           YEAR=${{ github.event.inputs.year || '114' }}
           TERM=${{ github.event.inputs.term || '1' }}
           git add original_data/
           git commit -m "📦 更新原始課程資料 ${YEAR}-${TERM}" || echo "⚠️ 無變更可提交"
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/sun92122/ntnux-backend.git
           git push origin main
           echo "✅ 原始課程資料已更新並推送到 main 分支"
 
       - name: Commit and push frontend data
         working-directory: frontend
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           YEAR=${{ github.event.inputs.year || '114' }}
           TERM=${{ github.event.inputs.term || '1' }}
           git add public/data/
           git commit -m "📦 更新前端課程資料 ${YEAR}-${TERM}" || echo "⚠️ 無變更可提交"
+          git remote set-url origin https://x-access-token:${GH_PAT}@github.com/sun92122/ntnux-frontend.git
           git push origin main
           echo "✅ 前端課程資料已更新並推送到 main 分支"
 
@@ -75,8 +81,8 @@ jobs:
         run: |
           YEAR=${{ github.event.inputs.year || '114' }}
           TERM=${{ github.event.inputs.term || '1' }}
-          git add .
-          git commit -m "📦 每週自動更新課程資料 ${YEAR}-${TERM}" || echo "⚠️ 無變更可提交"
+          git add backend frontend
+          git commit -m "📦 每週自動更新課程資料 ${YEAR}-${TERM}" || echo "⚠️ 無子模組變更"
           git push origin main
           echo "✅ NTNUx repo 已更新並推送到 main 分支"
 
