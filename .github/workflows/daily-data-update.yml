@@ -9,18 +9,16 @@ on:
       year:
         description: "學年（民國年）"
         required: false
-        type: number
-        default: 114
+        default: "114"
       term:
         description: "學期（1=上學期, 2=下學期, 3=暑期）"
         required: false
-        type: number
-        default: 1
+        default: "1"
 
 jobs:
   crawl-and-push:
     uses: ./.github/workflows/crawl-and-push.yml
     with:
-      year: ${{ github.event.inputs.year || 114 }}
-      term: ${{ github.event.inputs.term || 1 }}
+      year: ${{ github.event.inputs.year || '114' }}
+      term: ${{ github.event.inputs.term || '1' }}
     secrets: inherit

@@ -6,13 +6,13 @@ on:
       year:
         description: "學年（民國年）"
         required: true
-        type: number
-        default: 114
+        type: string
+        default: "114"
       term:
         description: "學期（1=上學期, 2=下學期, 3=暑期）"
         required: true
-        type: number
-        default: 1
+        type: string
+        default: "1"
     secrets:
       GH_PAT:
         description: "GitHub Personal Access Token"
@@ -22,13 +22,11 @@ on:
       year:
         description: "學年（民國年）"
         required: false
-        type: number
-        default: 114
+        default: "114"
       term:
         description: "學期（1=上學期, 2=下學期, 3=暑期）"
         required: false
-        type: number
-        default: 1
+        default: "1"
 
 jobs:
   crawl-and-push:
