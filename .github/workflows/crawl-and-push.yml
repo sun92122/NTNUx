@@ -12,7 +12,7 @@ on:
         description: "學期（1=上學期, 2=下學期, 3=暑期）"
         required: true
         type: string
-        default: "1"
+        default: "2"
     secrets:
       GH_PAT:
         description: "GitHub Personal Access Token"
@@ -26,7 +26,7 @@ on:
       term:
         description: "學期（1=上學期, 2=下學期, 3=暑期）"
         required: false
-        default: "1"
+        default: "2"
 
 jobs:
   crawl-and-push:

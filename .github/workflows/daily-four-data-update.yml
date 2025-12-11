@@ -12,12 +12,12 @@ on:
       term:
         description: "學期（1=上學期, 2=下學期, 3=暑期）"
         required: false
-        default: "1"
+        default: "2"
 
 jobs:
   crawl-and-push:
     uses: ./.github/workflows/crawl-and-push.yml
     with:
       year: ${{ github.event.inputs.year || '114' }}
-      term: ${{ github.event.inputs.term || '1' }}
+      term: ${{ github.event.inputs.term || '2' }}
     secrets: inherit
