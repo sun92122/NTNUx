@@ -67,8 +67,8 @@ jobs:
       - name: Run crawler
         working-directory: backend
         run: |
-          YEAR=${{ github.event.inputs.year || '114' }}
-          TERM=${{ github.event.inputs.term || '1' }}
+          YEAR=${{ inputs.year || github.event.inputs.year || '114' }}
+          TERM=${{ inputs.term || github.event.inputs.term || '2' }}
           echo "📥 抓取 ${YEAR}-${TERM} 課程資料"
           uv run main.py --year $YEAR --term $TERM
 
@@ -82,8 +82,8 @@ jobs:
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
-          YEAR=${{ github.event.inputs.year || '114' }}
-          TERM=${{ github.event.inputs.term || '1' }}
+          YEAR=${{ inputs.year || github.event.inputs.year || '114' }}
+          TERM=${{ inputs.term || github.event.inputs.term || '2' }}
           git add original_data/
           git commit -m "📦 更新原始課程資料 ${YEAR}-${TERM}" || echo "⚠️ 無變更可提交"
           git remote set-url origin https://x-access-token:${GH_PAT}@github.com/sun92122/ntnux-backend.git
@@ -96,8 +96,8 @@ jobs:
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
-          YEAR=${{ github.event.inputs.year || '114' }}
-          TERM=${{ github.event.inputs.term || '1' }}
+          YEAR=${{ inputs.year || github.event.inputs.year || '114' }}
+          TERM=${{ inputs.term || github.event.inputs.term || '2' }}
           git add public/data/
           git commit -m "📦 更新前端課程資料 ${YEAR}-${TERM}" || echo "⚠️ 無變更可提交"
           git remote set-url origin https://x-access-token:${GH_PAT}@github.com/sun92122/ntnux-frontend.git
@@ -107,8 +107,8 @@ jobs:
 
       - name: Commit and push NTNUx repo
         run: |
-          YEAR=${{ github.event.inputs.year || '114' }}
-          TERM=${{ github.event.inputs.term || '1' }}
+          YEAR=${{ inputs.year || github.event.inputs.year || '114' }}
+          TERM=${{ inputs.term || github.event.inputs.term || '2' }}
           git add backend frontend
           git commit -m "📦 每週自動更新課程資料 ${YEAR}-${TERM}" || echo "⚠️ 無子模組變更"
           git pull --rebase
