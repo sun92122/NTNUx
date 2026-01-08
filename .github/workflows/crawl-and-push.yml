@@ -72,6 +72,14 @@ jobs:
           echo "📥 抓取 ${YEAR}-${TERM} 課程資料"
           uv run main.py --year $YEAR --term $TERM
 
+      - name: Generate Sitemap
+        working-directory: backend
+        run: |
+          YEAR=${{ inputs.year || github.event.inputs.year || '114' }}
+          TERM=${{ inputs.term || github.event.inputs.term || '2' }}
+          echo "🗺️ 生成 Sitemap.xml"
+          uv run generate_sitemap.py --year $YEAR --term $TERM
+
       - name: Set up Git
         run: |
           git config --global user.name "GitHub Actions"
