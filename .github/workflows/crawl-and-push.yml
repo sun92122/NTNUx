@@ -28,9 +28,6 @@ on:
         required: false
         default: "2"
 
-permissions:
-  contents: write
-
 jobs:
   crawl-and-push:
     runs-on: ubuntu-latest
