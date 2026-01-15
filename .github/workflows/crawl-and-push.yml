@@ -36,11 +36,13 @@ jobs:
       - name: Checkout main repo
         uses: actions/checkout@v4
         with:
+          ref: main
           token: ${{ secrets.GH_PAT }}
 
       - name: Checkout backend repo
         uses: actions/checkout@v4
         with:
+          ref: main
           repository: sun92122/ntnux-backend
           token: ${{ secrets.GH_PAT }}
           path: backend
@@ -48,6 +50,7 @@ jobs:
       - name: Checkout frontend repo
         uses: actions/checkout@v4
         with:
+          ref: main
           repository: sun92122/ntnux-frontend
           token: ${{ secrets.GH_PAT }}
           path: frontend
@@ -95,7 +98,7 @@ jobs:
           git add original_data/
           git commit -m "📦 更新原始課程資料 ${YEAR}-${TERM}" || echo "⚠️ 無變更可提交"
           git remote set-url origin https://x-access-token:${GH_PAT}@github.com/sun92122/ntnux-backend.git
-          git pull --rebase
+          git pull --rebase origin main
           git push origin main
           echo "✅ 原始課程資料已更新並推送到 main 分支"
 
@@ -109,7 +112,7 @@ jobs:
           git add public/
           git commit -m "📦 更新前端課程資料 ${YEAR}-${TERM}" || echo "⚠️ 無變更可提交"
           git remote set-url origin https://x-access-token:${GH_PAT}@github.com/sun92122/ntnux-frontend.git
-          git pull --rebase
+          git pull --rebase origin main
           git push origin main
           echo "✅ 前端課程資料已更新並推送到 main 分支"
 
@@ -119,7 +122,7 @@ jobs:
           TERM=${{ inputs.term || github.event.inputs.term || '2' }}
           git add backend frontend
           git commit -m "📦 每週自動更新課程資料 ${YEAR}-${TERM}" || echo "⚠️ 無子模組變更"
-          git pull --rebase
+          git pull --rebase origin main
           git push origin main
           echo "✅ NTNUx repo 已更新並推送到 main 分支"
 
