@@ -1,22 +1,16 @@
 <template>
   <div
-    class="flex min-h-screen items-center text-white"
-    style="background-image: linear-gradient(135deg, #114a6f 35%, #0f4c75 100%)"
+    class="flex min-h-screen items-center text-white bg-linear-135 from-[#114a6f] to-[#0f4c75]"
   >
-    <div
-      class="flex flex-wrap items-center p-4"
-      style="margin-left: auto; margin-right: auto"
-    >
+    <div class="flex flex-wrap items-center p-4 mx-auto">
       <div class="w-full p-4 text-center lg:w-1/2">
-        <div style="font-size: 12rem; font-family: monospace">
+        <div class="text-7xl font-mono">
           {{ error.statusCode }}
         </div>
       </div>
       <div class="w-full p-4 text-center lg:w-1/2 lg:text-left">
-        <div style="margin-top: 1rem; margin-bottom: 1rem; font-size: large">
-          糟糕！這不應該出現
-        </div>
-        <div style="font-size: large">error message: {{ error.message }}</div>
+        <div class="mt-4 mb-4 text-lg">糟糕！這不應該出現</div>
+        <div class="text-lg">error message: {{ error.message }}</div>
         <button type="button" class="button" @click="handleError">
           回到首頁
         </button>
@@ -24,12 +18,12 @@
           或嘗試重新整理
         </button>
         <div>
-          <p style="margin-top: 0.5rem; font-size: small">
+          <p class="mt-2 text-sm">
             如果問題持續且重複發生
             <br />
             請聯繫 NTNUx 的
             <a
-              href="https://github.com/sun92122/NTNUx/issues"
+              href="https://github.com/ntnux/NTNUx/issues"
               class="a"
               target="_blank"
             >
@@ -54,7 +48,7 @@ const props = defineProps({
   },
 });
 
-const handleError = () => clearError({ redirect: "/" });
+const handleError = () => clearError({ redirect: "/search" });
 
 const handleReload = () => {
   if (typeof window !== "undefined") {
@@ -62,71 +56,3 @@ const handleReload = () => {
   }
 };
 </script>
-
-<style scoped lang="scss">
-.flex {
-  display: flex;
-}
-
-.flex-wrap {
-  flex-wrap: wrap;
-}
-
-.min-h-screen {
-  min-height: 100vh;
-}
-
-.w-full {
-  width: 100%;
-}
-
-.items-center {
-  align-items: center;
-}
-
-.text-white {
-  color: white;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.p-4 {
-  padding: 1rem;
-}
-
-@media (min-width: 768px) {
-  .lg\:w-1\/2 {
-    width: 50%;
-  }
-
-  .lg\:text-left {
-    text-align: left;
-  }
-}
-
-.button {
-  background-color: transparent;
-  border: 1px solid white;
-  border-radius: 0.375rem;
-  color: white;
-  padding: 0.5rem 0.75rem;
-  transition: background-color 0.2s ease;
-  cursor: pointer;
-  margin-right: 1.5rem;
-  margin-top: 1rem;
-}
-.button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.a {
-  color: white;
-  text-decoration: underline;
-}
-.a:hover {
-  color: rgba(255, 255, 255, 0.8);
-}
-</style>

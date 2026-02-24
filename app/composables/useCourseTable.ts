@@ -7,7 +7,7 @@ import {
   getSortedRowModel,
 } from "@tanstack/vue-table";
 
-import { useCourseFilter } from "./useCourseFilter";
+import { useCourseFilter, globalFilterFunction } from "./useCourseFilter";
 
 export interface Course {
   year: string; // 學年 (y)
@@ -56,26 +56,104 @@ interface AllTermsData {
   [term: string]: TermData;
 }
 
-export function useCourseTable() {
+export function useCourseTable(term: string | null = null) {
+  const defaultTerm = useState<string>(
+    "defaultTerm",
+    () => process.env.VITE_DEFAULT_TERM || "",
+  );
+  const currentTerm = useState<string>(
+    "currentTerm",
+    () => term || defaultTerm.value,
+  );
+
   const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
+  const denseDataAllTerms = useState<AllTermsData>(
+    "denseDataAllTerms",
+    () => ({}),
+  );
   const updateTimeAllTerms = useState<Record<string, string>>(
     "updateTimeAllTerms",
     () => ({}),
   );
-
-  const termsList = useState<string[]>("termsList", () => []);
-  const defaultTerm = useState<string>("defaultTerm", () => "");
-  const currentTerm = useState<string>("currentTerm", () => "");
-  const currentTermData = computed<TermData>(() => {
-    return dataAllTerms.value[currentTerm.value] || [];
-  });
+  const currentTermData = useState<TermData>("currentTermData", () => []);
+  const currentTermDenseData = useState<TermData>(
+    "currentTermDenseData",
+    () => [],
+  );
   const currentTermUpdateTime = computed<string>(() => {
     return updateTimeAllTerms.value[currentTerm.value] || "unknown";
   });
-  const fetchingTerms = new Set<string>();
 
+  const { data, error, refresh } = useFetch<Course[]>(
+    `/data/${currentTerm.value}.json`,
+    {
+      server: false, // only fetch on client side
+      onResponse: ({ request, response, options }) => {
+        const rawData = response._data;
+        if (rawData) {
+          const formattedData = rawData.map((item: any) =>
+            formatCourseData(item),
+          );
+          currentTermData.value = formattedData;
+          dataAllTerms.value[currentTerm.value] = formattedData;
+        }
+      },
+    },
+  );
+  // fetch for dense data
+  const {
+    data: denseData,
+    error: denseDataError,
+    refresh: refreshDenseData,
+  } = useLazyFetch<Course[]>(`/data/${currentTerm.value}/dense.json`, {
+    server: false, // only fetch on client side
+    onResponse: ({ request, response, options }) => {
+      const rawData = response._data;
+      if (rawData) {
+        const formattedData = rawData; // already formatted in backend
+        currentTermDenseData.value = formattedData;
+        denseDataAllTerms.value[currentTerm.value] = formattedData;
+      }
+    },
+  });
+  // lazy fetch for update time
+  const {
+    data: updateTimeData,
+    error: updateTimeError,
+    refresh: refreshUpdateTime,
+  } = useLazyFetch<{ last_update: string }>(
+    `/data/${currentTerm.value}/last_update.json`,
+    {
+      server: false, // only fetch on client side
+      onResponse: ({ request, response, options }) => {
+        const data = response._data;
+        updateTimeAllTerms.value[currentTerm.value] =
+          data?.last_update || "unknown";
+      },
+    },
+  );
+
+  async function refreshAll() {
+    await refresh();
+    await refreshDenseData();
+    await refreshUpdateTime();
+    console.log(`Data for term ${currentTerm.value} refreshed.`);
+  }
+
+  // watch
+  watch(currentTerm, async () => {
+    console.log(`Current term changed to ${currentTerm.value}`);
+    if (currentTerm.value && !dataAllTerms.value[currentTerm.value]) {
+      await refreshAll();
+    } else if (currentTerm.value && dataAllTerms.value[currentTerm.value]) {
+      currentTermData.value = dataAllTerms.value[currentTerm.value] || [];
+      currentTermDenseData.value =
+        denseDataAllTerms.value[currentTerm.value] || [];
+    }
+  });
+
+  // build table options
   const columnHelper = createColumnHelper<Course>();
-  // 顯示一欄，詳細數據由 couresecell 元件處理，所有欄位需要支援自定義篩選
   const columns = [
     columnHelper.display({
       id: "course",
@@ -94,68 +172,16 @@ export function useCourseTable() {
   const columnVisibliity = ref({
     info_for_filter: false,
   });
-  const { filters, golbalFilter } = useCourseFilter();
-
-  function getTermsList() {
-    try {
-      defaultTerm.value = import.meta.env.VITE_DEFAULT_TERM || "";
-      termsList.value = import.meta.env.VITE_TERMS
-        ? import.meta.env.VITE_TERMS.split(",")
-        : [];
-    } catch (err) {
-      console.error("Failed to read terms from environment:", err);
-      defaultTerm.value = "";
-      termsList.value = [];
-    }
-  }
-
-  function getDefaultTerm() {
-    getTermsList();
-  }
-
-  async function fetchDataForTerm(term: string) {
-    if (fetchingTerms.has(term)) {
-      console.log(`Already fetching data for term ${term}, skipping...`);
-      return;
-    }
-    fetchingTerms.add(term);
-    console.log(`Fetching course data for term ${term}...`);
-    const { data, error } = await useFetch<Course[]>(`/data/${term}.json`);
-    if (data.value) {
-      dataAllTerms.value[term] = data.value
-        // .slice(0, 50)// debug, only format the first 50 courses
-        .map((rawData: any) => formatCourseData(rawData));
-    } else {
-      console.error(
-        `Failed to fetch course data for term ${term}:`,
-        error.value,
-      );
-      dataAllTerms.value[term] = [];
-    }
-
-    const { data: updateData, error: updateError } = await useFetch<{
-      last_update: string;
-    }>(`/data/${term}/last_update.json`);
-    if (updateData.value) {
-      updateTimeAllTerms.value[term] = updateData.value.last_update;
-    } else {
-      console.error(
-        `Failed to fetch last update for term ${term}:`,
-        updateError.value,
-      );
-    }
-    fetchingTerms.delete(term);
-  }
-
+  const { filters, globalFilter } = useCourseFilter();
   const tableOptions = {
-    data: computed(() => Object.values(currentTermData.value)),
+    data: computed(() => currentTermData.value),
     columns,
     state: {
       get columnFilters() {
         return filters.value;
       },
       get globalFilter() {
-        return golbalFilter.value;
+        return globalFilter.value;
       },
       get columnVisibility() {
         return columnVisibliity.value;
@@ -166,8 +192,8 @@ export function useCourseTable() {
         typeof updater === "function" ? updater(filters.value) : updater;
     },
     onGlobalFilterChange: (updater: any) => {
-      golbalFilter.value =
-        typeof updater === "function" ? updater(golbalFilter.value) : updater;
+      globalFilter.value =
+        typeof updater === "function" ? updater(globalFilter.value) : updater;
     },
     onColumnVisibilityChange: (updater: any) => {
       columnVisibliity.value =
@@ -178,38 +204,79 @@ export function useCourseTable() {
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    globalFilterFn: golbalFilterFunction,
+    globalFilterFn: globalFilterFunction,
   };
-
-  watch(currentTerm, (newTerm) => {
-    if (import.meta.client && newTerm && !dataAllTerms.value[newTerm]) {
-      fetchDataForTerm(newTerm);
-    }
-  });
-
-  // default term is set, fetch data for default term
-  watch(
-    defaultTerm,
-    (newDefaultTerm) => {
-      if (import.meta.client && newDefaultTerm) {
-        fetchDataForTerm(newDefaultTerm);
-      }
-      if (newDefaultTerm && !currentTerm.value) {
-        currentTerm.value = newDefaultTerm;
-      }
-    },
-    { immediate: true },
-  );
 
   return {
     dataAllTerms,
     currentTerm,
     currentTermData,
+    currentTermDenseData,
     currentTermUpdateTime,
     tableOptions,
-    getDefaultTerm,
+    refreshAll,
   };
 }
+
+// export async function fetchDataForTerm(term: string, refetch = false) {
+//   const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
+//   const updateTimeAllTerms = useState<Record<string, string>>(
+//     "updateTimeAllTerms",
+//     () => ({}),
+//   );
+//   const fetchingTerms = useState<Record<string, boolean>>(
+//     "fetchingTerms",
+//     () => ({}),
+//   );
+//   // if (fetchingTerms.value[term] && !refetch) {
+//   //   console.log(`Already fetching data for term ${term}, skipping...`);
+//   //   return;
+//   // }
+//   await useFetch<Course[]>(`/data/${term}.json`, {
+//     onRequest: ({ request, options }) => {
+//       console.log(`Fetching course data for term ${term}...`);
+//       fetchingTerms.value = {
+//         ...fetchingTerms.value,
+//         [term]: true,
+//       };
+//     },
+//     onRequestError: ({ request, options, error }) => {
+//       fetchingTerms.value = {
+//         ...fetchingTerms.value,
+//         [term]: false,
+//       };
+//     },
+//     onResponse: ({ request, response, options }) => {
+//       const data = response._data;
+//       if (data) {
+//         dataAllTerms.value[term] = data
+//           // .slice(0, 50)// debug, only format the first 50 courses
+//           .map((rawData: any) => formatCourseData(rawData));
+//         fetchingTerms.value = {
+//           ...fetchingTerms.value,
+//           [term]: false,
+//         };
+//       }
+//     },
+//     onResponseError: ({ request, response, options }) => {
+//       fetchingTerms.value = {
+//         ...fetchingTerms.value,
+//         [term]: false,
+//       };
+//     },
+//   });
+
+//   await useLazyFetch<Record<string, string>>(`/data/${term}/last_update.json`, {
+//     onResponse: ({ request, response, options }) => {
+//       const data = response._data;
+//       updateTimeAllTerms.value[term] = data?.last_update || "unknown";
+//     },
+//     onResponseError: ({ request, response, options }) => {
+//       console.error(`Failed to fetch last update for term ${term}:`, response);
+//       updateTimeAllTerms.value[term] = "unknown";
+//     },
+//   });
+// }
 
 function formatCourseData(rawData: any): Course {
   return {

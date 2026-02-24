@@ -2,25 +2,25 @@ import { type ColumnFiltersState } from "@tanstack/vue-table";
 
 export function useCourseFilter() {
   const filters = useState<ColumnFiltersState>("courseTableFilters", () => []);
-  const golbalFilter = useState<string>("courseTableGlobalFilter", () => "");
+  const globalFilter = useState<string>("courseTableGlobalFilter", () => "");
   return {
     filters,
-    golbalFilter,
+    globalFilter,
   };
 }
 
-export function updateGolbalFilterByParameter(parameter: string) {
-  const { golbalFilter } = useCourseFilter();
-  // split by '+', join by space, and set to golbalFilter
-  golbalFilter.value = parameter.split("+").join(" ");
+export function updateGlobalFilterByParameter(parameter: string) {
+  const globalFilter = useState<string>("courseTableGlobalFilter", () => "");
+  // split by '+', join by space, and set to globalFilter
+  globalFilter.value = parameter.split("+").join(" ");
 }
 
-export function updateGolbalFilterByInput(input: string) {
-  const { golbalFilter } = useCourseFilter();
-  golbalFilter.value = input;
+export function updateGlobalFilterByInput(input: string) {
+  const globalFilter = useState<string>("courseTableGlobalFilter", () => "");
+  globalFilter.value = input;
 }
 
-export function golbalFilterFunction(
+export function globalFilterFunction(
   row: any,
   columnId: string,
   filterValue: string,

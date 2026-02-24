@@ -1,214 +1,156 @@
-<template></template>
+<template>
+  <UHeader :toggle="false" :ui="{ center: 'flex' }">
+    <template #left>
+      <UDropdownMenu :items="dropdownItems" :content="{ sideOffset: 14 }">
+        <UButton
+          icon="tabler:menu-2"
+          color="neutral"
+          variant="ghost"
+          size="lg"
+          class="flex sm:hidden"
+        />
+      </UDropdownMenu>
+      <UAvatar
+        src="/favicon.png"
+        alt="NTNUx Logo"
+        size="xl"
+        class="mr-2 rounded-xl hidden sm:flex"
+        @click="$router.push('/')"
+      />
+    </template>
 
-<script setup>
-// onMounted(() => {
-//   updateMenubar.value = updateMenubarItems;
-// });
+    <template #default>
+      <UNavigationMenu class="hidden sm:flex" :items="navigationItems" />
+      <UAvatar
+        src="/favicon.png"
+        alt="NTNUx Logo"
+        size="xl"
+        class="mr-2 rounded-xl flex sm:hidden"
+        @click="$router.push('/')"
+      />
+    </template>
 
-// const { terms, currentTerm } = useCourses();
+    <template #right>
+      <ClientOnly>
+        <UButton
+          :aria-label="`Switch to ${nextTheme} mode`"
+          :icon="colorMode == 'dark' ? 'tabler:moon' : 'tabler:sun'"
+          color="neutral"
+          variant="ghost"
+          size="lg"
+          class="rounded-full"
+          @click="startViewTransition"
+        />
+        <template #fallback>
+          <div class="size-9"></div>
+        </template>
+      </ClientOnly>
+      <UTooltip text="Open on GitHub">
+        <UButton
+          aria-label="GitHub"
+          icon="tabler:brand-github"
+          color="neutral"
+          variant="ghost"
+          size="lg"
+          class="rounded-full hidden sm:flex"
+          to="https://github.com/ntnux/ntnux"
+          target="_blank"
+        />
+      </UTooltip>
+    </template>
+  </UHeader>
+</template>
 
-// const { selectedCourses, selectedRows, windowWidth } = useSelectCourse();
+<script lang="ts" setup>
+const route = useRoute();
 
-// const updateMenubar = useState("updateMenubar");
-// const loadTermData = useState("loadTermData");
-// const deptLists = useState("deptLists", () => ({}));
-// const deptList = useState("deptList", () => []);
-// const isShowSchedule = useState("isShowSchedule", () => false);
+const navigationItems = computed(() => [
+  {
+    label: "選課事項",
+  },
+  {
+    label: "課程搜尋",
+    to: "/search/quick",
+  },
+  {
+    label: "課程規劃",
+  },
+]);
 
-// const blocked = useState("blocked", () => false);
-// const darkModeFlag = useState("darkModeFlag", () => false);
+const dropdownItems = computed(() => [
+  [...navigationItems.value],
+  [
+    {
+      label: "GitHub",
+      icon: "tabler:brand-github",
+      to: "https://github.com/ntnux/ntnux",
+      target: "_blank",
+    },
+  ],
+]);
 
-// const darkMode = useState("darkMode", () => false);
-// const toggleDarkMode = async () => {
-//   blocked.value = true;
+/// for color mode switch animation, bottum source:
+/// LICENSE: MIT
+/// SOURCE: https://github.com/nuxt-ui-templates/portfolio/blob/main/app/components/ColorModeButton.vue
+/// Copyright (c) 2025 Nuxt UI Templates
 
-//   setTimeout(() => {
-//     darkModeFlag.value = darkMode.value;
-//     document.documentElement.classList.toggle(
-//       "dark-mode-toggle",
-//       darkMode.value
-//     );
-//   }, 100);
+const colorMode = computed({
+  get: () => useColorMode().value,
+  set: (val) => (useColorMode().value = val),
+});
 
-//   await nextTick().then(() => {
-//     setTimeout(() => {
-//       blocked.value = false;
-//     }, 800);
-//   });
-// };
+const nextTheme = computed(() =>
+  colorMode.value === "dark" ? "light" : "dark",
+);
 
-// const toggleSwitchDt = ref({
-//   width: "3.5rem",
-//   height: "2rem",
-//   handle: {
-//     size: "1.5rem",
-//     checked: {
-//       color: "#FFFFFF",
-//       background: "#000000",
-//       hover: {
-//         color: "#FFFFFF",
-//         background: "#000000",
-//       },
-//     },
-//   },
-//   checked: {
-//     background: "#FFFFFF",
-//     hover: {
-//       background: "#FFFFFF",
-//     },
-//   },
-// });
+const switchTheme = () => {
+  colorMode.value = nextTheme.value;
+};
 
-// const items = ref([
-//   {
-//     label: "課表",
-//     icon: "pi pi-fw pi-calendar",
-//     command: () => {
-//       isShowSchedule.value = true;
-//     },
-//   },
-//   {
-//     label: "選擇學期",
-//     icon: "pi pi-fw pi-book",
-//     items: [],
-//   },
-// ]);
+const startViewTransition = (event: MouseEvent) => {
+  if (!document.startViewTransition) {
+    switchTheme();
+    return;
+  }
 
-// function updateMenubarItems() {
-//   const termLabelItem = items.value[1];
+  const { clientX: x, clientY: y } = event;
+  const endRadius = Math.hypot(
+    Math.max(x, window.innerWidth - x),
+    Math.max(y, window.innerHeight - y),
+  );
 
-//   if (!deptList.value || deptList.value.length < 1) {
-//     deptList.value = getDeptList(useState("rowData").value);
-//     deptLists.value[currentTerm.value] = deptList.value;
-//   }
-
-//   // 更新學期選單
-//   termLabelItem.items = terms.value.map((term) => ({
-//     label: term,
-//     items: [1, 2, 3].map((subTerm) => ({
-//       label: ["1", "2", "暑期"][subTerm - 1],
-//       command: () => {
-//         currentTerm.value = `${term}-${subTerm}`;
-//         selectedRows.value = selectedCourses.value[currentTerm.value] || {};
-//         selectedCourses.value[currentTerm.value] = selectedRows.value;
-//         deptList.value =
-//           deptLists.value[currentTerm.value] ||
-//           getDeptList(useState("rowData").value);
-//         deptLists.value[currentTerm.value] = deptList.value;
-//         loadTermData.value();
-//         termLabelItem.label =
-//           windowWidth.value > 380
-//             ? `學期：${term}-${["1", "2", "暑期"][subTerm - 1]}`
-//             : `${term}-${["1", "2", "暑期"][subTerm - 1]}`;
-//       },
-//     })),
-//   }));
-//   // 更新學期顯示
-//   if (!currentTerm.value) {
-//     termLabelItem.label = "選擇學期";
-//     return;
-//   }
-//   termLabelItem.label =
-//     windowWidth.value > 380 ? `學期：${currentTerm.value}` : currentTerm.value;
-// }
-
-// function getDeptList(data) {
-//   const collegeMap = {
-//     "": "其他",
-//     E: "教育學院",
-//     L: "文學院",
-//     S: "理學院",
-//     T: "藝術學院",
-//     H: "科技學院",
-//     A: "運休學院",
-//     I: "國社學院",
-//     M: "音樂學院",
-//     O: "管理學院",
-//     C: "產創學院",
-//     Z: "學程",
-//   };
-//   const deptSet = {};
-//   data.forEach((course) => {
-//     const deptCode = course.dept_code;
-//     const deptChiaAbbr = `${deptCode} ${course.dept_chiabbr}`;
-
-//     // 非英文開頭或長度不是1或4碼，歸類為 other
-//     if (
-//       !/^[A-Za-z]/.test(deptCode) ||
-//       (deptCode.length !== 1 && deptCode.length !== 4)
-//     ) {
-//       if (!deptSet[""]) {
-//         deptSet[""] = {};
-//       }
-//       deptSet[""][deptCode] = deptChiaAbbr;
-//       return;
-//     }
-
-//     if (!deptSet[deptCode[0]]) {
-//       deptSet[deptCode[0]] = {};
-//     }
-
-//     if (deptCode.length === 1) {
-//       // 學院
-//       deptSet[deptCode[0]][deptCode] = deptChiaAbbr;
-//     } else {
-//       // 系所
-//       const subDeptCode = deptCode.slice(2);
-//       if (!deptSet[deptCode[0]][subDeptCode]) {
-//         deptSet[deptCode[0]][subDeptCode] = {};
-//       }
-//       deptSet[deptCode[0]][subDeptCode][deptCode] = deptChiaAbbr;
-//     }
-//   });
-
-//   return Object.entries(collegeMap).map(([collegeID, collegeName], id) => ({
-//     key: id,
-//     label: collegeName,
-//     data: {
-//       value: null,
-//       matchMode: FilterMatchMode.EQUALS,
-//     },
-//     children: Object.entries(deptSet[collegeID] || {}).map(
-//       ([deptCode, deptName], subId) =>
-//         typeof deptName === "string"
-//           ? {
-//               key: `${id}-${subId}`,
-//               label: deptName,
-//               data: {
-//                 value: deptCode,
-//                 matchMode: FilterMatchMode.EQUALS,
-//               },
-//             }
-//           : Object.keys(deptName).length === 1
-//           ? {
-//               key: `${id}-${subId}`,
-//               label: deptName[Object.keys(deptName)[0]],
-//               data: {
-//                 value: Object.keys(deptName)[0],
-//                 matchMode: FilterMatchMode.EQUALS,
-//               },
-//             }
-//           : {
-//               key: `${id}-${subId}`,
-//               label: `${deptCode.slice(0)} ${deptName[
-//                 Object.keys(deptName)[0]
-//               ].slice(5, deptName[Object.keys(deptName)[0]].indexOf("（"))}`,
-//               data: {
-//                 value: deptCode.slice(0),
-//                 matchMode: FilterMatchMode.ENDS_WITH,
-//               },
-//               children: Object.entries(deptName).map(
-//                 ([subDeptCode, subDeptName], subSubId) => ({
-//                   key: `${id}-${subId}-${subSubId}`,
-//                   label: subDeptName,
-//                   data: {
-//                     value: subDeptCode,
-//                     matchMode: FilterMatchMode.EQUALS,
-//                   },
-//                 })
-//               ),
-//             }
-//     ),
-//   }));
-// }
+  document
+    .startViewTransition(() => switchTheme())
+    .ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 500,
+          easing: "cubic-bezier(.76,.32,.29,.99)",
+          pseudoElement: "::view-transition-new(root)",
+        },
+      );
+    });
+};
 </script>
+
+<style lang="scss">
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+</style>
