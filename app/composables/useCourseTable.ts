@@ -59,7 +59,7 @@ interface AllTermsData {
 export function useCourseTable(term: string | null = null) {
   const defaultTerm = useState<string>(
     "defaultTerm",
-    () => process.env.VITE_DEFAULT_TERM || "",
+    () => process.env.NTNUX_DEFAULT_TERM || "",
   );
   const currentTerm = useState<string>(
     "currentTerm",

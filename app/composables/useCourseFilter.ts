@@ -20,6 +20,11 @@ export function updateGlobalFilterByInput(input: string) {
   globalFilter.value = input;
 }
 
+export function getGlobalFilterInput() {
+  const globalFilter = useState<string>("courseTableGlobalFilter", () => "");
+  return globalFilter.value;
+}
+
 export function globalFilterFunction(
   row: any,
   columnId: string,
