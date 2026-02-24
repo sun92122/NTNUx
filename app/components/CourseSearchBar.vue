@@ -13,7 +13,7 @@
             : breadcrumb.label
         "
         variant="link"
-        :color="breadcrumb?.active ? 'info' : 'neutral'"
+        :color="breadcrumb?.active ? 'primary' : 'neutral'"
         size="xl"
         class="px-2 cursor-pointer"
       />
@@ -40,8 +40,8 @@
         >
           <label
             :class="[
-              'pointer-events-none absolute left-8 top-3 text-xs text-info', // has text
-              'peer-focus:top-3 peer-focus:text-xs peer-focus:text-info', // focus
+              'pointer-events-none absolute left-8 top-3 text-xs text-primary', // has text
+              'peer-focus:top-3 peer-focus:text-xs peer-focus:text-primary', // focus
               'peer-placeholder-shown:top-5.5 peer-placeholder-shown:object-left peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500', // placeholder
               'transition-all duration-200 ease-in-out',
             ]"
@@ -67,7 +67,7 @@
         class="absolute right-0 top-0 h-full w-16 flex items-center justify-center pr-2.5 z-10"
       >
         <UButton
-          color="info"
+          color="primary"
           icon="tabler:search"
           size="xl"
           class="rounded-full cursor-pointer"
@@ -87,6 +87,7 @@ import {
   getGlobalFilterInput,
   updateGlobalFilterByInput,
 } from "~/composables/useCourseFilter";
+import { prefetchDefaultTermData } from "~/composables/useCourseTable";
 
 import type { BreadcrumbItem } from "@nuxt/ui";
 import { breadcrumb } from "#build/ui";
@@ -207,6 +208,12 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
 
 onMounted(() => {
   // if mode is not set, redirect to quick search
-  globalFilterInput.value = getGlobalFilterInput();
+  if (!globalFilterInput.value) {
+    globalFilterInput.value = getGlobalFilterInput();
+  }
+
+  if (!mode.value) {
+    prefetchDefaultTermData();
+  }
 });
 </script>

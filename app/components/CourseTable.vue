@@ -7,7 +7,7 @@
         class="course-table-header"
         :class="[
           'sticky top-(--ui-header-height) w-full z-10 h-12',
-          'bg-secondary text-white',
+          'bg-primary text-white',
           'flex justify-between items-center mx-auto',
         ]"
       >
@@ -87,10 +87,10 @@
       </div>
       <UButton
         label="回到頂部"
-        color="info"
+        color="primary"
         size="lg"
         @click="scrollToTop"
-        class="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1 rounded-xl shadow-sm transition-all"
+        class="fixed bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1 rounded-xl shadow-sm transition-all text-white"
         :class="firstVisibleIndex > 1 ? '' : 'translate-y-2 scale-75 opacity-0'"
       >
         <template #leading>
