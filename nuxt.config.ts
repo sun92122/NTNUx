@@ -41,6 +41,9 @@ export default defineNuxtConfig({
       deployConfig: true,
       nodeCompat: true,
     },
+    prerender: {
+      autoSubfolderIndex: false,
+    },
   },
   router: {
     options: {

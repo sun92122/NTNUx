@@ -1,17 +1,18 @@
 <template>
-  <div id="app" class="flex flex-col min-h-screen w-full">
-    <UApp>
-      <NuxtPage />
-    </UApp>
-  </div>
+  <UApp id="app" class="flex flex-col min-h-screen w-full">
+    <DefaultHeader />
+
+    <UMain>
+      <NuxtLayout>
+        <NuxtPage />
+      </NuxtLayout>
+    </UMain>
+
+    <DefaultFooter />
+  </UApp>
 </template>
 
 <script setup>
-import { useCourseTable } from "#imports";
-
-const { getDefaultTerm } = useCourseTable();
-getDefaultTerm();
-
 useHead({
   title: "",
   titleTemplate: (titleChunk) => {

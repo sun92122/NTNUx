@@ -17,9 +17,7 @@ const modeList = [
   "quick",
   "dept",
   "general",
-  "pe",
   "program",
-  "interschool",
 ] as const;
 const params = ref(route.params);
 const mode = computed(() => {
