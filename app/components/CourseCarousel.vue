@@ -1,6 +1,6 @@
 <template>
   <div
-    class="course-carousel-container w-full flex flex-col items-center justify-center py-6"
+    class="course-carousel-container w-full flex flex-col items-center justify-center py-6 overflow-hidden"
   >
     <!-- title -->
     <div class="md:text-lg font-bold mb-2">
@@ -10,22 +10,31 @@
 
     <!-- carousel -->
     <UCarousel
+      ref="carousel"
       v-slot="{ item }"
-      :items="items"
-      arrows
+      :items="carouselItem"
       dots
+      class-names
       prev-icon="tabler:arrow-narrow-left"
       next-icon="tabler:arrow-narrow-right"
+      class="mx-auto max-w-[98vw] w-240"
       :ui="{
-        item: 'md:basis-1/3'
-      }">
-      <UCard variant="soft">
+        viewport: 'overflow-visible hide-scrollbar',
+        container: 'ms-0',
+        item: 'h-auto basis-xs ps-0 w-xs',
+      }"
+    >
+      <UCard
+        variant="soft"
+        class="mx-2 bg-white dark:bg-gray-800 shadow-md"
+        :class="item.title ? '' : 'collapse'"
+      >
         <template #header>
           <div
             class="flex flex-col text-lg font-bold items-center justify-center"
           >
             <div>
-              {{ item.title }}
+              {{ item?.title }}
             </div>
             <div>
               <span v-if="item.dateTime[0]?.time" class="text-sm">
@@ -49,10 +58,10 @@
           </div>
         </template>
 
-        <Placeholder class="h-32" />
+        <USkeleton class="h-32" />
 
         <template #footer>
-          <Placeholder class="h-8" />
+          <USkeleton class="h-8" />
         </template>
       </UCard>
     </UCarousel>
@@ -67,8 +76,10 @@ const defaultTerm = useState<string>(
 
 const [year, semester] = defaultTerm.value.split("-");
 
+const carousel = useTemplateRef("carousel");
+
 interface CourseCarouselItem {
-  title: string;
+  title?: string;
   dateTime: Array<{ date: string; time?: string }>;
   color: string;
   step: Array<{ title: string; description: string }>;
@@ -203,4 +214,12 @@ const items: CourseCarouselItem[] = [
       "https://www.aa.ntnu.edu.tw/zh_tw/selectives/Dayschool/mid_suspension",
   },
 ];
+const carouselItem = computed<CourseCarouselItem[]>(() => {
+  const emptyItem: CourseCarouselItem = {
+    dateTime: [],
+    color: "",
+    step: [],
+  };
+  return [emptyItem, emptyItem, ...items, emptyItem, emptyItem];
+});
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <UHeader :toggle="false" :ui="{ center: 'flex' }">
+  <UHeader to="#" :toggle="false" :ui="{ center: 'flex' }">
     <template #left>
       <UDropdownMenu :items="dropdownItems" :content="{ sideOffset: 14 }">
         <UButton
@@ -15,12 +15,15 @@
         alt="NTNUx Logo"
         size="xl"
         class="mr-2 rounded-xl hidden sm:flex"
-        @click="$router.push('/')"
       />
     </template>
 
     <template #default>
-      <UNavigationMenu class="hidden sm:flex" :items="navigationItems" />
+      <UNavigationMenu
+        variant="link"
+        class="hidden sm:flex"
+        :items="navigationItems"
+      />
       <UAvatar
         src="/favicon.png"
         alt="NTNUx Logo"
@@ -63,10 +66,12 @@
 
 <script lang="ts" setup>
 const route = useRoute();
+const menuActive = ref();
 
 const navigationItems = computed(() => [
   {
     label: "選課事項",
+    to: "/",
   },
   {
     label: "課程搜尋",
@@ -74,6 +79,7 @@ const navigationItems = computed(() => [
   },
   {
     label: "課程規劃",
+    to: "#",
   },
 ]);
 

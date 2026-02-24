@@ -15,7 +15,7 @@
     </div>
     <span class="course-title order-2 col-span-2">
       <ULink
-        class="course-name text-lg text-info font-bold"
+        class="course-name text-lg text-primary dark:text-white font-bold"
         as="button"
         :to="{
           path:

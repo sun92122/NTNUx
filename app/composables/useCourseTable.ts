@@ -84,53 +84,8 @@ export function useCourseTable(term: string | null = null) {
     return updateTimeAllTerms.value[currentTerm.value] || "unknown";
   });
 
-  const { data, error, refresh } = useFetch<Course[]>(
-    `/data/${currentTerm.value}.json`,
-    {
-      server: false, // only fetch on client side
-      onResponse: ({ request, response, options }) => {
-        const rawData = response._data;
-        if (rawData) {
-          const formattedData = rawData.map((item: any) =>
-            formatCourseData(item),
-          );
-          currentTermData.value = formattedData;
-          dataAllTerms.value[currentTerm.value] = formattedData;
-        }
-      },
-    },
-  );
-  // fetch for dense data
-  const {
-    data: denseData,
-    error: denseDataError,
-    refresh: refreshDenseData,
-  } = useLazyFetch<Course[]>(`/data/${currentTerm.value}/dense.json`, {
-    server: false, // only fetch on client side
-    onResponse: ({ request, response, options }) => {
-      const rawData = response._data;
-      if (rawData) {
-        const formattedData = rawData; // already formatted in backend
-        currentTermDenseData.value = formattedData;
-        denseDataAllTerms.value[currentTerm.value] = formattedData;
-      }
-    },
-  });
-  // lazy fetch for update time
-  const {
-    data: updateTimeData,
-    error: updateTimeError,
-    refresh: refreshUpdateTime,
-  } = useLazyFetch<{ last_update: string }>(
-    `/data/${currentTerm.value}/last_update.json`,
-    {
-      server: false, // only fetch on client side
-      onResponse: ({ request, response, options }) => {
-        const data = response._data;
-        updateTimeAllTerms.value[currentTerm.value] =
-          data?.last_update || "unknown";
-      },
-    },
+  const { refresh, refreshDenseData, refreshUpdateTime } = fetchTermData(
+    currentTerm.value,
   );
 
   async function refreshAll() {
@@ -218,65 +173,80 @@ export function useCourseTable(term: string | null = null) {
   };
 }
 
-// export async function fetchDataForTerm(term: string, refetch = false) {
-//   const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
-//   const updateTimeAllTerms = useState<Record<string, string>>(
-//     "updateTimeAllTerms",
-//     () => ({}),
-//   );
-//   const fetchingTerms = useState<Record<string, boolean>>(
-//     "fetchingTerms",
-//     () => ({}),
-//   );
-//   // if (fetchingTerms.value[term] && !refetch) {
-//   //   console.log(`Already fetching data for term ${term}, skipping...`);
-//   //   return;
-//   // }
-//   await useFetch<Course[]>(`/data/${term}.json`, {
-//     onRequest: ({ request, options }) => {
-//       console.log(`Fetching course data for term ${term}...`);
-//       fetchingTerms.value = {
-//         ...fetchingTerms.value,
-//         [term]: true,
-//       };
-//     },
-//     onRequestError: ({ request, options, error }) => {
-//       fetchingTerms.value = {
-//         ...fetchingTerms.value,
-//         [term]: false,
-//       };
-//     },
-//     onResponse: ({ request, response, options }) => {
-//       const data = response._data;
-//       if (data) {
-//         dataAllTerms.value[term] = data
-//           // .slice(0, 50)// debug, only format the first 50 courses
-//           .map((rawData: any) => formatCourseData(rawData));
-//         fetchingTerms.value = {
-//           ...fetchingTerms.value,
-//           [term]: false,
-//         };
-//       }
-//     },
-//     onResponseError: ({ request, response, options }) => {
-//       fetchingTerms.value = {
-//         ...fetchingTerms.value,
-//         [term]: false,
-//       };
-//     },
-//   });
+export function prefetchDefaultTermData(lazy: boolean = true) {
+  const defaultTerm = useState<string>(
+    "defaultTerm",
+    () => process.env.NTNUX_DEFAULT_TERM || "",
+  );
+  const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
+  if (defaultTerm.value && !dataAllTerms.value[defaultTerm.value]) {
+    fetchTermData(defaultTerm.value, lazy).refresh();
+  }
+}
 
-//   await useLazyFetch<Record<string, string>>(`/data/${term}/last_update.json`, {
-//     onResponse: ({ request, response, options }) => {
-//       const data = response._data;
-//       updateTimeAllTerms.value[term] = data?.last_update || "unknown";
-//     },
-//     onResponseError: ({ request, response, options }) => {
-//       console.error(`Failed to fetch last update for term ${term}:`, response);
-//       updateTimeAllTerms.value[term] = "unknown";
-//     },
-//   });
-// }
+function fetchTermData(term: string, lazy: boolean = false) {
+  const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
+  const currentTermData = useState<TermData>("currentTermData", () => []);
+  const denseDataAllTerms = useState<AllTermsData>(
+    "denseDataAllTerms",
+    () => ({}),
+  );
+  const currentTermDenseData = useState<TermData>(
+    "currentTermDenseData",
+    () => [],
+  );
+  const updateTimeAllTerms = useState<Record<string, string>>(
+    "updateTimeAllTerms",
+    () => ({}),
+  );
+
+  const { refresh } = useFetch<Course[]>(`/data/${term}.json`, {
+    server: false, // only fetch on client side
+    lazy: lazy, // lazy fetch if specified
+    onResponse: ({ request, response, options }) => {
+      const rawData = response._data;
+      if (rawData) {
+        const formattedData = rawData.map((item: any) =>
+          formatCourseData(item),
+        );
+        currentTermData.value = formattedData;
+        dataAllTerms.value[term] = formattedData;
+      }
+    },
+  });
+  // fetch for dense data
+  const { refresh: refreshDenseData } = useLazyFetch<Course[]>(
+    `/data/${term}/dense.json`,
+    {
+      server: false, // only fetch on client side
+      onResponse: ({ request, response, options }) => {
+        const rawData = response._data;
+        if (rawData) {
+          const formattedData = rawData; // already formatted in backend
+          currentTermDenseData.value = formattedData;
+          denseDataAllTerms.value[term] = formattedData;
+        }
+      },
+    },
+  );
+  // lazy fetch for update time
+  const { refresh: refreshUpdateTime } = useLazyFetch<{ last_update: string }>(
+    `/data/${term}/last_update.json`,
+    {
+      server: false, // only fetch on client side
+      onResponse: ({ request, response, options }) => {
+        const data = response._data;
+        updateTimeAllTerms.value[term] = data?.last_update || "unknown";
+      },
+    },
+  );
+
+  return {
+    refresh,
+    refreshDenseData,
+    refreshUpdateTime,
+  };
+}
 
 function formatCourseData(rawData: any): Course {
   return {
