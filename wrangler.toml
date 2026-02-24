@@ -1,9 +1,9 @@
 name = "ntnux"
 compatibility_date = "2026-02-12"
 
-[assets]
-directory = ".output/public"
-run_worker_first = false
-
 [observability]
 enabled = true
+
+[vars]
+NTNUX_DEFAULT_TERM = "114-2"
+NTNUX_TERMS = "114,113,112"

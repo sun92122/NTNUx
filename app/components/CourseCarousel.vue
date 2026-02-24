@@ -62,7 +62,7 @@
 <script lang="ts" setup>
 const defaultTerm = useState<string>(
   "defaultTerm",
-  () => process.env.VITE_DEFAULT_TERM || "",
+  () => process.env.NTNUX_DEFAULT_TERM || "",
 );
 
 const [year, semester] = defaultTerm.value.split("-");

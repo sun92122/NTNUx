@@ -1,6 +1,8 @@
 <template>
   <div class="search-bar-container w-full flex flex-col justify-center">
-    <div class="breadcrumb-container max-w-full m-auto px-2 flex items-center gap-2 hide-scrollbar overflow-x-scroll">
+    <div
+      class="breadcrumb-container max-w-full m-auto px-2 flex items-center gap-2 hide-scrollbar overflow-x-scroll"
+    >
       <UButton
         v-for="(breadcrumb, index) in modeBreadcrumbs"
         :key="index"
@@ -69,7 +71,7 @@
           icon="tabler:search"
           size="xl"
           class="rounded-full cursor-pointer"
-          @click="updateGlobalFilterByInput(globalFilterInput)"
+          @click="updateGlobalFilter()"
         />
       </div>
     </div>
@@ -82,7 +84,8 @@
 <script lang="ts" setup>
 import {
   useCourseFilter,
-  updateGlobalFilterByInput as updateGlobalFilterByInput,
+  getGlobalFilterInput,
+  updateGlobalFilterByInput,
 } from "~/composables/useCourseFilter";
 
 import type { BreadcrumbItem } from "@nuxt/ui";
@@ -90,7 +93,7 @@ import { breadcrumb } from "#build/ui";
 
 const windowWidth = useState("windowWidth", () => window?.innerWidth || 1200);
 const termList = useState<string[]>("termList", () =>
-  process.env.VITE_TERM_LIST ? process.env.VITE_TERM_LIST.split(",") : [],
+  process.env.NTNUX_TERMS ? process.env.NTNUX_TERMS.split(",") : [],
 );
 
 const route = useRoute();
@@ -101,8 +104,15 @@ const mode = computed(() => {
   return params.value.mode as string;
 });
 
-const globalFilterInput = ref("");
+const globalFilterInput = useState("globalFilterInput", () => "");
 const globalFilterInputRef = useTemplateRef("input");
+
+function updateGlobalFilter() {
+  updateGlobalFilterByInput(globalFilterInput.value);
+  if (!route.path.includes("/search")) {
+    navigateTo("/search/quick");
+  }
+}
 
 defineShortcuts({
   "/": {
@@ -114,7 +124,7 @@ defineShortcuts({
   enter: {
     usingInput: "globalFilterInput",
     handler: () => {
-      updateGlobalFilterByInput(globalFilterInput.value);
+      updateGlobalFilter();
     },
   },
 });
@@ -194,4 +204,9 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     },
   },
 ]);
+
+onMounted(() => {
+  // if mode is not set, redirect to quick search
+  globalFilterInput.value = getGlobalFilterInput();
+});
 </script>
