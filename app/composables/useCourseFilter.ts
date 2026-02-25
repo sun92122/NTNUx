@@ -1,10 +1,20 @@
 import { type ColumnFiltersState } from "@tanstack/vue-table";
 
 export function useCourseFilter() {
-  const filters = useState<ColumnFiltersState>("courseTableFilters", () => []);
+  const filters = useState<Record<string, any>>(
+    "courseTableFilters",
+    () => ({}),
+  );
+  const columnFilters = computed<ColumnFiltersState>(() => {
+    return Object.entries(filters.value).map(([id, value]) => ({
+      id,
+      value,
+    }));
+  });
   const globalFilter = useState<string>("courseTableGlobalFilter", () => "");
   return {
     filters,
+    columnFilters,
     globalFilter,
   };
 }
@@ -42,4 +52,28 @@ export function globalFilterFunction(
       row.original.course_code.toLowerCase().includes(word)
     );
   });
+}
+
+export function addBooleanColumnFilter(columnId: string, value: boolean) {
+  const filters = useState<Record<string, any>>(
+    "courseTableFilters",
+    () => ({}),
+  );
+  filters.value[columnId] = value;
+}
+
+export function removeColumnFilter(columnId: string) {
+  const filters = useState<Record<string, any>>(
+    "courseTableFilters",
+    () => ({}),
+  );
+  delete filters.value[columnId];
+}
+
+export function clearAndSetAllFilters(filters: Record<string, any>) {
+  const allFilters = useState<Record<string, any>>(
+    "courseTableFilters",
+    () => ({}),
+  );
+  allFilters.value = filters;
 }

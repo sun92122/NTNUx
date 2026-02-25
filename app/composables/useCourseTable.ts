@@ -5,6 +5,7 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  filterFns,
 } from "@tanstack/vue-table";
 
 import { useCourseFilter, globalFilterFunction } from "./useCourseFilter";
@@ -56,15 +57,12 @@ interface AllTermsData {
   [term: string]: TermData;
 }
 
-export function useCourseTable(term: string | null = null) {
+export function useCourseTable() {
   const defaultTerm = useState<string>(
     "defaultTerm",
-    () => process.env.NTNUX_DEFAULT_TERM || "",
+    () => (useRuntimeConfig().ntnuxDefaultTerm as string) || "",
   );
-  const currentTerm = useState<string>(
-    "currentTerm",
-    () => term || defaultTerm.value,
-  );
+  const currentTerm = useState<string>("currentTerm", () => defaultTerm.value);
 
   const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
   const denseDataAllTerms = useState<AllTermsData>(
@@ -75,11 +73,12 @@ export function useCourseTable(term: string | null = null) {
     "updateTimeAllTerms",
     () => ({}),
   );
-  const currentTermData = useState<TermData>("currentTermData", () => []);
-  const currentTermDenseData = useState<TermData>(
-    "currentTermDenseData",
-    () => [],
-  );
+  const currentTermData = computed<TermData>(() => {
+    return dataAllTerms.value[currentTerm.value] || [];
+  });
+  const currentTermDenseData = computed<TermData>(() => {
+    return denseDataAllTerms.value[currentTerm.value] || [];
+  });
   const currentTermUpdateTime = computed<string>(() => {
     return updateTimeAllTerms.value[currentTerm.value] || "unknown";
   });
@@ -99,11 +98,7 @@ export function useCourseTable(term: string | null = null) {
   watch(currentTerm, async () => {
     console.log(`Current term changed to ${currentTerm.value}`);
     if (currentTerm.value && !dataAllTerms.value[currentTerm.value]) {
-      await refreshAll();
-    } else if (currentTerm.value && dataAllTerms.value[currentTerm.value]) {
-      currentTermData.value = dataAllTerms.value[currentTerm.value] || [];
-      currentTermDenseData.value =
-        denseDataAllTerms.value[currentTerm.value] || [];
+      await fetchTermData(currentTerm.value).refresh();
     }
   });
 
@@ -121,19 +116,23 @@ export function useCourseTable(term: string | null = null) {
         columnHelper.accessor("full_name_en", {}),
         columnHelper.accessor("course_code", {}),
         columnHelper.accessor("teacher", {}),
+
+        columnHelper.accessor("english_teaching", {
+          filterFn: "equals",
+        }),
       ],
     }),
   ];
   const columnVisibliity = ref({
     info_for_filter: false,
   });
-  const { filters, globalFilter } = useCourseFilter();
+  const { columnFilters, globalFilter } = useCourseFilter();
   const tableOptions = {
     data: computed(() => currentTermData.value),
     columns,
     state: {
       get columnFilters() {
-        return filters.value;
+        return columnFilters.value;
       },
       get globalFilter() {
         return globalFilter.value;
@@ -142,10 +141,7 @@ export function useCourseTable(term: string | null = null) {
         return columnVisibliity.value;
       },
     },
-    onColumnFiltersChange: (updater: any) => {
-      filters.value =
-        typeof updater === "function" ? updater(filters.value) : updater;
-    },
+    onColumnFiltersChange: (updater: any) => {},
     onGlobalFilterChange: (updater: any) => {
       globalFilter.value =
         typeof updater === "function" ? updater(globalFilter.value) : updater;
@@ -176,24 +172,25 @@ export function useCourseTable(term: string | null = null) {
 export function prefetchDefaultTermData(lazy: boolean = true) {
   const defaultTerm = useState<string>(
     "defaultTerm",
-    () => process.env.NTNUX_DEFAULT_TERM || "",
+    () => (useRuntimeConfig().ntnuxDefaultTerm as string) || "",
   );
+  if (!defaultTerm.value) {
+    console.warn(
+      "No default term specified in runtime config. Skipping prefetch.",
+    );
+    return;
+  }
   const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
-  if (defaultTerm.value && !dataAllTerms.value[defaultTerm.value]) {
+  if (!dataAllTerms.value[defaultTerm.value]) {
     fetchTermData(defaultTerm.value, lazy).refresh();
   }
 }
 
 function fetchTermData(term: string, lazy: boolean = false) {
   const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
-  const currentTermData = useState<TermData>("currentTermData", () => []);
   const denseDataAllTerms = useState<AllTermsData>(
     "denseDataAllTerms",
     () => ({}),
-  );
-  const currentTermDenseData = useState<TermData>(
-    "currentTermDenseData",
-    () => [],
   );
   const updateTimeAllTerms = useState<Record<string, string>>(
     "updateTimeAllTerms",
@@ -209,7 +206,6 @@ function fetchTermData(term: string, lazy: boolean = false) {
         const formattedData = rawData.map((item: any) =>
           formatCourseData(item),
         );
-        currentTermData.value = formattedData;
         dataAllTerms.value[term] = formattedData;
       }
     },
@@ -223,7 +219,6 @@ function fetchTermData(term: string, lazy: boolean = false) {
         const rawData = response._data;
         if (rawData) {
           const formattedData = rawData; // already formatted in backend
-          currentTermDenseData.value = formattedData;
           denseDataAllTerms.value[term] = formattedData;
         }
       },
