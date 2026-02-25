@@ -7,3 +7,7 @@
     <CourseCarousel />
   </div>
 </template>
+
+<script lang="ts" setup>
+import { CourseSearchBar, CourseCarousel } from "#components";
+</script>

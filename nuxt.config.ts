@@ -58,6 +58,12 @@ export default defineNuxtConfig({
     fonts: false,
   },
 
+  runtimeConfig: {
+    ntnuxDefaultTerm: "",
+    ntnuxTerms: "",
+    ntnuxSchedule: "",
+  },
+
   devtools: { enabled: true },
 
   compatibilityDate: "2025-11-09",

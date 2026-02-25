@@ -118,15 +118,12 @@ import { useCourseTable } from "@/composables/useCourseTable";
 import { useWindowVirtualizer } from "@tanstack/vue-virtual";
 import { CourseRow } from "#components";
 
+const windowWidth = useState("windowWidth", () => window?.innerWidth || 1200);
 const { tableOptions, refreshAll, currentTermUpdateTime } = useCourseTable();
 const table = useVueTable(tableOptions);
 const tableRows = computed(() => table.getRowModel().rows);
-const windowWidth = useState("windowWidth", () => window?.innerWidth || 1200);
-// debug
-const dataAllTerms = useState(
-  "dataAllTerms",
-  () => ({}) as Record<string, Course[]>,
-);
+// const columns = useState("courseTableColumns", () => table.getAllColumns());
+const filters = useState<Record<string, any>>("courseTableFilters", () => ({}));
 
 const isRendering = ref(false);
 const isCourseRowMountPending = ref(false);

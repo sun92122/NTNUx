@@ -4,16 +4,15 @@
   >
     <!-- title -->
     <div class="md:text-lg font-bold mb-2">
-      {{ year }} 學年度第 {{ semester?.replace("3", "2") }} 學期
+      {{ year }} 學年度第 {{ semester }} 學期
     </div>
-    <div class="text-2xl font-bold mb-6">選課日程</div>
+    <div class="text-lg md:text-4xl font-bold mb-6">選課日程</div>
 
     <!-- carousel -->
     <UCarousel
       ref="carousel"
       v-slot="{ item }"
       :items="carouselItem"
-      dots
       class-names
       prev-icon="tabler:arrow-narrow-left"
       next-icon="tabler:arrow-narrow-right"
@@ -28,6 +27,11 @@
         variant="soft"
         class="mx-2 bg-white dark:bg-gray-800 shadow-md"
         :class="item.title ? '' : 'collapse'"
+        :ui="{
+          header: 'border-b-0',
+          body: 'border-b-0',
+          footer: 'sm:px-4',
+        }"
       >
         <template #header>
           <div
@@ -37,31 +41,61 @@
               {{ item?.title }}
             </div>
             <div>
-              <span v-if="item.dateTime[0]?.time" class="text-sm">
+              <span v-if="item.dateTime[0]?.time" class="text-sm text-dimmed">
                 {{ item.dateTime[0]?.time }}
               </span>
-              <span class="text-lg" :style="{ color: item.color }">
+              <span class="text-3xl" :style="{ color: item.color }">
                 {{ item.dateTime[0]?.date }}
               </span>
-              <span v-if="item.dateTime[1]" class="text-lg"> - </span>
+              <span v-if="item.dateTime[1]" class="text-3xl"> - </span>
               <span
                 v-if="item.dateTime[1]"
-                class="text-lg"
+                class="text-3xl"
                 :style="{ color: item.color }"
               >
                 {{ item.dateTime[1]?.date }}
               </span>
-              <span v-if="item.dateTime[1]?.time" class="text-sm">
+              <span v-if="item.dateTime[1]?.time" class="text-sm text-dimmed">
                 {{ item.dateTime[1]?.time }}
               </span>
             </div>
           </div>
         </template>
 
-        <USkeleton class="h-32" />
+        <div class="h-60 select-none">
+          <UTimeline
+            v-if="item.step"
+            :items="
+              Array.from(
+                item.step.entries().map(([index, step]) => ({
+                  ...step,
+                  icon: step.icon || `tabler:number-${index + 1}`,
+                })),
+              )
+            "
+            class="mt-4"
+            :ui="{
+              date: 'text-md',
+              title: 'text-md',
+              description: 'whitespace-pre-line',
+              wrapper: 'pb-4',
+            }"
+            color="neutral"
+          />
+        </div>
 
         <template #footer>
-          <USkeleton class="h-8" />
+          <div class="h-6">
+            <UButton
+              v-if="item.info"
+              :label="item.info"
+              :to="item.infoUrl"
+              target="_blank"
+              icon="tabler:external-link"
+              variant="link"
+              color="neutral"
+            />
+          </div>
         </template>
       </UCard>
     </UCarousel>
@@ -69,157 +103,52 @@
 </template>
 
 <script lang="ts" setup>
-const defaultTerm = useState<string>(
-  "defaultTerm",
-  () => process.env.NTNUX_DEFAULT_TERM || "",
-);
-
-const [year, semester] = defaultTerm.value.split("-");
+import type { TimelineItem } from "@nuxt/ui";
 
 const carousel = useTemplateRef("carousel");
+const config = useRuntimeConfig();
 
 interface CourseCarouselItem {
   title?: string;
   dateTime: Array<{ date: string; time?: string }>;
   color: string;
-  step: Array<{ title: string; description: string }>;
+  step?: TimelineItem[];
   info?: string;
   infoUrl?: string;
 }
 // test data
-const items: CourseCarouselItem[] = [
-  {
-    title: "課程公告",
-    dateTime: [
-      {
-        date: "114/7/1",
-      },
-    ],
-    color: "#FF5733",
-    step: [
-      {
-        title: "課程公告",
-        description: "114/7/1",
-      },
-      {
-        title: "課程預選",
-        description:
-          "1/5\n學士班舊生必修課程預選\n預選作業由課務組統一進行，學生無需於系統登記\n研究所以及課程開設條件未符預選規則的學士班課程 無 課程預選，同學需自行依系所規劃選課",
-      },
-    ],
-  },
-  {
-    title: "第一階段網路初選",
-    dateTime: [
-      {
-        date: "1/6",
-        time: "09:00",
-      },
-      {
-        date: "1/9",
-        time: "23:59",
-      },
-    ],
-    color: "#4CAF50",
-    step: [
-      {
-        title: "第一階段選課",
-        description: "1/6 - 1/9",
-      },
-      {
-        title: "公告結果",
-        description: "1/16 17:00",
-      },
-    ],
-    info: "各學制選課注意事項",
-    infoUrl:
-      "https://www.aa.ntnu.edu.tw/zh_tw/selectives/Dayschool/Coursemethods",
-  },
-  {
-    title: "第二階段網路選課",
-    dateTime: [
-      {
-        date: "2/3",
-        time: "09:00",
-      },
-      {
-        date: "2/5",
-        time: "23:59",
-      },
-    ],
-    color: "#2196F3",
-    step: [
-      {
-        title: "第二階段選課",
-        description: "2/3 - 2/5",
-      },
-      {
-        title: "公告結果",
-        description: "2/13 17:00",
-      },
-    ],
-    info: "各學制選課注意事項",
-    infoUrl:
-      "https://www.aa.ntnu.edu.tw/zh_tw/selectives/Dayschool/Coursemethods",
-  },
-  {
-    title: "全校加退選",
-    dateTime: [
-      {
-        date: "2/23",
-        time: "09:00",
-      },
-      {
-        date: "3/8",
-        time: "23:59",
-      },
-    ],
-    color: "#9C27B0",
-    step: [
-      {
-        title: "非臺大系統校際課程申請",
-        description: "2/9 - 3/9",
-      },
-      {
-        title: "全校加退選",
-        description:
-          "2/23 - 3/8\n即時線上選課\n授權碼線上加選、特殊原因紙本專案申請",
-      },
-      {
-        title: "僅能課程加選",
-        description: "3/9",
-      },
-    ],
-  },
-  {
-    title: "期中停修",
-    dateTime: [
-      {
-        date: "4/6",
-      },
-      {
-        date: "5/15",
-      },
-    ],
-    color: "#FF5733",
-    step: [
-      {
-        title: "期中停修",
-        description:
-          "4/6 - 5/15\n停修期間，學生可於系統辦理停修\n（密集課程辦理時間為第一次課程結束後第一個工作日起至課程結束前最後一個工作日止）",
-      },
-    ],
-    info: "期中停修",
-    infoUrl:
-      "https://www.aa.ntnu.edu.tw/zh_tw/selectives/Dayschool/mid_suspension",
-  },
-];
+interface ScheduleData {
+  year: string;
+  term: string;
+  items: CourseCarouselItem[];
+}
+const scheduleData = useState<ScheduleData>("schedule", () => {
+  const scheduleData = Buffer.from(config.ntnuxSchedule, "base64").toString(
+    "utf-8",
+  );
+  try {
+    const parsed = JSON.parse(scheduleData);
+    if (Array.isArray(parsed)) {
+      return { year: "", term: "", items: parsed };
+    } else {
+      return parsed;
+    }
+  } catch (e) {
+    console.error("Failed to parse schedule:", {
+      error: e,
+      rawData: scheduleData,
+    });
+    return { year: "", term: "", items: [] };
+  }
+});
+const items = computed(() => scheduleData.value?.items || []);
+const year = computed(() => scheduleData.value?.year || "");
+const semester = computed(() => scheduleData.value?.term || "");
 const carouselItem = computed<CourseCarouselItem[]>(() => {
   const emptyItem: CourseCarouselItem = {
     dateTime: [],
     color: "",
-    step: [],
   };
-  return [emptyItem, emptyItem, ...items, emptyItem, emptyItem];
+  return [emptyItem, emptyItem, ...items.value, emptyItem, emptyItem];
 });
 </script>
