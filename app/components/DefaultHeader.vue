@@ -102,7 +102,7 @@ const dropdownItems = computed(() => [
 
 const colorMode = computed({
   get: () => useColorMode().value,
-  set: (val) => (useColorMode().value = val),
+  set: (_color) => (useColorMode().preference = _color),
 });
 
 const nextTheme = computed(() =>

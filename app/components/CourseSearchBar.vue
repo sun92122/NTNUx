@@ -36,7 +36,7 @@
           placeholder=""
           clearable
           :ui="searchInputUI"
-          class="text-sm"
+          class="text-sm border-gray-300"
         >
           <label
             :class="[
@@ -60,7 +60,18 @@
         </UInput>
 
         <!-- Extra search -->
-        <div v-if="mode && mode !== 'quick'"></div>
+        <USeparator
+          :orientation="windowWidth < 768 ? 'horizontal' : 'vertical'"
+          class="h-[80%] w-1 max-md:w-full max-md:h-1"
+        />
+        <USelectMenu
+          v-if="mode === 'dept'"
+          :items="deptDropdownItems"
+          v-model="deptDropdownValue"
+          multiple
+          class="search-input w-full h-full text-base hover:bg-elevated ring-0"
+          @update:model-value="updateDeptFilter"
+        />
       </UFieldGroup>
       <!-- search button -->
       <div
@@ -102,10 +113,15 @@ import {
   useCourseFilter,
   getGlobalFilterInput,
   updateGlobalFilterByInput,
+  addColumnFilter,
+  removeColumnFilter,
   clearAndSetAllFilters,
 } from "~/composables/useCourseFilter";
-import { prefetchDefaultTermData } from "~/composables/useCourseTable";
-import type { BreadcrumbItem } from "@nuxt/ui";
+import {
+  prefetchDefaultTermData,
+  getTable,
+} from "~/composables/useCourseTable";
+import type { BreadcrumbItem, SelectMenuItem } from "@nuxt/ui";
 
 const windowWidth = useState("windowWidth", () => window?.innerWidth || 1200);
 const config = useRuntimeConfig();
@@ -307,6 +323,63 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
   },
 ]);
 
+const tableWatchValues = useState("tableWatchValues", () => 0);
+const table = computed(() => getTable());
+const columns = computed(() => table.value?.getAllLeafColumns() || []);
+function getDeptArrays() {
+  const _deptArrays = {
+    deptArray: [] as string[],
+    deptCodeArray: [] as string[],
+  };
+  for (const column of columns.value) {
+    if (column.id === "department") {
+      _deptArrays.deptArray = Array.from(
+        column.getFacetedUniqueValues().keys(),
+      ) as string[];
+    } else if (column.id === "department_code") {
+      _deptArrays.deptCodeArray = Array.from(
+        column.getFacetedUniqueValues().keys(),
+      ) as string[];
+    }
+  }
+  return _deptArrays;
+}
+const deptArrays = ref(getDeptArrays());
+watch(
+  () => tableWatchValues.value,
+  () => {
+    deptArrays.value = getDeptArrays();
+  },
+);
+const uniqueDepts = computed(() => {
+  const uniqueDepts: Record<string, string> = {};
+  deptArrays.value.deptCodeArray.forEach((code, index) => {
+    const name = deptArrays.value.deptArray[index] as string;
+    if (code && name) {
+      uniqueDepts[code] = name;
+    }
+  });
+  return uniqueDepts;
+});
+const deptDropdownItems = computed<SelectMenuItem[]>(() => {
+  return Object.entries(uniqueDepts.value).map(([code, name]) => ({
+    label: code,
+    description: name,
+    value: code,
+  }));
+});
+const deptDropdownValue = ref<Record<string, any>[]>([]);
+function updateDeptFilter() {
+  if (deptDropdownValue.value.length === 0) {
+    removeColumnFilter("department_code");
+  } else {
+    addColumnFilter(
+      "department_code",
+      deptDropdownValue.value.map((item) => item?.value),
+    );
+  }
+}
+
 onMounted(() => {
   // if mode is not set, redirect to quick search
   if (!globalFilterInput.value) {
@@ -316,5 +389,7 @@ onMounted(() => {
   if (!mode.value) {
     prefetchDefaultTermData();
   }
+
+  tableWatchValues.value += 1;
 });
 </script>
