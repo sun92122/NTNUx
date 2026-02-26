@@ -4,9 +4,12 @@ import {
   createColumnHelper,
   getCoreRowModel,
   getFilteredRowModel,
+  getFacetedUniqueValues,
   getSortedRowModel,
   filterFns,
+  useVueTable,
 } from "@tanstack/vue-table";
+import type { TableOptionsWithReactiveData } from "@tanstack/vue-table";
 
 import { useCourseFilter, globalFilterFunction } from "./useCourseFilter";
 
@@ -51,13 +54,17 @@ export interface Course {
   comment: string; // 說明 (c)
 }
 
-type TermData = Course[];
+type TermData = Array<Course>;
 
 interface AllTermsData {
   [term: string]: TermData;
 }
 
+const table = ref<any>(null);
+// change to a number to trigger watch when table data may have changed
+
 export function useCourseTable() {
+  const tableWatchVersion = useState<number>("tableWatchVersion", () => 0);
   const defaultTerm = useState<string>(
     "defaultTerm",
     () => (useRuntimeConfig().ntnuxDefaultTerm as string) || "",
@@ -92,13 +99,22 @@ export function useCourseTable() {
     await refreshDenseData();
     await refreshUpdateTime();
     console.log(`Data for term ${currentTerm.value} refreshed.`);
+    tableWatchVersion.value += 1;
   }
 
   // watch
   watch(currentTerm, async () => {
     console.log(`Current term changed to ${currentTerm.value}`);
+    tableWatchVersion.value += 1;
     if (currentTerm.value && !dataAllTerms.value[currentTerm.value]) {
-      await fetchTermData(currentTerm.value).refresh();
+      await fetchTermData(currentTerm.value)
+        .refresh()
+        .then(() => {
+          console.log(
+            `Data for term ${currentTerm.value} fetched on term change.`,
+          );
+          tableWatchVersion.value += 1;
+        });
     }
   });
 
@@ -112,13 +128,19 @@ export function useCourseTable() {
       id: "info_for_filter",
       columns: [
         columnHelper.accessor("id", {}),
-        columnHelper.accessor("name", {}),
+        columnHelper.accessor("name", {
+          filterFn: filterFns.includesString,
+        }),
         columnHelper.accessor("full_name_en", {}),
         columnHelper.accessor("course_code", {}),
         columnHelper.accessor("teacher", {}),
-
+        // not in global filter but useful for advanced filter
         columnHelper.accessor("english_teaching", {
-          filterFn: "equals",
+          filterFn: filterFns.equals,
+        }),
+        columnHelper.accessor("department", {}),
+        columnHelper.accessor("department_code", {
+          filterFn: filterFns.arrIncludes,
         }),
       ],
     }),
@@ -127,7 +149,7 @@ export function useCourseTable() {
     info_for_filter: false,
   });
   const { columnFilters, globalFilter } = useCourseFilter();
-  const tableOptions = {
+  const tableOptions: TableOptionsWithReactiveData<Course> = {
     data: computed(() => currentTermData.value),
     columns,
     state: {
@@ -154,9 +176,12 @@ export function useCourseTable() {
     },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
     getSortedRowModel: getSortedRowModel(),
     globalFilterFn: globalFilterFunction,
   };
+
+  table.value = useVueTable(tableOptions);
 
   return {
     dataAllTerms,
@@ -165,11 +190,13 @@ export function useCourseTable() {
     currentTermDenseData,
     currentTermUpdateTime,
     tableOptions,
+    table,
     refreshAll,
   };
 }
 
 export function prefetchDefaultTermData(lazy: boolean = true) {
+  const tableWatchVersion = useState<number>("tableWatchVersion", () => 0);
   const defaultTerm = useState<string>(
     "defaultTerm",
     () => (useRuntimeConfig().ntnuxDefaultTerm as string) || "",
@@ -182,11 +209,24 @@ export function prefetchDefaultTermData(lazy: boolean = true) {
   }
   const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
   if (!dataAllTerms.value[defaultTerm.value]) {
-    fetchTermData(defaultTerm.value, lazy).refresh();
+    fetchTermData(defaultTerm.value, lazy)
+      .refresh()
+      .then(() => {
+        tableWatchVersion.value += 1;
+      });
   }
 }
 
+export function getTable() {
+  if (!table.value) {
+    console.warn("Table is not initialized yet. Returning null.");
+    return null;
+  }
+  return table.value;
+}
+
 function fetchTermData(term: string, lazy: boolean = false) {
+  const tableWatchVersion = useState<number>("tableWatchVersion", () => 0);
   const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
   const denseDataAllTerms = useState<AllTermsData>(
     "denseDataAllTerms",
@@ -208,6 +248,7 @@ function fetchTermData(term: string, lazy: boolean = false) {
         );
         dataAllTerms.value[term] = formattedData;
       }
+      tableWatchVersion.value += 1;
     },
   });
   // fetch for dense data

@@ -17,7 +17,7 @@
           <ClientOnly>
             <div>
               {{
-                tableOptions?.data?.value?.length
+                tableOptions?.data
                   ? `第 ${clamp(firstVisibleIndex, 0, rowVirtualizerOptions?.count || 0)} / ${rowVirtualizerOptions?.count || 0} 筆課程`
                   : "課程們還在路上..."
               }}
@@ -77,9 +77,7 @@
               class="pt-20 text-center text-gray-500"
             >
               {{
-                tableOptions?.data?.value?.length
-                  ? "沒有符合條件的課程"
-                  : "課程們還在路上..."
+                tableOptions?.data ? "沒有符合條件的課程" : "課程們還在路上..."
               }}
             </li>
           </ul>
@@ -113,16 +111,14 @@
 </template>
 
 <script setup lang="ts">
-import { useVueTable } from "@tanstack/vue-table";
 import { useCourseTable } from "@/composables/useCourseTable";
 import { useWindowVirtualizer } from "@tanstack/vue-virtual";
 import { CourseRow } from "#components";
 
 const windowWidth = useState("windowWidth", () => window?.innerWidth || 1200);
-const { tableOptions, refreshAll, currentTermUpdateTime } = useCourseTable();
-const table = useVueTable(tableOptions);
-const tableRows = computed(() => table.getRowModel().rows);
-// const columns = useState("courseTableColumns", () => table.getAllColumns());
+const { table, tableOptions, refreshAll, currentTermUpdateTime } =
+  useCourseTable();
+const tableRows = computed(() => table.value.getRowModel().rows);
 const filters = useState<Record<string, any>>("courseTableFilters", () => ({}));
 
 const isRendering = ref(false);
@@ -197,7 +193,7 @@ onMounted(() => {
   isCourseRowMountPending.value = true;
   window.addEventListener("scroll", handleScroll);
 
-  if (!tableOptions.data?.value?.length) {
+  if (!tableOptions?.data) {
     refreshAll();
   }
 });

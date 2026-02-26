@@ -54,7 +54,10 @@ export function globalFilterFunction(
   });
 }
 
-export function addBooleanColumnFilter(columnId: string, value: boolean) {
+export function addColumnFilter(
+  columnId: string,
+  value: boolean | string | number | string[],
+) {
   const filters = useState<Record<string, any>>(
     "courseTableFilters",
     () => ({}),
