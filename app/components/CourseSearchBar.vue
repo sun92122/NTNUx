@@ -36,13 +36,13 @@
           placeholder=""
           clearable
           :ui="searchInputUI"
-          class="text-sm border-gray-300"
+          class="text-base border-gray-300"
         >
           <label
             :class="[
-              'pointer-events-none absolute left-8 top-3 text-xs text-primary', // has text
-              'peer-focus:top-3 peer-focus:text-xs peer-focus:text-primary', // focus
-              'peer-placeholder-shown:top-5.5 peer-placeholder-shown:object-left peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500', // placeholder
+              'pointer-events-none absolute left-8 top-1/2 -translate-y-1/1 text-xs text-primary', // has text
+              'peer-focus:top-1/2 peer-focus:-translate-y-1/1 peer-focus:text-xs peer-focus:text-primary', // focus
+              'peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:object-left peer-placeholder-shown:text-base peer-placeholder-shown:text-dimmed', // placeholder
               'transition-all duration-200 ease-in-out',
             ]"
           >
@@ -50,7 +50,7 @@
           </label>
           <label
             :class="[
-              'pointer-events-none absolute left-8 top-8 text-sm text-gray-500 collapse', // has text
+              'pointer-events-none absolute left-8 top-8 text-base text-dimmed collapse', // has text
               'peer-placeholder-shown:peer-focus:visible', // focus + placeholder
               'transition-all duration-50 ease-in-out',
             ]"
@@ -61,17 +61,53 @@
 
         <!-- Extra search -->
         <USeparator
+          v-if="['dept', 'general', 'program'].includes(mode)"
           :orientation="windowWidth < 768 ? 'horizontal' : 'vertical'"
-          class="h-[80%] w-1 max-md:w-full max-md:h-1"
+          class="h-[80%] w-4 max-md:w-full max-md:h-1"
         />
         <USelectMenu
-          v-if="mode === 'dept'"
-          :items="deptDropdownItems"
-          v-model="deptDropdownValue"
+          v-if="['dept', 'general', 'program'].includes(mode)"
+          :items="
+            mode === 'dept'
+              ? deptDropdownOptions.items.value
+              : mode === 'general'
+                ? generalDropdownOptions.items.value
+                : mode === 'program'
+                  ? programDropdownOptions.items.value
+                  : []
+          "
+          v-model="dropdownModel"
+          :placeholder="
+            {
+              dept: '篩選開課單位',
+              general: '篩選通識領域',
+              program: '篩選學分學程',
+            }[mode] || '篩選'
+          "
           multiple
+          trailingIcon=""
+          :filterFields="['label', 'value']"
           class="search-input w-full h-full text-base hover:bg-elevated ring-0"
-          @update:model-value="updateDeptFilter"
-        />
+          @update:model-value="
+            mode === 'dept'
+              ? deptDropdownOptions.updateHandler()
+              : mode === 'general'
+                ? generalDropdownOptions.updateHandler()
+                : mode === 'program'
+                  ? programDropdownOptions.updateHandler()
+                  : () => {}
+          "
+        >
+          <template #item-leading="{ item, index, ui }">
+            <UBadge
+              v-if="item"
+              class="font-bold rounded-full! w-10 justify-center"
+              color="secondary"
+              variant="soft"
+              :label="(item as any)?.value"
+            />
+          </template>
+        </USelectMenu>
       </UFieldGroup>
       <!-- search button -->
       <div
@@ -248,6 +284,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
         router.push("/search/general");
       }
       clearAndSetAllFilters({});
+      generalDropdownOptions.updateHandler();
     },
   },
   {
@@ -258,7 +295,9 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
       if (mode.value !== "pe") {
         router.push("/search/pe");
       }
-      // TODO: change filter to show only PE courses
+      clearAndSetAllFilters({
+        department_code: ["PE"],
+      });
     },
   },
   {
@@ -276,6 +315,9 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
         router.push("/search/nd");
       }
       // TODO: change filter to show only national defense courses
+      clearAndSetAllFilters({
+        name: "全民國防教育軍事訓練",
+      });
     },
   },
   {
@@ -286,6 +328,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
         router.push("/search/program");
       }
       clearAndSetAllFilters({});
+      programDropdownOptions.updateHandler();
     },
   },
   {
@@ -296,7 +339,9 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
       if (mode.value !== "interschool") {
         router.push("/search/interschool");
       }
-      // TODO: change filter to show only interschool courses
+      clearAndSetAllFilters({
+        department_code: ["9UAA", "9MAA", "9DAA", "9UAB", "9MAB"],
+      });
     },
   },
   {
@@ -307,6 +352,9 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
       if (mode.value !== "english3") {
         router.push("/search/english3");
       }
+      clearAndSetAllFilters({
+        name: "英文（三）",
+      });
     },
   },
   {
@@ -323,60 +371,93 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
   },
 ]);
 
-const tableWatchValues = useState("tableWatchValues", () => 0);
+const tableWatchVersion = useState("tableWatchVersion", () => 0);
 const table = computed(() => getTable());
-const columns = computed(() => table.value?.getAllLeafColumns() || []);
-function getDeptArrays() {
-  const _deptArrays = {
-    deptArray: [] as string[],
-    deptCodeArray: [] as string[],
-  };
-  for (const column of columns.value) {
-    if (column.id === "department") {
-      _deptArrays.deptArray = Array.from(
-        column.getFacetedUniqueValues().keys(),
-      ) as string[];
-    } else if (column.id === "department_code") {
-      _deptArrays.deptCodeArray = Array.from(
-        column.getFacetedUniqueValues().keys(),
-      ) as string[];
+
+const deptDropdownOptions = {
+  items: useState<SelectMenuItem[]>(
+    "deptDropdownItems",
+    () => decodeBase64ToJson(config.ntnuxDepartments as string) || [],
+  ),
+  model: ref<SelectMenuItem[]>([]),
+  updateHandler: () => {
+    if (deptDropdownOptions.model.value.length === 0) {
+      removeColumnFilter("department_code");
+    } else {
+      addColumnFilter(
+        "department_code",
+        deptDropdownOptions.model.value.map((item: any) => item.value),
+      );
     }
-  }
-  return _deptArrays;
-}
-const deptArrays = ref(getDeptArrays());
-watch(
-  () => tableWatchValues.value,
-  () => {
-    deptArrays.value = getDeptArrays();
   },
-);
-const uniqueDepts = computed(() => {
-  const uniqueDepts: Record<string, string> = {};
-  deptArrays.value.deptCodeArray.forEach((code, index) => {
-    const name = deptArrays.value.deptArray[index] as string;
-    if (code && name) {
-      uniqueDepts[code] = name;
+};
+const generalDropdownOptions = {
+  items: useState<SelectMenuItem[]>(
+    "generalDropdownItems",
+    () => decodeBase64ToJson(config.ntnuxGenerals as string) || ["all"],
+  ),
+  model: ref<SelectMenuItem[]>([]),
+  updateHandler: () => {
+    if (generalDropdownOptions.model.value.length === 0) {
+      addColumnFilter("general_education", ["all"]);
+    } else {
+      addColumnFilter(
+        "general_education",
+        generalDropdownOptions.model.value.map((item: any) => item.value),
+      );
     }
-  });
-  return uniqueDepts;
+  },
+};
+const programDropdownOptions = {
+  items: useState<SelectMenuItem[]>(
+    "programDropdownItems",
+    () => decodeBase64ToJson(config.ntnuxPrograms as string) || ["all"],
+  ),
+  model: ref<SelectMenuItem[]>([]),
+  updateHandler: () => {
+    if (programDropdownOptions.model.value.length === 0) {
+      addColumnFilter("credit_program", ["all"]);
+    } else {
+      addColumnFilter(
+        "credit_program",
+        programDropdownOptions.model.value.map((item: any) => item.label),
+      );
+    }
+  },
+};
+const bufferModel = ref<any>(null);
+
+const dropdownModel = computed({
+  get() {
+    if (mode.value === "dept") {
+      return deptDropdownOptions.model.value;
+    } else if (mode.value === "general") {
+      return generalDropdownOptions.model.value;
+    } else if (mode.value === "program") {
+      return programDropdownOptions.model.value;
+    }
+    return bufferModel.value;
+  },
+  set(value) {
+    if (mode.value === "dept") {
+      deptDropdownOptions.model.value = value;
+    } else if (mode.value === "general") {
+      generalDropdownOptions.model.value = value;
+    } else if (mode.value === "program") {
+      programDropdownOptions.model.value = value;
+    } else {
+      bufferModel.value = value;
+    }
+  },
 });
-const deptDropdownItems = computed<SelectMenuItem[]>(() => {
-  return Object.entries(uniqueDepts.value).map(([code, name]) => ({
-    label: code,
-    description: name,
-    value: code,
-  }));
-});
-const deptDropdownValue = ref<Record<string, any>[]>([]);
-function updateDeptFilter() {
-  if (deptDropdownValue.value.length === 0) {
-    removeColumnFilter("department_code");
-  } else {
-    addColumnFilter(
-      "department_code",
-      deptDropdownValue.value.map((item) => item?.value),
-    );
+
+function decodeBase64ToJson(base64String: string) {
+  try {
+    const jsonString = Buffer.from(base64String, "base64").toString("utf-8");
+    return JSON.parse(jsonString);
+  } catch (e) {
+    console.error("Failed to decode base64 string:", e);
+    return null;
   }
 }
 
@@ -390,6 +471,6 @@ onMounted(() => {
     prefetchDefaultTermData();
   }
 
-  tableWatchValues.value += 1;
+  tableWatchVersion.value += 1;
 });
 </script>

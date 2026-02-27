@@ -11,7 +11,12 @@ import {
 } from "@tanstack/vue-table";
 import type { TableOptionsWithReactiveData } from "@tanstack/vue-table";
 
-import { useCourseFilter, globalFilterFunction } from "./useCourseFilter";
+import {
+  useCourseFilter,
+  globalFilterFunction,
+  deptFilterFunction,
+  arrayContainsStringFilterFunction,
+} from "./useCourseFilter";
 
 export interface Course {
   year: string; // 學年 (y)
@@ -47,7 +52,7 @@ export interface Course {
   english_teaching: boolean; // 英文授課（是/None）(et)
   digital_course: boolean; // 數位課程（N/1）(rt)
   general_education: string; // 通識領域（"/" 分隔）(gc)
-  credit_program: string[]; // 學分學程（"/" 分隔） (p)
+  credit_program: string; // 學分學程（"/" 分隔） (p)
   course_category: string; // 課程類別（通、選、必）(oc)
   restriction: string; // 限修說明 (r)
   gender_restriction: string; // 性別限修（F/M/None）(rg)
@@ -140,7 +145,13 @@ export function useCourseTable() {
         }),
         columnHelper.accessor("department", {}),
         columnHelper.accessor("department_code", {
-          filterFn: filterFns.arrIncludes,
+          filterFn: deptFilterFunction,
+        }),
+        columnHelper.accessor("general_education", {
+          filterFn: arrayContainsStringFilterFunction,
+        }),
+        columnHelper.accessor("credit_program", {
+          filterFn: arrayContainsStringFilterFunction,
         }),
       ],
     }),
@@ -179,6 +190,10 @@ export function useCourseTable() {
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getSortedRowModel: getSortedRowModel(),
     globalFilterFn: globalFilterFunction,
+    filterFns: {
+      deptFilterFunction: deptFilterFunction,
+      arrayContainsStringFilterFunction: arrayContainsStringFilterFunction,
+    },
   };
 
   table.value = useVueTable(tableOptions);
@@ -319,7 +334,7 @@ function formatCourseData(rawData: any): Course {
     english_teaching: rawData.et === "是",
     digital_course: rawData.rt === "1",
     general_education: rawData.gc || "",
-    credit_program: rawData.p ? rawData.p.split("/") : [],
+    credit_program: rawData.p || "",
     course_category: rawData.oc || "",
     restriction: rawData.r || "",
     gender_restriction: rawData.rg || "",

@@ -62,9 +62,18 @@ export default defineNuxtConfig({
     ntnuxDefaultTerm: "",
     ntnuxTerms: "",
     ntnuxSchedule: "",
+    ntnuxDepartments: "",
+    ntnuxGenerals: "",
+    ntnuxPrograms: "",
   },
 
-  devtools: { enabled: true },
+  devtools: {
+    enabled: true,
+
+    timeline: {
+      enabled: true,
+    },
+  },
 
   compatibilityDate: "2025-11-09",
 });
