@@ -95,7 +95,7 @@
       </UBadge>
       <UBadge
         v-if="course?.credit_program"
-        v-for="item in course.credit_program"
+        v-for="item in course.credit_program.split('/')"
         :key="item"
         icon="tabler:book"
         variant="soft"

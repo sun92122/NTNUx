@@ -1,0 +1,64 @@
+[
+  // [['A1UG' , '人文藝術'],['A2UG' , '社會科學'],['A3UG' , '自然科學'],['A4UG' , '邏輯運算'],['B1UG' , '學院共同課程'],['B2UG' , '跨域專業探索課程'],['B3UG' , '大學入門'],['C1UG' , '專題探究'],['C2UG' , 'MOOCs'],['all','所有通識']]
+  {
+    "type": "label",
+    "label": "博雅課程"
+  },
+  {
+    "label": "人文藝術",
+    "value": "A1UG"
+  },
+  {
+    "label": "社會科學",
+    "value": "A2UG"
+  },
+  {
+    "label": "自然科學",
+    "value": "A3UG"
+  },
+  {
+    "label": "邏輯運算",
+    "value": "A4UG"
+  },
+  {
+    "type": "separator"
+  },
+  {
+    "type": "label",
+    "label": "跨域探索"
+  },
+  {
+    "label": "學院共同課程",
+    "value": "B1UG"
+  },
+  {
+    "label": "跨域專業探索課程",
+    "value": "B2UG"
+  },
+  {
+    "label": "大學入門",
+    "value": "B3UG"
+  }
+  // ,{
+  //   "type": "separator"
+  // },
+  // {
+  //   "type": "label",
+  //   "label": "自主學習"
+  // },
+  // {
+  //   "label": "專題探究",
+  //   "value": "C1UG"
+  // },
+  // {
+  //   "label": "MOOCs",
+  //   "value": "C2UG"
+  // },
+  // {
+  //   "type": "separator"
+  // },
+  // {
+  //   "label": "所有通識",
+  //   "value": "all"
+  //  }
+]
