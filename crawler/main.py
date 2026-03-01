@@ -25,12 +25,8 @@ def save_courses(year: int, term: int, output_dir: str, original_data_output: st
 
     # 格式化課程資料
     courses_df = course_format(pd.DataFrame(courses))
-
-    # 移除所有 \t
     courses_df = courses_df.map(
         lambda x: x.replace("\t", "") if isinstance(x, str) else x)
-
-    # 儲存原始課程資料
     for col in ["serial_no", "course_code", "course_group"]:
         if col not in courses_df.columns:
             courses_df[col] = pd.NA
@@ -39,21 +35,28 @@ def save_courses(year: int, term: int, output_dir: str, original_data_output: st
         ascending=True,
         na_position="last"
     )
-    courses_df.to_csv(
-        os.path.join(original_data_output, f"{year}-{term}.tsv"),
-        sep="\t", index=False, encoding="utf-8-sig")
-    with open(os.path.join(original_data_output, f"{year}-{term}-dense.json"), "w", encoding="utf-8") as f:
-        json.dump(dense_courses_map, f, ensure_ascii=False, indent=None)
-    with open(os.path.join(original_data_output, f"{year}-{term}.json"), "w", encoding="utf-8") as f:
-        json.dump(raws_to_json(courses_df), f, ensure_ascii=False, indent=None)
+    course_json = raws_to_json(courses_df)
+    yt = f"{year}-{term}"
 
-    # 儲存為 TSV 檔案
-    strip_course(courses_df, output_dir)
+    # 儲存原始課程資料
+    # check if original_data_output exists, if not create it
+    if not os.path.exists(original_data_output):
+        os.makedirs(original_data_output)
+    courses_df.to_csv(
+        os.path.join(original_data_output, "data.tsv"),
+        sep="\t", index=False, encoding="utf-8-sig")
+    with open(os.path.join(original_data_output, "dense.json"), "w", encoding="utf-8") as f:
+        json.dump(dense_courses_map, f, ensure_ascii=False, indent=None)
+    with open(os.path.join(original_data_output, "data.json"), "w", encoding="utf-8") as f:
+        json.dump(course_json, f, ensure_ascii=False, indent=None)
+
     # 儲存為 JSON 檔案
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     with open(os.path.join(output_dir, "dense.json"), "w", encoding="utf-8") as f:
         json.dump(dense_courses_map, f, ensure_ascii=False, indent=None)
-    with open(os.path.join(output_dir, "..", f"{year}-{term}.json"), "w", encoding="utf-8") as f:
-        json.dump(raws_to_json(courses_df), f, ensure_ascii=False, indent=None)
+    with open(os.path.join(output_dir, "data.json"), "w", encoding="utf-8") as f:
+        json.dump(course_json, f, ensure_ascii=False, indent=None)
     # 更新 日期 json 檔案
     with open(os.path.join(output_dir, "last_update.json"), "w", encoding="utf-8") as f:
         json.dump({
@@ -66,27 +69,40 @@ def save_courses(year: int, term: int, output_dir: str, original_data_output: st
 
 def main():
     parser = argparse.ArgumentParser(description="抓取並儲存課程資料")
-    parser.add_argument("-y", "--year", type=int, required=True,
+    parser.add_argument("_y", type=int, help="民國學年度，如 113",
+                        nargs="?", default=None)
+    parser.add_argument(
+        "_t", type=int, help="學期：1 、 2 或 3 (暑期)", nargs="?", default=None)
+    parser.add_argument("-y", "--year", type=int, required=False,
                         help="民國學年度，如 113")
-    parser.add_argument("-t", "--term", type=int, required=True,
-                        help="學期：1 、 2 或 3")
+    parser.add_argument("-t", "--term", type=int, required=False,
+                        help="學期：1 、 2 或 3 (暑期)")
     parser.add_argument("-o", "--out", type=str,
                         help="輸出目錄，預設為 ../public/data/{year}-{term}")
     parser.add_argument("-d", "--data", type=str,
                         help="原始課程資料儲存目錄，預設為 original_data/")
     args = parser.parse_args()
 
+    year = args.year or args._y or None
+    term = args.term or args._t or None
+    if year is None:
+        print("請提供學年度，使用 -y 或 --year")
+        return
+    if term is None:
+        print("請提供學期，使用 -t 或 --term")
+        return
+
     if not args.out:
         args.out = os.path.abspath(os.path.join(
             os.path.dirname(__file__),
             "..", "public", "data",
-            f"{args.year}-{args.term}"))
+            f"{year}-{term}"))
     if not args.data:
         args.data = os.path.abspath(os.path.join(
             os.path.dirname(__file__),
-            "original_data"))
+            "original_data", f"{year}-{term}"))
 
-    save_courses(args.year, args.term, args.out, args.data)
+    save_courses(year, term, args.out, args.data)
 
 
 if __name__ == "__main__":

@@ -10,18 +10,18 @@ API_URL = f"{BASE}/acadmOpenCourse/CofopdlCtrl"
 DEPT_API_URL = f"{BASE}/acadmOpenCourse/CofnameCtrl"
 GU_API_URL = f"{BASE}/acadmOpenCourse/cofopdlGeneral.do"
 DENSE_API_URL = f"{BASE}/acadmOpenCourse/coftmscDate.do"
-GU_CORE = ['A1UG', 'A2UG', 'A3UG', 'A4UG',
-           'B1UG', 'B2UG', 'B3UG', 'C1UG', 'C2UG']
+GU_CORE = ['A1', 'A2', 'A3', 'A4',
+           'B1', 'B2', 'B3', 'C1', 'C2']
 GU_MAP = {
-    "人文藝術": "A1UG",
-    "社會科學": "A2UG",
-    "自然科學": "A3UG",
-    "邏輯運算": "A4UG",
-    "學院共同課程": "B1UG",
-    "跨域專業探索課程": "B2UG",
-    "大學入門": "B3UG",
-    "專題探究": "C1UG",
-    "MOOCs": "C2UG",
+    "人文藝術": "A1",
+    "社會科學": "A2",
+    "自然科學": "A3",
+    "邏輯運算": "A4",
+    "學院共同課程": "B1",
+    "跨域專業探索課程": "B2",
+    "大學入門": "B3",
+    "專題探究": "C1",
+    "MOOCs": "C2",
     "所有通識": "all"
 }
 
@@ -168,7 +168,7 @@ def fetch_courses(year: int, term: int, depts: list[str] | None = None) -> tuple
                     resp = s.get(API_URL,
                                  headers=headers,
                                  params=build_params(year, term, "GU") |
-                                 {"kind": 3, "generalCore": core})
+                                 {"kind": 3, "generalCore": core + "UG"})
                     resp.raise_for_status()
                     data: list[dict] = resp.json().get("List", [])
                     # 對所有 data 內容:

@@ -59,12 +59,14 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    ntnuxDefaultTerm: "",
-    ntnuxTerms: "",
-    ntnuxSchedule: "",
-    ntnuxDepartments: "",
-    ntnuxGenerals: "",
-    ntnuxPrograms: "",
+    public: {
+      ntnuxDefaultTerm: "",
+      ntnuxTerms: "",
+      ntnuxSchedule: "",
+      ntnuxDepartments: "",
+      ntnuxGenerals: "",
+      ntnuxPrograms: "",
+    },
   },
 
   devtools: {
