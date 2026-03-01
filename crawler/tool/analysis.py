@@ -1,5 +1,10 @@
 import pandas as pd
 import re
+import tomllib
+import base64
+import json
+import os
+from . import conversion_program
 
 
 def time_location_format(time_inf: str) -> dict[str, str] | str:
@@ -182,6 +187,8 @@ def raws_to_json(courses: pd.DataFrame) -> list[dict[str, str | int | float]]:
         "generalCore": "gc",
     }
 
+    program_dir = get_program_dir(os.path.join(
+        os.path.dirname(__file__), "..", "..", "wrangler.toml"))
     output = []
     for _, row in courses.fillna("").iterrows():
         course_id = row["serial_no"]
@@ -193,8 +200,22 @@ def raws_to_json(courses: pd.DataFrame) -> list[dict[str, str | int | float]]:
         course_value["cr"] = int(float(course_value["cr"])) if pd.notna(
             course_value["cr"]) else 0
         course_value["n"] = re.sub(r"<\/br>.*", "", course_value["cn"]).strip()
-        course_value["p"] = "/".join(re.sub(r".*\[ 學分學程：(.+?) \].*", r"\1",
-                                     course_value["cn"]).split(" ")) if "學分學程" in course_value["cn"] else []
+        # course_value["p"] = "/".join(map(lambda x: conversion_program.get_program_conversion(x, program_dir), re.sub(
+        #     r".*\[ 學分學程：(.+?) \].*", r"\1", course_value["cn"]).split(" "))) if "學分學程" in course_value["cn"] else ""
+        if "學分學程" in course_value["cn"]:
+            programs = []
+            program_codes = re.sub(
+                r".*\[ 學分學程：(.+?) \].*", r"\1", course_value["cn"]).split(" ")
+            for program_code in program_codes:
+                try:
+                    programs.append(conversion_program.get_program_conversion(
+                        program_code, program_dir))
+                except ValueError as e:
+                    print(e)
+                    programs.append(program_code)
+            course_value["p"] = "/".join(programs)
+        else:
+            course_value["p"] = ""
         course_value["ti"] = time_location_format(course_value["ti"])
         if isinstance(course_value["ti"], dict):
             course_value["tl"] = list(course_value["ti"].keys())
@@ -203,9 +224,43 @@ def raws_to_json(courses: pd.DataFrame) -> list[dict[str, str | int | float]]:
             course_value["tls"] = "/".join([f"{t} {l}" for t,
                                             l in course_value["ti"].items()])
         else:
-            course_value["t"] = course_value["ti"]
+            course_value["tl"] = course_value["ti"]
 
         output.append({
             k: v for k, v in course_value.items() if v
         })
     return output
+
+
+def load_wrangler_config(config_path: str) -> dict:
+    """
+    從指定路徑載入 wrangler 配置
+    :param config_path: 配置檔案路徑
+    :return: 配置字典
+    """
+    with open(config_path, "rb") as f:
+        config = tomllib.load(f)
+    return config
+
+
+def get_program_dir(config_path: str | None = None) -> dict[str, str]:
+    """
+    從 wrangler 配置中獲取學程列表
+    :param config_path: 配置檔案路徑
+    :return: 學程列表
+    """
+    value = os.getenv("NUXT_PUBLIC_NTNUX_PROGRAMS")
+    if value is None and config_path is not None:
+        config = load_wrangler_config(config_path)
+        value = config["vars"]["NUXT_PUBLIC_NTNUX_PROGRAMS"]
+    assert value is not None, "找不到學程列表，請確保環境變數 NUXT_PUBLIC_NTNUX_PROGRAMS 已設定或 wrangler.toml 中包含該配置"
+    # decode from base64 json string
+    decoded_value = base64.b64decode(value).decode("utf-8")
+    program_list: list[dict] = json.loads(decoded_value)
+    return_dir = {}
+
+    for program in program_list:
+        if "value" in program and "label" in program:
+            return_dir[program["label"]] = program["value"]
+
+    return return_dir
