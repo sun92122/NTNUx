@@ -101,7 +101,7 @@
         variant="soft"
         color="neutral"
       >
-        {{ item }}
+        {{ programMap[item] || item }}
       </UBadge>
       <UBadge
         icon="tabler:users"
@@ -147,6 +147,9 @@
 
 <script setup lang="ts">
 import type { Course } from "@/composables/useCourseTable";
+import { decodeBase64ToJson } from "@/composables/useTools";
+
+const config = useRuntimeConfig();
 
 defineProps({
   course: {
@@ -166,16 +169,29 @@ const optionMap = <Record<string, string>>{
   通: "通識",
 };
 const generalCoreMap = <Record<string, string>>{
-  A1UG: "人文藝術",
-  A2UG: "社會科學",
-  A3UG: "自然科學",
-  A4UG: "邏輯運算",
-  B1UG: "學院共同課程",
-  B2UG: "跨域專業探索課程",
-  B3UG: "大學入門",
-  C1UG: "專題探究",
-  C2UG: "MOOCs",
+  A1: "人文藝術",
+  A2: "社會科學",
+  A3: "自然科學",
+  A4: "邏輯運算",
+  B1: "學院共同課程",
+  B2: "跨域專業探索課程",
+  B3: "大學入門",
+  C1: "專題探究",
+  C2: "MOOCs",
 };
+const programs = useState("programDropdownItems");
+const programMap = useState<Record<string, string>>("programMap", () => {
+  const map: Record<string, string> = {};
+  for (const program of programs.value as Array<{
+    value: string;
+    label: string;
+  }>) {
+    if (program.value && program.label) {
+      map[program.value] = program.label;
+    }
+  }
+  return map;
+});
 
 const densePopover = ref();
 const denseData = useState("denseData", () => <Record<string, any>>{});

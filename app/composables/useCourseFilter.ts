@@ -78,6 +78,7 @@ export function deptFilterFunction(
       item === row.original.department_code ||
       (fuzzyClassKind.value &&
         item.length > 2 &&
+        item[0] !== "Z" &&
         row.original.department_code.length > 2 &&
         item.slice(-2) === row.original.department_code.slice(-2) &&
         (deptCodeToClassMap[item.slice(-3, -2)] || []).includes(
