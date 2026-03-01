@@ -19,11 +19,14 @@
       />
     </div>
     <div
-      class="relative search-bar max-w-3xl w-2/3 max-md:w-full m-auto max-md:px-2 max-md:flex-col max-md:items-center"
+      class="relative search-bar max-w-3xl w-2/3 max-md:w-full m-auto max-md:flex-col max-md:items-center"
     >
       <UFieldGroup
         class="flex items-center max-md:flex-col max-md:items-stretch"
-        :class="searchInputContainerClass"
+        :class="[
+          'w-full md:h-16 md:rounded-full overflow-hidden shadow-xs shadow-gray-400',
+          'max-md:rounded-none max-md:h-fit',
+        ]"
         label=""
         :orientation="windowWidth < 768 ? 'vertical' : 'horizontal'"
       >
@@ -35,8 +38,10 @@
           variant="ghost"
           placeholder=""
           clearable
-          :ui="searchInputUI"
-          class="text-base border-gray-300"
+          :ui="{
+            base: 'px-8 pb-3 pt-8 peer',
+          }"
+          class="text-base border-gray-300 search-input w-full h-full max-md:h-16"
         >
           <label
             :class="[
@@ -77,17 +82,11 @@
                   : []
           "
           v-model="dropdownModel"
-          :placeholder="
-            {
-              dept: '篩選開課單位',
-              general: '篩選通識領域',
-              program: '篩選學分學程',
-            }[mode] || '篩選'
-          "
+          placeholder=""
           multiple
           trailingIcon=""
           :filterFields="['label', 'value']"
-          class="search-input w-full h-full text-base hover:bg-elevated ring-0"
+          class="search-input w-full md:max-w-1/2 h-full max-md:h-16 text-base hover:bg-elevated ring-0 p-0"
           @update:model-value="
             mode === 'dept'
               ? deptDropdownOptions.updateHandler()
@@ -98,7 +97,59 @@
                   : () => {}
           "
         >
-          <template #item-leading="{ item, index, ui }">
+          <template #default="{ modelValue }">
+            <UButton
+              color="neutral"
+              variant="ghost"
+              label=""
+              class="text-base border-gray-300 w-full px-8 pb-3 pt-8 peer"
+            >
+              <div class="h-5"></div>
+              <label
+                :class="[
+                  'pointer-events-none absolute left-8 md:left-2 top-1/2',
+                  'object-left text-dimmed text-base', // placeholder
+                  'transition-all duration-200 ease-in-out',
+                  modelValue && modelValue.length > 0
+                    ? 'text-primary -translate-y-1/1 text-xs' // labelfloat
+                    : '-translate-y-1/2', // placeholder
+                ]"
+              >
+                <span class="inline-flex">{{
+                  {
+                    dept: "篩選開課單位",
+                    general: "篩選通識領域",
+                    program: "篩選學分學程",
+                  }[mode] || "篩選"
+                }}</span>
+              </label>
+              <label
+                :class="[
+                  'pointer-events-none absolute left-8 md:left-2 top-8 text-base collapse object-left', // no text
+                  modelValue && modelValue.length > 0
+                    ? 'visible text-default' // has text
+                    : '',
+                ]"
+              >
+                <span class="inline-flex">{{
+                  modelValue && modelValue.length > 0
+                    ? modelValue.length < 5
+                      ? modelValue.map((item: any) => item.label).join(", ")
+                      : modelValue
+                          .slice(0, 3)
+                          .map((item: any) => item.label)
+                          .join(", ") + ` +${modelValue.length - 3} more`
+                    : {
+                        dept: "篩選開課單位",
+                        general: "篩選通識領域",
+                        program: "篩選學分學程",
+                      }[mode] || "篩選"
+                }}</span>
+              </label>
+            </UButton>
+          </template>
+
+          <template #item-leading="{ item }">
             <UBadge
               v-if="item"
               class="font-bold rounded-full! w-10 justify-center"
@@ -111,7 +162,7 @@
       </UFieldGroup>
       <!-- search button -->
       <div
-        class="absolute right-0 top-0 h-full w-16 flex items-center justify-center pr-2.5 z-10"
+        class="absolute right-0 top-0 h-full w-16 flex items-center justify-center pr-2.5 z-10 max-md:h-1/2"
       >
         <UButton
           color="primary"
@@ -123,7 +174,7 @@
       </div>
     </div>
     <div
-      class="advanced-search-control max-w-full min-w-2/3 m-auto px-2 flex items-center gap-2 hide-scrollbar overflow-x-scroll my-4"
+      class="advanced-search-control max-w-3xl min-w-2/5 m-auto px-2 flex items-center gap-2 hide-scrollbar overflow-x-scroll my-4"
     >
       <UDropdownMenu
         :items="dropdownTermOptions"
@@ -145,6 +196,7 @@
 </template>
 
 <script lang="ts" setup>
+import type { BreadcrumbItem, SelectMenuItem } from "@nuxt/ui";
 import {
   useCourseFilter,
   getGlobalFilterInput,
@@ -157,20 +209,23 @@ import {
   prefetchDefaultTermData,
   getTable,
 } from "~/composables/useCourseTable";
-import type { BreadcrumbItem, SelectMenuItem } from "@nuxt/ui";
+import {
+  decodeBase64ToJson,
+  routerPushWithQuery,
+} from "~/composables/useTools";
 
 const windowWidth = useState("windowWidth", () => window?.innerWidth || 1200);
 const config = useRuntimeConfig();
 const termList = useState<string[]>("termList", () =>
-  config.ntnuxTerms
-    ? ((config.ntnuxTerms as String) || "")
+  config.public.ntnuxTerms
+    ? ((config.public.ntnuxTerms as String) || "")
         .split(",")
         .map((term: string) => term.trim())
     : [],
 );
 const defaultTerm = useState<string>(
   "defaultTerm",
-  () => (config.ntnuxDefaultTerm as string) || "",
+  () => (config.public.ntnuxDefaultTerm as string) || "",
 );
 const currentTerm = useState<string>("currentTerm", () => defaultTerm.value);
 
@@ -189,7 +244,17 @@ const globalFilterInputRef = useTemplateRef("input");
 function updateGlobalFilter() {
   updateGlobalFilterByInput(globalFilterInput.value);
   if (!route.path.includes("/search")) {
-    navigateTo("/search/quick");
+    navigateTo({
+      path: "/search/quick",
+      query: { s: globalFilterInput.value.replace(" ", "+") },
+    });
+  } else {
+    router.push({
+      query: {
+        ...route.query,
+        s: globalFilterInput.value.replace(" ", "+") || undefined,
+      },
+    });
   }
 }
 
@@ -241,13 +306,6 @@ defineShortcuts({
   },
 });
 
-const searchInputUI = {
-  root: "search-input w-full h-full text-base",
-  base: "px-8 pb-3 pt-8 peer",
-};
-const searchInputContainerClass =
-  "w-full h-16 rounded-full overflow-hidden shadow-xs shadow-gray-400";
-
 interface modeBreadcrumb extends BreadcrumbItem {
   activeLabel?: string;
   do?: Function;
@@ -259,7 +317,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     active: mode.value === "quick",
     do: () => {
       if (mode.value !== "quick") {
-        router.push("/search/quick");
+        routerPushWithQuery(route, router, "/search/quick", {});
       }
       clearAndSetAllFilters({});
     },
@@ -270,9 +328,11 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     active: mode.value === "dept",
     do: () => {
       if (mode.value !== "dept") {
-        router.push("/search/dept");
+        routerPushWithQuery(route, router, "/search/dept", {});
       }
       clearAndSetAllFilters({});
+      deptDropdownOptions.model.value = deptDropdownOptions.getFromQuery();
+      deptDropdownOptions.updateHandler();
     },
   },
   {
@@ -281,9 +341,11 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     active: mode.value === "general",
     do: () => {
       if (mode.value !== "general") {
-        router.push("/search/general");
+        routerPushWithQuery(route, router, "/search/general", {});
       }
       clearAndSetAllFilters({});
+      generalDropdownOptions.model.value =
+        generalDropdownOptions.getFromQuery();
       generalDropdownOptions.updateHandler();
     },
   },
@@ -293,7 +355,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     active: mode.value === "pe",
     do: () => {
       if (mode.value !== "pe") {
-        router.push("/search/pe");
+        routerPushWithQuery(route, router, "/search/pe", {});
       }
       clearAndSetAllFilters({
         department_code: ["PE"],
@@ -312,9 +374,8 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     active: mode.value === "nd",
     do: () => {
       if (mode.value !== "nd") {
-        router.push("/search/nd");
+        routerPushWithQuery(route, router, "/search/nd", {});
       }
-      // TODO: change filter to show only national defense courses
       clearAndSetAllFilters({
         name: "全民國防教育軍事訓練",
       });
@@ -325,9 +386,11 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     active: mode.value === "program",
     do: () => {
       if (mode.value !== "program") {
-        router.push("/search/program");
+        routerPushWithQuery(route, router, "/search/program", {});
       }
       clearAndSetAllFilters({});
+      programDropdownOptions.model.value =
+        programDropdownOptions.getFromQuery();
       programDropdownOptions.updateHandler();
     },
   },
@@ -337,7 +400,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     active: mode.value === "interschool",
     do: () => {
       if (mode.value !== "interschool") {
-        router.push("/search/interschool");
+        routerPushWithQuery(route, router, "/search/interschool", {});
       }
       clearAndSetAllFilters({
         department_code: ["9UAA", "9MAA", "9DAA", "9UAB", "9MAB"],
@@ -348,9 +411,8 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     label: "英文三",
     active: mode.value === "english3",
     do: () => {
-      // TODO: change filter to show only English III courses
       if (mode.value !== "english3") {
-        router.push("/search/english3");
+        routerPushWithQuery(route, router, "/search/english3", {});
       }
       clearAndSetAllFilters({
         name: "英文（三）",
@@ -362,7 +424,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     active: mode.value === "emi",
     do: () => {
       if (mode.value !== "emi") {
-        router.push("/search/emi");
+        routerPushWithQuery(route, router, "/search/emi", {});
       }
       clearAndSetAllFilters({
         english_teaching: true,
@@ -377,7 +439,7 @@ const table = computed(() => getTable());
 const deptDropdownOptions = {
   items: useState<SelectMenuItem[]>(
     "deptDropdownItems",
-    () => decodeBase64ToJson(config.ntnuxDepartments as string) || [],
+    () => decodeBase64ToJson(config.public.ntnuxDepartments as string) || [],
   ),
   model: ref<SelectMenuItem[]>([]),
   updateHandler: () => {
@@ -389,12 +451,28 @@ const deptDropdownOptions = {
         deptDropdownOptions.model.value.map((item: any) => item.value),
       );
     }
+    // push to dept search page with query
+    routerPushWithQuery(route, router, "/search/dept", {
+      d:
+        deptDropdownOptions.model.value
+          ?.map((item: any) => item.value)
+          ?.join(",") || undefined,
+    });
+  },
+  getFromQuery() {
+    const query = route.query.d;
+    if (typeof query === "string") {
+      return deptDropdownOptions.items.value.filter((item: any) =>
+        query.split(",").includes(item.value),
+      );
+    }
+    return [];
   },
 };
 const generalDropdownOptions = {
   items: useState<SelectMenuItem[]>(
     "generalDropdownItems",
-    () => decodeBase64ToJson(config.ntnuxGenerals as string) || ["all"],
+    () => decodeBase64ToJson(config.public.ntnuxGenerals as string) || ["all"],
   ),
   model: ref<SelectMenuItem[]>([]),
   updateHandler: () => {
@@ -406,12 +484,28 @@ const generalDropdownOptions = {
         generalDropdownOptions.model.value.map((item: any) => item.value),
       );
     }
+    // push to general education search page with query
+    routerPushWithQuery(route, router, "/search/general", {
+      g:
+        generalDropdownOptions.model.value
+          ?.map((item: any) => item.value)
+          ?.join(",") || undefined,
+    });
+  },
+  getFromQuery() {
+    const query = route.query.g;
+    if (typeof query === "string") {
+      return generalDropdownOptions.items.value.filter((item: any) =>
+        query.split(",").includes(item.value),
+      );
+    }
+    return [];
   },
 };
 const programDropdownOptions = {
   items: useState<SelectMenuItem[]>(
     "programDropdownItems",
-    () => decodeBase64ToJson(config.ntnuxPrograms as string) || ["all"],
+    () => decodeBase64ToJson(config.public.ntnuxPrograms as string) || ["all"],
   ),
   model: ref<SelectMenuItem[]>([]),
   updateHandler: () => {
@@ -420,9 +514,25 @@ const programDropdownOptions = {
     } else {
       addColumnFilter(
         "credit_program",
-        programDropdownOptions.model.value.map((item: any) => item.label),
+        programDropdownOptions.model.value.map((item: any) => item.value),
       );
     }
+    // push to program search page with query
+    routerPushWithQuery(route, router, "/search/program", {
+      p:
+        programDropdownOptions.model.value
+          ?.map((item: any) => item.value)
+          ?.join(",") || undefined,
+    });
+  },
+  getFromQuery() {
+    const query = route.query.p;
+    if (typeof query === "string") {
+      return programDropdownOptions.items.value.filter((item: any) =>
+        query.split(",").includes(item.value),
+      );
+    }
+    return [];
   },
 };
 const bufferModel = ref<any>(null);
@@ -451,20 +561,16 @@ const dropdownModel = computed({
   },
 });
 
-function decodeBase64ToJson(base64String: string) {
-  try {
-    const jsonString = Buffer.from(base64String, "base64").toString("utf-8");
-    return JSON.parse(jsonString);
-  } catch (e) {
-    console.error("Failed to decode base64 string:", e);
-    return null;
-  }
-}
-
 onMounted(() => {
   // if mode is not set, redirect to quick search
   if (!globalFilterInput.value) {
-    globalFilterInput.value = getGlobalFilterInput();
+    globalFilterInput.value =
+      getGlobalFilterInput() ||
+      route.query.s?.toString().replace(/\+/g, " ") ||
+      "";
+  }
+  if (globalFilterInput.value) {
+    updateGlobalFilterByInput(globalFilterInput.value);
   }
 
   if (!mode.value) {
@@ -472,5 +578,11 @@ onMounted(() => {
   }
 
   tableWatchVersion.value += 1;
+
+  modeBreadcrumbs.value.forEach((breadcrumb) => {
+    if (breadcrumb.active) {
+      breadcrumb.do && breadcrumb.do();
+    }
+  });
 });
 </script>

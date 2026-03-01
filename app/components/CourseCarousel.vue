@@ -123,7 +123,7 @@ interface ScheduleData {
   items: CourseCarouselItem[];
 }
 const scheduleData = useState<ScheduleData>("schedule", () => {
-  const scheduleData = Buffer.from(config.ntnuxSchedule, "base64").toString(
+  const scheduleData = Buffer.from(config.public.ntnuxSchedule, "base64").toString(
     "utf-8",
   );
   try {

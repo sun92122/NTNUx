@@ -72,7 +72,7 @@ export function useCourseTable() {
   const tableWatchVersion = useState<number>("tableWatchVersion", () => 0);
   const defaultTerm = useState<string>(
     "defaultTerm",
-    () => (useRuntimeConfig().ntnuxDefaultTerm as string) || "",
+    () => (useRuntimeConfig().public.ntnuxDefaultTerm as string) || "",
   );
   const currentTerm = useState<string>("currentTerm", () => defaultTerm.value);
 
@@ -214,7 +214,7 @@ export function prefetchDefaultTermData(lazy: boolean = true) {
   const tableWatchVersion = useState<number>("tableWatchVersion", () => 0);
   const defaultTerm = useState<string>(
     "defaultTerm",
-    () => (useRuntimeConfig().ntnuxDefaultTerm as string) || "",
+    () => (useRuntimeConfig().public.ntnuxDefaultTerm as string) || "",
   );
   if (!defaultTerm.value) {
     console.warn(
@@ -252,7 +252,7 @@ function fetchTermData(term: string, lazy: boolean = false) {
     () => ({}),
   );
 
-  const { refresh } = useFetch<Course[]>(`/data/${term}.json`, {
+  const { refresh } = useFetch<Course[]>(`/data/${term}/data.json`, {
     server: false, // only fetch on client side
     lazy: lazy, // lazy fetch if specified
     onResponse: ({ request, response, options }) => {
