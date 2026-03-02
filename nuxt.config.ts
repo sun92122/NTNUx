@@ -62,10 +62,10 @@ export default defineNuxtConfig({
     public: {
       ntnuxDefaultTerm: "",
       ntnuxTerms: "",
-      ntnuxSchedule: "",
-      ntnuxDepartments: "",
-      ntnuxGenerals: "",
-      ntnuxPrograms: "",
+      ntnuxScheduleLz: "",
+      ntnuxDepartmentsLz: "",
+      ntnuxGeneralsLz: "",
+      ntnuxProgramsLz: "",
     },
   },
 

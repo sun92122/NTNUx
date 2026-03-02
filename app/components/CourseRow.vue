@@ -151,6 +151,8 @@ import { decodeBase64ToJson } from "@/composables/useTools";
 
 const config = useRuntimeConfig();
 
+const config = useRuntimeConfig();
+
 defineProps({
   course: {
     type: Object as () => Course | undefined,

@@ -209,10 +209,7 @@ import {
   prefetchDefaultTermData,
   getTable,
 } from "~/composables/useCourseTable";
-import {
-  decodeBase64ToJson,
-  routerPushWithQuery,
-} from "~/composables/useTools";
+import { jsonLzDecode, routerPushWithQuery } from "~/composables/useTools";
 
 const windowWidth = useState("windowWidth", () => window?.innerWidth || 1200);
 const config = useRuntimeConfig();
@@ -439,7 +436,10 @@ const table = computed(() => getTable());
 const deptDropdownOptions = {
   items: useState<SelectMenuItem[]>(
     "deptDropdownItems",
-    () => decodeBase64ToJson(config.public.ntnuxDepartments as string) || [],
+    () =>
+      (jsonLzDecode(
+        config.public.ntnuxDepartmentsLz as string,
+      ) as SelectMenuItem[]) || [],
   ),
   model: ref<SelectMenuItem[]>([]),
   updateHandler: () => {
@@ -472,7 +472,10 @@ const deptDropdownOptions = {
 const generalDropdownOptions = {
   items: useState<SelectMenuItem[]>(
     "generalDropdownItems",
-    () => decodeBase64ToJson(config.public.ntnuxGenerals as string) || ["all"],
+    () =>
+      (jsonLzDecode(
+        config.public.ntnuxGeneralsLz as string,
+      ) as SelectMenuItem[]) || [],
   ),
   model: ref<SelectMenuItem[]>([]),
   updateHandler: () => {
@@ -505,7 +508,10 @@ const generalDropdownOptions = {
 const programDropdownOptions = {
   items: useState<SelectMenuItem[]>(
     "programDropdownItems",
-    () => decodeBase64ToJson(config.public.ntnuxPrograms as string) || ["all"],
+    () =>
+      (jsonLzDecode(
+        config.public.ntnuxProgramsLz as string,
+      ) as SelectMenuItem[]) || [],
   ),
   model: ref<SelectMenuItem[]>([]),
   updateHandler: () => {

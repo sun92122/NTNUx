@@ -1,12 +1,5 @@
-export function decodeBase64ToJson(base64String: string) {
-  try {
-    const jsonString = Buffer.from(base64String, "base64").toString("utf-8");
-    return JSON.parse(jsonString);
-  } catch (e) {
-    console.error("Failed to decode base64 string:", e);
-    return null;
-  }
-}
+import { compressToBase64, decompressFromBase64 } from "lz-string";
+import { JSONC } from "jsonc.min";
 
 export function routerPushWithQuery(
   route: any,
@@ -14,6 +7,9 @@ export function routerPushWithQuery(
   path: string,
   query: Record<string, any>,
 ) {
+  if (route.path.includes("/dev")) {
+    path = path + "/dev";
+  }
   router.push({
     path,
     query: {
@@ -21,4 +17,22 @@ export function routerPushWithQuery(
       ...query,
     },
   });
+}
+
+export function jsonLzEncode(obj: any) {
+  try {
+    return compressToBase64(JSONC.minify(obj));
+  } catch (e) {
+    console.error("Failed to compress JSON:", e);
+    return "";
+  }
+}
+
+export function jsonLzDecode(str: string) {
+  try {
+    return JSONC.parse(decompressFromBase64(str));
+  } catch (e) {
+    console.error("Failed to decompress JSON:", e);
+    return null;
+  }
 }

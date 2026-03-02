@@ -104,6 +104,7 @@
 
 <script lang="ts" setup>
 import type { TimelineItem } from "@nuxt/ui";
+import { jsonLzDecode } from "@/composables/useTools";
 
 const carousel = useTemplateRef("carousel");
 const config = useRuntimeConfig();
@@ -123,11 +124,8 @@ interface ScheduleData {
   items: CourseCarouselItem[];
 }
 const scheduleData = useState<ScheduleData>("schedule", () => {
-  const scheduleData = Buffer.from(config.public.ntnuxSchedule, "base64").toString(
-    "utf-8",
-  );
   try {
-    const parsed = JSON.parse(scheduleData);
+    const parsed = jsonLzDecode(config.public.ntnuxScheduleLz) as ScheduleData;
     if (Array.isArray(parsed)) {
       return { year: "", term: "", items: parsed };
     } else {
@@ -136,7 +134,7 @@ const scheduleData = useState<ScheduleData>("schedule", () => {
   } catch (e) {
     console.error("Failed to parse schedule:", {
       error: e,
-      rawData: scheduleData,
+      rawData: config.public.ntnuxScheduleLz,
     });
     return { year: "", term: "", items: [] };
   }
