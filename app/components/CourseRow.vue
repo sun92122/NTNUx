@@ -147,7 +147,6 @@
 
 <script setup lang="ts">
 import type { Course } from "@/composables/useCourseTable";
-import { decodeBase64ToJson } from "@/composables/useTools";
 
 const config = useRuntimeConfig();
 
