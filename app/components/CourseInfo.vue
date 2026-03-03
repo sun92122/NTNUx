@@ -1,0 +1,377 @@
+<template>
+  <div>
+    <UCollapsible
+      v-for="item in infoItems"
+      :key="item.label || item.title"
+      class="w-full"
+      v-model:open="item.collapsed as any"
+    >
+      <UContextMenu :items="item.contentMenu" :disabled="!item.contentMenu">
+        <UButton
+          variant="ghost"
+          :disabled="item.disabled"
+          :class="[
+            'w-full min-h-10 text-left rounded-sm border-none',
+            'disabled:cursor-default group',
+          ]"
+          :style="{
+            cursor: item.cursor,
+          }"
+          @click="item.click && item.click()"
+          :to="item.to && item.to"
+          :target="item.target && item.target"
+        >
+          <template #default>
+            <div class="w-full flex flex-row items-center">
+              <div class="me-2 size-4">
+                <UIcon :name="item.icon" class="text-default size-4" />
+              </div>
+              <div class="ps-1.5 flex flex-col">
+                <span v-if="item?.label" class="text-xs text-dimmed">{{
+                  item.label
+                }}</span>
+                <span
+                  class="text-base"
+                  :class="item.disabled ? 'text-dimmed' : 'text-default'"
+                  >{{ item.title }}</span
+                >
+              </div>
+              <UIcon
+                v-if="item.trailingIcon"
+                :name="item.trailingIcon"
+                class="rounded-full ml-auto group-hover:visible border-0 text-default size-5 p-0"
+                :class="item.trailingIconShown ? 'visible' : 'collapse'"
+              ></UIcon>
+            </div>
+          </template>
+        </UButton>
+      </UContextMenu>
+
+      <template #content>
+        <div v-if="item.content && item.content.length" class="pl-2">
+          <UButton
+            v-for="child in item.content"
+            :key="child.label"
+            :label="child.label"
+            :icon="child.icon"
+            @click="child.click && child.click()"
+            :to="child?.to"
+            :target="child?.target"
+            :trailing-icon="child.trailingIcon"
+            block
+            class="text-left rounded-sm border-none h-10"
+            variant="ghost"
+          />
+        </div>
+      </template>
+    </UCollapsible>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { ContextMenuItem } from "@nuxt/ui";
+import type { Course } from "@/composables/useCourseTable";
+
+import { optionMap, locationMap } from "@/composables/useConstants";
+
+const props = defineProps({
+  course: {
+    type: Object as () => Course | undefined,
+    required: true,
+  },
+});
+
+const toast = useToast();
+function customToast(
+  id: string,
+  title: string,
+  icon: string = "tabler:copy",
+  description?: string,
+) {
+  toast.add({
+    id: id,
+    title: title,
+    description: description,
+    icon: icon,
+    progress: false,
+  });
+}
+function copyToClipboard(text: string, label: string) {
+  navigator.clipboard.writeText(text);
+  customToast(`copy-${label}`, `已複製${label}（${text}）`, "tabler:copy");
+}
+const course = computed(() => {
+  return props.course;
+});
+const programs = useState(
+  "programDropdownItems",
+  () => jsonLzDecode(useRuntimeConfig().public.ntnuxProgramsLz as string) || [],
+);
+const programMap = useState<Record<string, string>>("programMap", () => {
+  const map: Record<string, string> = {};
+  for (const program of programs.value as Array<{
+    value: string;
+    label: string;
+  }>) {
+    if (program.value && program.label) {
+      map[program.value] = program.label;
+    }
+  }
+  return map;
+});
+
+interface CourseInfoItem {
+  icon: string;
+  label: string;
+  title: string;
+  disabled?: boolean;
+  trailingIcon?: string;
+  trailingIconShown?: boolean;
+  cursor?: string;
+  click?: () => void;
+  to?: string;
+  target?: string;
+  contentMenu?: Array<ContextMenuItem>;
+  content?: Array<{
+    label: string;
+    icon: string;
+    click?: () => void;
+    to?: string;
+    target?: string;
+    trailingIcon?: string;
+  }>;
+  collapsed?: Ref<boolean>;
+}
+const infoItems = computed<CourseInfoItem[]>(
+  () =>
+    [
+      {
+        icon: "tabler:hash",
+        label: "開課序號",
+        title: course.value?.id || "尚未公布",
+        disabled: !course.value?.id,
+        trailingIcon: "tabler:copy",
+        cursor: "pointer",
+        click: () => {
+          if (course.value?.id) {
+            copyToClipboard(course.value.id, "開課序號");
+          }
+        },
+        contentMenu: [
+          {
+            label: "複製開課序號",
+            icon: "tabler:copy",
+            onSelect: () => {
+              if (course.value?.id) {
+                copyToClipboard(course.value.id, "開課序號");
+              }
+            },
+          },
+          {
+            label: "搜尋開課序號",
+            icon: "tabler:search",
+            to: `/search/quick?s=${decodeURIComponent("$id:" + (course.value?.id || ""))}`,
+          },
+        ],
+      },
+      {
+        icon: "tabler:code",
+        label: "科目代碼",
+        title: course.value?.course_code,
+        disabled: !course.value?.course_code,
+        trailingIcon: "tabler:copy",
+        cursor: "pointer",
+        click: () => {
+          if (course.value?.course_code) {
+            copyToClipboard(course.value.course_code, "科目代碼");
+          }
+        },
+        contentMenu: [
+          {
+            label: "複製科目代碼",
+            icon: "tabler:copy",
+            onSelect: () => {
+              if (course.value?.course_code) {
+                copyToClipboard(course.value.course_code, "科目代碼");
+              }
+            },
+          },
+          {
+            label: "搜尋科目代碼",
+            icon: "tabler:search",
+            to: `/search/quick?s=${decodeURIComponent("$course_code:" + (course.value?.course_code || ""))}`,
+          },
+        ],
+      },
+      {
+        icon: "tabler:building",
+        label: "開課單位",
+        title: course.value?.department,
+        disabled: !course.value?.department,
+        contentMenu: course.value?.department
+          ? [
+              {
+                label: "搜尋開課單位",
+                icon: "tabler:search",
+                to: `/search/dept?d=${encodeURIComponent(course.value?.department_code || "")}`,
+              },
+              {
+                label: "複製開課單位名稱",
+                icon: "tabler:copy",
+                onSelect: () => {
+                  if (course.value?.department) {
+                    copyToClipboard(course.value.department, "開課單位名稱");
+                  }
+                },
+              },
+              {
+                label: "複製開課單位代碼",
+                icon: "tabler:copy",
+                onSelect: () => {
+                  if (course.value?.department_code) {
+                    copyToClipboard(
+                      course.value.department_code,
+                      "開課單位代碼",
+                    );
+                  }
+                },
+              },
+            ]
+          : undefined,
+      },
+      {
+        icon: "tabler:layout-dashboard",
+        title: course.value?.course_category
+          ? optionMap[course.value.course_category as keyof typeof optionMap] ||
+            course.value.course_category
+          : "不明課程類別",
+        disabled: !course.value?.course_category,
+      },
+      {
+        icon: "tabler:school",
+        title: course.value?.credits
+          ? `${course.value.credits} 學分`
+          : "學分數",
+        disabled: course.value?.credits === undefined,
+      },
+      {
+        icon: "tabler:users",
+        label: "授課教師",
+        title: course.value?.teacher ? course.value.teacher : "未定",
+        disabled: !course.value?.teacher || course.value?.teacher === "未定",
+      },
+      {
+        icon: "tabler:clock",
+        label: "上課時間",
+        title: course.value?.time ? course.value.time.join("/") : "",
+        disabled: !course.value?.time,
+      },
+      course.value?.location
+        ? (course.value?.location.search("/") || -1) >= 0
+          ? {
+              icon: "tabler:map-pin",
+              label: locationCollapsed.value ? undefined : "上課地點",
+              title: locationCollapsed.value
+                ? "上課地點"
+                : course.value.location,
+              disabled: false,
+              trailingIcon: locationCollapsed.value
+                ? undefined
+                : "tabler:map-down",
+              cursor: "pointer",
+              trailingIconShown: true,
+              content: course.value.location.split("/").map((loc) => ({
+                label: loc,
+                trailingIcon: "tabler:map-search",
+                to: getMapLink(loc),
+                target: getMapLink(loc) === "#" ? undefined : "_blank",
+              })),
+              click: () => {
+                locationCollapsed.value = !locationCollapsed.value;
+              },
+              collapsed: locationCollapsed,
+            }
+          : {
+              icon: "tabler:map-pin",
+              label: "上課地點",
+              title: course.value.location,
+              disabled: false,
+              trailingIcon: "tabler:map-search",
+              cursor: "pointer",
+              trailingIconShown: true,
+              to: getMapLink(course.value.location),
+              target:
+                getMapLink(course.value.location) === "#"
+                  ? undefined
+                  : "_blank",
+            }
+        : {
+            icon: "tabler:map-pin",
+            label: "上課地點",
+            title: "",
+            disabled: true,
+          },
+      course.value?.credit_program
+        ? course.value.credit_program.split("/").length > 1
+          ? {
+              icon: "tabler:book",
+              label: programCollapsed.value ? undefined : "學分學程",
+              title: programCollapsed.value
+                ? "學分學程"
+                : `${course.value.credit_program.split("/").length} 個學分學程`,
+              disabled: false,
+              trailingIcon: programCollapsed.value
+                ? undefined
+                : "tabler:filter-search",
+              cursor: "pointer",
+              content: course.value.credit_program.split("/").map((item) => ({
+                label: programMap.value[item] || item,
+                to: `/search/program?p=${encodeURIComponent(item)}`,
+                trailingIcon: "tabler:filter-search",
+              })),
+              click: () => (programCollapsed.value = !programCollapsed.value),
+              collapsed: programCollapsed,
+            }
+          : {
+              icon: "tabler:book",
+              label: "學分學程",
+              title:
+                programMap.value[course.value.credit_program] ||
+                course.value.credit_program,
+              disabled: false,
+              trailingIcon: "tabler:filter-search",
+              cursor: "pointer",
+              to: `/search/program?p=${encodeURIComponent(
+                course.value.credit_program,
+              )}`,
+            }
+        : {
+            icon: "tabler:book",
+            title: "無學分學程",
+            disabled: true,
+          },
+    ] as CourseInfoItem[],
+);
+const locationCollapsed = ref(false);
+const programCollapsed = ref(true);
+
+function getMapLink(location: string): string {
+  if (
+    !location ||
+    location.startsWith("校外") ||
+    location.startsWith("◎") ||
+    location.includes("教室自排") ||
+    location.includes("請洽系所辦")
+  )
+    return "#";
+
+  const map = ref(`query=${encodeURIComponent(location.trim())}`);
+  for (const key in locationMap) {
+    if (location.startsWith(key)) {
+      map.value = locationMap[key as keyof typeof locationMap] as string;
+      return `https://www.google.com/maps/search/?api=1&${map.value}`;
+    }
+  }
+  return "#"
+}
+</script>

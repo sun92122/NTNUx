@@ -79,7 +79,8 @@
       <UBadge variant="soft" color="neutral">
         {{
           course?.course_category
-            ? optionMap[course.course_category] || course.course_category
+            ? optionMap[course.course_category as keyof typeof optionMap] ||
+              course.course_category
             : ""
         }}
       </UBadge>
@@ -91,7 +92,7 @@
         color="neutral"
         variant="soft"
       >
-        {{ generalCoreMap[item] || item }}
+        {{ generalCoreMap[item as keyof typeof generalCoreMap] || item }}
       </UBadge>
       <UBadge
         v-if="course?.credit_program"
@@ -147,9 +148,7 @@
 
 <script setup lang="ts">
 import type { Course } from "@/composables/useCourseTable";
-import { decodeBase64ToJson } from "@/composables/useTools";
-
-const config = useRuntimeConfig();
+import { optionMap, generalCoreMap } from "@/composables/useConstants";
 
 const config = useRuntimeConfig();
 
@@ -165,22 +164,6 @@ defineProps({
   },
 });
 
-const optionMap = <Record<string, string>>{
-  必: "必修",
-  選: "選修",
-  通: "通識",
-};
-const generalCoreMap = <Record<string, string>>{
-  A1: "人文藝術",
-  A2: "社會科學",
-  A3: "自然科學",
-  A4: "邏輯運算",
-  B1: "學院共同課程",
-  B2: "跨域專業探索課程",
-  B3: "大學入門",
-  C1: "專題探究",
-  C2: "MOOCs",
-};
 const programs = useState("programDropdownItems");
 const programMap = useState<Record<string, string>>("programMap", () => {
   const map: Record<string, string> = {};
