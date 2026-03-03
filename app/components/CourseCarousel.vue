@@ -117,7 +117,6 @@ interface CourseCarouselItem {
   info?: string;
   infoUrl?: string;
 }
-// test data
 interface ScheduleData {
   year: string;
   term: string;

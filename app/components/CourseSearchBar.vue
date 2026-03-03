@@ -568,7 +568,10 @@ const dropdownModel = computed({
 });
 
 onMounted(() => {
-  // if mode is not set, redirect to quick search
+  if (route.query.s && typeof route.query.s === "string") {
+    globalFilterInput.value = route.query.s.replace(/\+/g, " ");
+    updateGlobalFilterByInput(globalFilterInput.value);
+  }
   if (!globalFilterInput.value) {
     globalFilterInput.value =
       getGlobalFilterInput() ||

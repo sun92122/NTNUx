@@ -44,6 +44,12 @@ export function globalFilterFunction(
   // some: id, name, teacher, full_name_en, course_code
   const words = filterValue.toLowerCase().split(" ");
   return words.some((word) => {
+    if (word.startsWith("$")) {
+      const [col, s] = word.slice(1)?.split(":") || [];
+      if (col && s) {
+        return row.original[col]?.toLowerCase().includes(s);
+      }
+    }
     return (
       row.original.id.toLowerCase().includes(word) ||
       row.original.name.toLowerCase().includes(word) ||

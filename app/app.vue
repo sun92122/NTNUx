@@ -1,5 +1,5 @@
 <template>
-  <UApp id="app" class="flex flex-col min-h-screen w-full">
+  <UApp id="app" class="flex flex-col min-h-screen w-full" :toaster="toaster">
     <DefaultHeader />
 
     <UMain>
@@ -39,6 +39,8 @@ useSeoMeta({
   twitterDescription: "NTNUx - 更適合師大人的課程查詢系統",
   twitterImage: "https://ntnux.org/favicon.png",
 });
+
+const toaster = { expand: false };
 
 const windowWidth = useState("windowWidth", () => window?.innerWidth || 1200);
 

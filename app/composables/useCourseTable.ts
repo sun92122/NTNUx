@@ -57,11 +57,13 @@ export interface Course {
   restriction: string; // 限修說明 (r)
   gender_restriction: string; // 性別限修（F/M/None）(rg)
   comment: string; // 說明 (c)
+
+  description?: string; // 課程描述，從跨域 API 獲取
 }
 
 type TermData = Array<Course>;
 
-interface AllTermsData {
+export interface AllTermsData {
   [term: string]: TermData;
 }
 
@@ -240,7 +242,7 @@ export function getTable() {
   return table.value;
 }
 
-function fetchTermData(term: string, lazy: boolean = false) {
+export function fetchTermData(term: string, lazy: boolean = false) {
   const tableWatchVersion = useState<number>("tableWatchVersion", () => 0);
   const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
   const denseDataAllTerms = useState<AllTermsData>(
@@ -255,7 +257,7 @@ function fetchTermData(term: string, lazy: boolean = false) {
   const { refresh } = useFetch<Course[]>(`/data/${term}/data.json`, {
     server: false, // only fetch on client side
     lazy: lazy, // lazy fetch if specified
-    onResponse: ({ request, response, options }) => {
+    onResponse: ({ response }) => {
       const rawData = response._data;
       if (rawData) {
         const formattedData = rawData.map((item: any) =>
@@ -271,7 +273,7 @@ function fetchTermData(term: string, lazy: boolean = false) {
     `/data/${term}/dense.json`,
     {
       server: false, // only fetch on client side
-      onResponse: ({ request, response, options }) => {
+      onResponse: ({ response }) => {
         const rawData = response._data;
         if (rawData) {
           const formattedData = rawData; // already formatted in backend
@@ -285,7 +287,7 @@ function fetchTermData(term: string, lazy: boolean = false) {
     `/data/${term}/last_update.json`,
     {
       server: false, // only fetch on client side
-      onResponse: ({ request, response, options }) => {
+      onResponse: ({ response }) => {
         const data = response._data;
         updateTimeAllTerms.value[term] = data?.last_update || "unknown";
       },
