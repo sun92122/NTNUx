@@ -18,17 +18,20 @@
       </template>
 
       <template #body="{ item, index, open, ui }">
-        <span
-          v-for="c in (item as AccordionItem).content?.split('\n') || []"
+        <p
+          v-for="c in (item as AccordionItem).content
+            ?.replace(/<\/br>/g, '\n')
+            .replace(/(?<=.)◎/g, '\n◎')
+            .split('\n') || []"
           v-html="c"
-          class="ps-8 whitespace-pre-wrap inline-block"
-        ></span>
+          class="whitespace-pre-wrap indent-8"
+        ></p>
       </template>
       <template #description-body="{ item, index, open, ui }">
-        <span
+        <p
           v-html="(item as AccordionItem).content"
-          class="ps-8 whitespace-pre-wrap"
-        ></span>
+          class="whitespace-pre-wrap indent-8"
+        ></p>
       </template>
     </UAccordion>
   </div>

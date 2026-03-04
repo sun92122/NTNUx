@@ -7,8 +7,8 @@
       <div class="text-2xl font-bold">
         {{ course?.name || title || "課程資訊" }}
       </div>
-      <div class="text-sm text-dimmed mt-1">
-        <p>
+      <div class="mt-1 flex flex-row justify-between">
+        <p class="text-sm text-dimmed">
           {{
             course
               ? `${course.year}-${course.term?.replace("3", "暑期")} 開課`
@@ -16,6 +16,19 @@
           }}
         </p>
         <!-- button -->
+        <div
+          :class="[
+            'course-button flex flex-row items-center justify-end gap-2',
+          ]"
+        >
+          <UButton
+            icon="tabler:heart"
+            size="lg"
+            color="neutral"
+            variant="link"
+          />
+          <UButton label="加入" size="lg" color="neutral" variant="soft" />
+        </div>
       </div>
     </div>
 
@@ -57,7 +70,6 @@
           `deptCode=${course.department_code}&formS=${course.grade}&` +
           `classes1=${course.class_kind}&deptGroup=${course.department_group}`
         "
-        :width="windowWidth < 950 ? `950px` : '100%'"
         :height="windowWidth < 950 ? '2000px' : '800px'"
         frameborder="0"
         :style="{
@@ -68,7 +80,7 @@
             windowWidth < 950 ? (windowWidth - 10) / 950 : 1
           })`,
         }"
-        class="mt-4 mx-auto bg-white w-full origin-top-left"
+        class="mt-4 mx-auto bg-white w-full max-w-237.5 origin-top-left"
       ></iframe>
     </div>
   </div>

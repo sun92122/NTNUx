@@ -39,8 +39,8 @@
               <UIcon
                 v-if="item.trailingIcon"
                 :name="item.trailingIcon"
-                class="rounded-full ml-auto group-hover:visible border-0 text-default size-5 p-0"
-                :class="item.trailingIconShown ? 'visible' : 'collapse'"
+                class="rounded-none ml-auto group-hover:visible group-hover:text-default border-0 size-5 p-0 text-dimmed"
+                :class="item.trailingIconShown ? 'visible' : 'pointer-fine:collapse'"
               ></UIcon>
             </div>
           </template>
@@ -94,6 +94,7 @@ function customToast(
     description: description,
     icon: icon,
     progress: false,
+    type: "foreground",
   });
 }
 function copyToClipboard(text: string, label: string) {
@@ -282,9 +283,9 @@ const infoItems = computed<CourseInfoItem[]>(
               trailingIconShown: true,
               content: course.value.location.split("/").map((loc) => ({
                 label: loc,
-                trailingIcon: "tabler:map-search",
+                trailingIcon: getMapLink(loc) ? "tabler:map-search" : undefined,
                 to: getMapLink(loc),
-                target: getMapLink(loc) === "#" ? undefined : "_blank",
+                target: getMapLink(loc) ? "_blank" : undefined,
               })),
               click: () => {
                 locationCollapsed.value = !locationCollapsed.value;
@@ -296,14 +297,13 @@ const infoItems = computed<CourseInfoItem[]>(
               label: "上課地點",
               title: course.value.location,
               disabled: false,
-              trailingIcon: "tabler:map-search",
+              trailingIcon: getMapLink(course.value.location)
+                ? "tabler:map-search"
+                : undefined,
               cursor: "pointer",
               trailingIconShown: true,
               to: getMapLink(course.value.location),
-              target:
-                getMapLink(course.value.location) === "#"
-                  ? undefined
-                  : "_blank",
+              target: getMapLink(course.value.location) ? "_blank" : undefined,
             }
         : {
             icon: "tabler:map-pin",
@@ -311,6 +311,14 @@ const infoItems = computed<CourseInfoItem[]>(
             title: "",
             disabled: true,
           },
+      {
+        icon: "tabler:language",
+        title: course.value?.english_teaching
+          ? "英文授課"
+          : course.value?.comment?.match(/◎*語\s*授課/)
+            ? "國家語言授課"
+            : "中文授課",
+      },
       course.value?.credit_program
         ? course.value.credit_program.split("/").length > 1
           ? {
@@ -355,7 +363,7 @@ const infoItems = computed<CourseInfoItem[]>(
 const locationCollapsed = ref(false);
 const programCollapsed = ref(true);
 
-function getMapLink(location: string): string {
+function getMapLink(location: string): string | undefined {
   if (
     !location ||
     location.startsWith("校外") ||
@@ -363,7 +371,7 @@ function getMapLink(location: string): string {
     location.includes("教室自排") ||
     location.includes("請洽系所辦")
   )
-    return "#";
+    return undefined;
 
   const map = ref(`query=${encodeURIComponent(location.trim())}`);
   for (const key in locationMap) {
@@ -372,6 +380,6 @@ function getMapLink(location: string): string {
       return `https://www.google.com/maps/search/?api=1&${map.value}`;
     }
   }
-  return "#"
+  return undefined;
 }
 </script>

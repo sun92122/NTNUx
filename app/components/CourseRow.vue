@@ -13,7 +13,7 @@
       <span class="max-md:mr-4 text-sm"> {{ course?.id }}</span>
       <span class="text-sm">{{ course?.course_code }}</span>
     </div>
-    <span class="course-title order-2 col-span-2">
+    <span class="course-title order-2 col-span-2 max-md:w-full max-md:pr-25">
       <ULink
         class="course-name text-lg text-primary dark:text-white font-bold"
         as="button"
@@ -95,16 +95,6 @@
         {{ generalCoreMap[item as keyof typeof generalCoreMap] || item }}
       </UBadge>
       <UBadge
-        v-if="course?.credit_program"
-        v-for="item in course.credit_program.split('/')"
-        :key="item"
-        icon="tabler:book"
-        variant="soft"
-        color="neutral"
-      >
-        {{ programMap[item] || item }}
-      </UBadge>
-      <UBadge
         icon="tabler:users"
         :color="course?.limit_enrollment || 0 > 0 ? 'neutral' : 'warning'"
         variant="soft"
@@ -121,6 +111,16 @@
       >
         英文授課
       </UBadge>
+      <UBadge
+        v-if="course?.credit_program"
+        v-for="item in course.credit_program.split('/')"
+        :key="item"
+        icon="tabler:book"
+        variant="soft"
+        color="neutral"
+      >
+        {{ programMap[item] || item }}
+      </UBadge>
     </div>
     <div
       class="course-comment order-5 flex flex-col justify-center text-sm whitespace-pre-wrap row-span-2"
@@ -134,12 +134,12 @@
         <UButton icon="tabler:heart" size="lg" color="neutral" variant="link" />
         <UButton label="加入" size="lg" color="neutral" variant="soft" />
       </div>
-      <span v-if="course?.restriction" class="pt-1">
+      <span v-if="course?.restriction" class="pt-1 text-xs">
         {{
           course.restriction.replace(/<\/br>/g, "\n").replace(/(?<=.)◎/g, "\n◎")
         }}
       </span>
-      <span v-if="course?.comment" class="pt-1">
+      <span v-if="course?.comment" class="pt-1 text-xs">
         {{ course.comment.replace(/<\/br>/g, "\n") }}
       </span>
     </div>

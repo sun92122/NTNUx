@@ -25,7 +25,7 @@
         class="flex items-center max-md:flex-col max-md:items-stretch"
         :class="[
           'w-full md:h-16 md:rounded-full overflow-hidden shadow-xs shadow-gray-400',
-          'max-md:rounded-none max-md:h-fit',
+          'max-md:rounded-none max-md:h-fit max-md:shadow-none max-md:border-b-2 max-md:border-t-2 max-md:border-gray-200',
         ]"
         label=""
         :orientation="windowWidth < 768 ? 'vertical' : 'horizontal'"
@@ -42,6 +42,7 @@
             base: 'px-8 pb-3 pt-8 peer',
           }"
           class="text-base border-gray-300 search-input w-full h-full max-md:h-16"
+          @blur="globalFilterInput = globalFilterInput.trim()"
         >
           <label
             :class="[
@@ -162,7 +163,10 @@
       </UFieldGroup>
       <!-- search button -->
       <div
-        class="absolute right-0 top-0 h-full w-16 flex items-center justify-center pr-2.5 z-10 max-md:h-1/2"
+        class="absolute right-0 top-0 h-full w-16 flex items-center justify-center pr-2.5 z-10"
+        :class="
+          ['dept', 'general', 'program'].includes(mode) ? 'max-md:h-1/2' : ''
+        "
       >
         <UButton
           color="primary"
@@ -174,7 +178,7 @@
       </div>
     </div>
     <div
-      class="advanced-search-control max-w-3xl min-w-2/5 m-auto px-2 flex items-center gap-2 hide-scrollbar overflow-x-scroll my-4"
+      class="advanced-search-control max-w-3xl min-w-2/5 max-md:w-full m-auto px-2 flex items-center gap-2 hide-scrollbar overflow-x-scroll my-4"
     >
       <UDropdownMenu
         :items="dropdownTermOptions"
