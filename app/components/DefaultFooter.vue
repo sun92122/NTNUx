@@ -1,3 +1,84 @@
 <template>
-  <UFooter></UFooter>
+  <UFooter
+    :ui="{ top: 'mx-auto max-w-2xl !py-2 mt-4 border-t-1 border-gray-200' }"
+  >
+    <template #top>
+      <UContainer class="">
+        <UFooterColumns
+          :columns="columns"
+          :ui="{ list: 'mt-2', item: 'mb-1' }"
+        />
+      </UContainer>
+    </template>
+
+    <template #default>
+      <div class="text-center text-sm text-dimmed">
+        <div>&copy; {{ new Date().getFullYear() }} NTNUx.</div>
+        <div>
+          所有課程資料為國立臺灣師範大學所有<br />僅供學術研究與個人使用
+        </div>
+        <div>資料非實時更新，請以學校公告為準</div>
+      </div>
+    </template>
+  </UFooter>
 </template>
+
+<script lang="ts" setup>
+import type { FooterColumn } from "@nuxt/ui";
+
+const columns: FooterColumn[] = [
+  {
+    label: "更多功能",
+    children: [
+      { label: "課表", to: "/user/timetable" },
+      { label: "顯示收藏課程", to: "/user/favorites" },
+    ],
+  },
+  {
+    label: "關於 NTNUx",
+    children: [
+      { label: "GitHub", href: "https://github.com/NTNUx/NTNUx" },
+      { label: "Bug 回報", href: "https://github.com/NTNUx/NTNUx/issues" },
+    ],
+  },
+  {
+    label: "實用連結",
+    children: [
+      // 實用連結
+      // 師大課程資訊
+      // 師大選課系統
+      // 行政資訊入口
+      // 年度行事曆
+      // 選課沒地雷（FB）
+      {
+        label: "師大課程資訊",
+        href: "https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/index.jsp",
+        target: "_blank",
+      },
+      {
+        label: "師大選課系統",
+        href: `https://cos${
+          // random number 1-5
+          Math.floor(Math.random() * 5) + 1
+        }s.ntnu.edu.tw/AasEnrollStudent`,
+        target: "_blank",
+      },
+      {
+        label: "行政資訊入口",
+        href: "https://iportal2.ntnu.edu.tw/ntnu/",
+        target: "_blank",
+      },
+      {
+        label: "年度行事曆",
+        href: "https://www.aa.ntnu.edu.tw/zh_tw/Calender",
+        target: "_blank",
+      },
+      {
+        label: "選課沒地雷（FB）",
+        href: "https://www.facebook.com/groups/143704482352660/",
+        target: "_blank",
+      },
+    ],
+  },
+];
+</script>
