@@ -1,12 +1,18 @@
 <template>
-  <UFooter
-    :ui="{ top: 'mx-auto max-w-2xl !py-2 mt-4 border-t-1 border-gray-200' }"
-  >
+  <USeparator class="mx-auto my-4 max-w-4xl" />
+  <UFooter :ui="{ top: 'mx-auto max-w-2xl !py-2' }">
     <template #top>
-      <UContainer class="">
+      <UContainer>
         <UFooterColumns
           :columns="columns"
-          :ui="{ list: 'mt-2', item: 'mb-1' }"
+          :ui="{
+            list: 'mt-2',
+            item: 'mb-1',
+            link: 'text-muted! hover:text-default! transition-colors!',
+            center:
+              'sm:grid sm:col-span-3 sm:gap-8 max-sm:max-w-md mx-auto px-4 w-full',
+          }"
+          class="flex!"
         />
       </UContainer>
     </template>
@@ -30,26 +36,28 @@ const columns: FooterColumn[] = [
   {
     label: "更多功能",
     children: [
-      { label: "課表", to: "/user/timetable" },
+      { label: "課表規劃", to: "/user/timetable" },
       { label: "顯示收藏課程", to: "/user/favorites" },
     ],
   },
   {
     label: "關於 NTNUx",
     children: [
-      { label: "GitHub", href: "https://github.com/NTNUx/NTNUx" },
-      { label: "Bug 回報", href: "https://github.com/NTNUx/NTNUx/issues" },
+      {
+        label: "GitHub",
+        href: "https://github.com/NTNUx/NTNUx",
+        target: "_blank",
+      },
+      {
+        label: "Bug 回報",
+        href: "https://github.com/NTNUx/NTNUx/issues",
+        target: "_blank",
+      },
     ],
   },
   {
     label: "實用連結",
     children: [
-      // 實用連結
-      // 師大課程資訊
-      // 師大選課系統
-      // 行政資訊入口
-      // 年度行事曆
-      // 選課沒地雷（FB）
       {
         label: "師大課程資訊",
         href: "https://courseap2.itc.ntnu.edu.tw/acadmOpenCourse/index.jsp",
