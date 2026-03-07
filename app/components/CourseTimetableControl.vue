@@ -226,7 +226,7 @@
             @click="
               () => {
                 importTextarea = '';
-                tempTimetable.value = {} as Timetable;
+                tempTimetable = {} as Timetable;
               }
             "
           />
@@ -234,6 +234,7 @@
             v-if="!tempTimetable || Object.keys(tempTimetable).length === 0"
             label="解析"
             color="primary"
+            class="item-center justify-center"
             @click="submitImport"
             :loading="importLoading"
             :disabled="!importTextarea || importTextarea.trim() === ''"
@@ -242,6 +243,7 @@
             v-else
             label="確認匯入"
             color="primary"
+            class="item-center justify-center"
             @click="
               () => {
                 allTimetable[currentTerm] = tempTimetable;
