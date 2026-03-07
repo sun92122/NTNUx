@@ -23,6 +23,7 @@
         variant="link"
         class="hidden sm:flex"
         :items="navigationItems"
+        content-orientation="vertical"
       />
       <UAvatar
         src="/favicon.png"
@@ -79,7 +80,16 @@ const navigationItems = computed(() => [
   },
   {
     label: "課程規劃",
-    to: "#",
+    children: [
+      {
+        label: "課表規劃",
+        to: "/user/timetable",
+      },
+      {
+        label: "收藏課程",
+        to: "/user/favorites",
+      },
+    ],
   },
 ]);
 

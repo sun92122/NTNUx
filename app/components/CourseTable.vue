@@ -18,7 +18,7 @@
             <div>
               {{
                 tableOptions?.data
-                  ? `第 ${clamp(firstVisibleIndex, 0, rowVirtualizerOptions?.count || 0)} / ${rowVirtualizerOptions?.count || 0} 筆課程`
+                  ? `第 ${firstVisibleIndex} / ${rowVirtualizerOptions?.count || 0} 筆課程`
                   : "課程們還在路上..."
               }}
             </div>
@@ -151,9 +151,6 @@ const translateY = computed(() => {
     : 0;
 });
 
-const clamp = (num: number, min: number, max: number) =>
-  num < min ? min : num > max ? max : num;
-
 const virtualListRef = ref<HTMLElement | null>(null);
 const firstVisibleIndex = ref(0);
 const handleCourseRowMounted = () => {
@@ -174,8 +171,15 @@ const handleScroll = () => {
       break;
     }
   }
-  if (tableRows.value.length > 0 && firstVisibleIndex.value <= 0) {
-    firstVisibleIndex.value = 1;
+
+  if (tableRows.value.length > 0) {
+    if (firstVisibleIndex.value <= 0 && rowVirtualizerOptions.value.count > 0) {
+      firstVisibleIndex.value = 1;
+    } else if (firstVisibleIndex.value > rowVirtualizerOptions.value.count) {
+      firstVisibleIndex.value = rowVirtualizerOptions.value.count;
+    }
+  } else {
+    firstVisibleIndex.value = 0;
   }
 };
 
@@ -201,7 +205,7 @@ onUnmounted(() => {
   window.removeEventListener("scroll", handleScroll);
 });
 watch(
-  () => tableRows.value.length,
+  () => virtualRows.value.length,
   () => {
     handleScroll();
 

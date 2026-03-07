@@ -68,6 +68,10 @@ export default defineNuxtConfig({
       ntnuxProgramsLz: "",
     },
   },
+  colorMode: {
+    preference: "light",
+    fallback: "light",
+  },
 
   devtools: {
     enabled: true,

@@ -7,8 +7,8 @@
       <div class="text-2xl font-bold">
         {{ course?.name || title || "課程資訊" }}
       </div>
-      <div class="text-sm text-dimmed mt-1">
-        <p>
+      <div class="mt-1 flex flex-row justify-between">
+        <p class="text-sm text-dimmed">
           {{
             course
               ? `${course.year}-${course.term?.replace("3", "暑期")} 開課`
@@ -16,6 +16,26 @@
           }}
         </p>
         <!-- button -->
+        <div
+          :class="[
+            'course-button flex flex-row items-center justify-end gap-2',
+          ]"
+        >
+          <UButton
+            icon="tabler:heart"
+            size="lg"
+            color="neutral"
+            variant="link"
+          />
+          <UButton
+            :label="isAdded ? '已加入' : '加入'"
+            size="lg"
+            :color="isAdded ? 'primary' : 'neutral'"
+            :variant="isAdded ? 'solid' : 'soft'"
+            class="w-14 items-center justify-center px-0 cursor-pointer"
+            @click="toggleCourse"
+          ></UButton>
+        </div>
       </div>
     </div>
 
@@ -57,7 +77,6 @@
           `deptCode=${course.department_code}&formS=${course.grade}&` +
           `classes1=${course.class_kind}&deptGroup=${course.department_group}`
         "
-        :width="windowWidth < 950 ? `950px` : '100%'"
         :height="windowWidth < 950 ? '2000px' : '800px'"
         frameborder="0"
         :style="{
@@ -68,7 +87,7 @@
             windowWidth < 950 ? (windowWidth - 10) / 950 : 1
           })`,
         }"
-        class="mt-4 mx-auto bg-white w-full origin-top-left"
+        class="mt-4 mx-auto bg-white w-full max-w-237.5 origin-top-left"
       ></iframe>
     </div>
   </div>
@@ -78,6 +97,14 @@
 // /courses/[year]/[term]/[id]/[[title]].vue
 import type { Course, AllTermsData } from "@/composables/useCourseTable";
 import { fetchTermData } from "@/composables/useCourseTable";
+import {
+  getTimetable,
+  toggleCourseInTimetable,
+} from "@/composables/useTimetable";
+import {
+  addToTimetableToast,
+  removeFromTimetableToast,
+} from "@/composables/useTools";
 
 const route = useRoute();
 const defaultTerm = useState<string>(
@@ -181,6 +208,27 @@ function updateSeoMeta() {
 }
 updateSeoMeta();
 
+const courseKey = computed(() => {
+  return (
+    course.value?.id ||
+    `${course.value?.course_code}-${course.value?.course_group}`
+  );
+});
+const isAdded = ref(
+  course.value ? isCourseInTimetable(yt, course.value) : false,
+);
+
+function toggleCourse() {
+  toggleCourseInTimetable(yt, course.value as Course);
+  if (isCourseInTimetable(yt, course.value as Course)) {
+    isAdded.value = true;
+    addToTimetableToast(course.value?.name as string, courseKey.value);
+  } else {
+    isAdded.value = false;
+    removeFromTimetableToast(course.value?.name as string, courseKey.value);
+  }
+}
+
 // update description when course changes
 watch(
   course,
@@ -202,5 +250,9 @@ onMounted(() => {
       course.value?.course_code || courseId.split("-", 2)[0] || "",
     );
   }
+
+  getTimetable(yt);
+
+  isAdded.value = course.value ? isCourseInTimetable(yt, course.value) : false;
 });
 </script>

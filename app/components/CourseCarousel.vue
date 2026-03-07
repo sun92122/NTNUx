@@ -35,7 +35,7 @@
       >
         <template #header>
           <div
-            class="flex flex-col text-lg font-bold items-center justify-center"
+            class="flex flex-col text-lg font-bold items-center justify-center select-none"
           >
             <div>
               {{ item?.title }}
@@ -62,7 +62,7 @@
           </div>
         </template>
 
-        <div class="h-60 select-none">
+        <div class="h-64 select-none">
           <UTimeline
             v-if="item.step"
             :items="
@@ -85,7 +85,7 @@
         </div>
 
         <template #footer>
-          <div class="h-6">
+          <div class="h-6 select-none">
             <UButton
               v-if="item.info"
               :label="item.info"
@@ -146,6 +146,57 @@ const carouselItem = computed<CourseCarouselItem[]>(() => {
     dateTime: [],
     color: "",
   };
-  return [emptyItem, emptyItem, ...items.value, emptyItem, emptyItem];
+  return [
+    emptyItem,
+    emptyItem,
+    emptyItem,
+    ...items.value,
+    emptyItem,
+    emptyItem,
+    emptyItem,
+  ];
+});
+
+function scrollToCurrent() {
+  if (!carousel.value) return;
+  const now = new Date();
+  const currentIndex = items.value.findIndex((item) => {
+    // get the latest item in dateTime
+    const endTime = item.dateTime[item.dateTime.length - 1];
+    if (!endTime) return false;
+    const dateParts = endTime.date.split("/").map(Number);
+    const [endYear, endMonth, endDay] =
+      dateParts.length === 3 ? dateParts : [null, dateParts[0], dateParts[1]];
+    // use current year if year is not provided
+    if (!endMonth || !endDay) return false;
+    const _year = ref(endYear);
+    if (endYear && endYear < 1911) {
+      _year.value = endYear + 1911;
+    } else {
+      _year.value = now.getFullYear();
+    }
+    const endDate = new Date(_year.value, endMonth - 1, endDay);
+    if (now <= endDate) {
+      return true;
+    }
+    return false;
+  });
+  const shiftIndex =
+    ((carousel.value?.emblaApi?.scrollSnapList()?.length ??
+      items.value.length) - items.value.length || 0) / 2;
+  if (currentIndex !== -1) {
+    carousel.value?.emblaApi?.scrollTo(currentIndex + Math.floor(shiftIndex));
+    console.log("Scrolled to current schedule item:", {
+      currentIndex,
+      item: items.value[currentIndex],
+      shiftIndex,
+    });
+  }
+}
+
+onMounted(() => {
+  setTimeout(() => {
+    scrollToCurrent();
+  }, 50);
 });
 </script>

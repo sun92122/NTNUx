@@ -13,7 +13,7 @@
       <span class="max-md:mr-4 text-sm"> {{ course?.id }}</span>
       <span class="text-sm">{{ course?.course_code }}</span>
     </div>
-    <span class="course-title order-2 col-span-2">
+    <span class="course-title order-2 col-span-2 max-md:w-full max-md:pr-25">
       <ULink
         class="course-name text-lg text-primary dark:text-white font-bold"
         as="button"
@@ -43,13 +43,14 @@
         v-if="course?.time && !course?.intensive"
         icon="tabler:clock"
         :color="
+          !course?.time?.length ||
           course.time.join('/').match(/.* (0|1)([-/\n\r]|$)/)
             ? 'warning'
             : 'neutral'
         "
         variant="soft"
       >
-        {{ course.time.join("/") }}
+        {{ course.time.join("/") || "無資料" }}
       </UBadge>
       <UBadge
         v-if="course?.intensive"
@@ -95,16 +96,6 @@
         {{ generalCoreMap[item as keyof typeof generalCoreMap] || item }}
       </UBadge>
       <UBadge
-        v-if="course?.credit_program"
-        v-for="item in course.credit_program.split('/')"
-        :key="item"
-        icon="tabler:book"
-        variant="soft"
-        color="neutral"
-      >
-        {{ programMap[item] || item }}
-      </UBadge>
-      <UBadge
         icon="tabler:users"
         :color="course?.limit_enrollment || 0 > 0 ? 'neutral' : 'warning'"
         variant="soft"
@@ -121,6 +112,16 @@
       >
         英文授課
       </UBadge>
+      <UBadge
+        v-if="course?.credit_program"
+        v-for="item in course.credit_program.split('/')"
+        :key="item"
+        icon="tabler:book"
+        variant="soft"
+        color="neutral"
+      >
+        {{ programMap[item] || item }}
+      </UBadge>
     </div>
     <div
       class="course-comment order-5 flex flex-col justify-center text-sm whitespace-pre-wrap row-span-2"
@@ -132,14 +133,21 @@
         ]"
       >
         <UButton icon="tabler:heart" size="lg" color="neutral" variant="link" />
-        <UButton label="加入" size="lg" color="neutral" variant="soft" />
+        <UButton
+          :label="isAdded ? '已加入' : '加入'"
+          size="lg"
+          :color="isAdded ? 'primary' : 'neutral'"
+          :variant="isAdded ? 'solid' : 'soft'"
+          class="w-14 items-center justify-center px-0 cursor-pointer"
+          @click="toggleCourse"
+        ></UButton>
       </div>
-      <span v-if="course?.restriction" class="pt-1">
+      <span v-if="course?.restriction" class="pt-1 text-xs">
         {{
           course.restriction.replace(/<\/br>/g, "\n").replace(/(?<=.)◎/g, "\n◎")
         }}
       </span>
-      <span v-if="course?.comment" class="pt-1">
+      <span v-if="course?.comment" class="pt-1 text-xs">
         {{ course.comment.replace(/<\/br>/g, "\n") }}
       </span>
     </div>
@@ -149,10 +157,15 @@
 <script setup lang="ts">
 import type { Course } from "@/composables/useCourseTable";
 import { optionMap, generalCoreMap } from "@/composables/useConstants";
+import { toggleCourseInTimetable } from "@/composables/useTimetable";
+import {
+  addToTimetableToast,
+  removeFromTimetableToast,
+} from "@/composables/useTools";
 
 const config = useRuntimeConfig();
 
-defineProps({
+const props = defineProps({
   course: {
     type: Object as () => Course | undefined,
     required: true,
@@ -185,4 +198,32 @@ const toggle = (e: any) => {
     densePopover.value.toggle(e);
   }
 };
+
+const yt = computed(() => `${props.course?.year}-${props.course?.term}`);
+const courseKey = computed(() => {
+  return (
+    props.course?.id ||
+    `${props.course?.course_code}-${props.course?.course_group}`
+  );
+});
+const isAdded = ref(
+  props.course ? isCourseInTimetable(yt.value, props.course as Course) : false,
+);
+
+function toggleCourse() {
+  toggleCourseInTimetable(yt.value, props.course as Course);
+  if (isCourseInTimetable(yt.value, props.course as Course)) {
+    isAdded.value = true;
+    addToTimetableToast(props.course?.name as string, courseKey.value);
+  } else {
+    isAdded.value = false;
+    removeFromTimetableToast(props.course?.name as string, courseKey.value);
+  }
+}
+
+onMounted(() => {
+  isAdded.value = props.course
+    ? isCourseInTimetable(yt.value, props.course as Course)
+    : false;
+});
 </script>
