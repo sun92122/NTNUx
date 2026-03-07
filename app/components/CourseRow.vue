@@ -43,13 +43,14 @@
         v-if="course?.time && !course?.intensive"
         icon="tabler:clock"
         :color="
+          !course?.time?.length ||
           course.time.join('/').match(/.* (0|1)([-/\n\r]|$)/)
             ? 'warning'
             : 'neutral'
         "
         variant="soft"
       >
-        {{ course.time.join("/") }}
+        {{ course.time.join("/") || "無資料" }}
       </UBadge>
       <UBadge
         v-if="course?.intensive"

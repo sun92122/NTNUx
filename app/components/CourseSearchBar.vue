@@ -178,7 +178,7 @@
       </div>
     </div>
     <div
-      class="advanced-search-control max-w-3xl min-w-2/5 max-md:w-full m-auto px-2 flex items-center gap-2 hide-scrollbar overflow-x-scroll my-4"
+      class="advanced-search-control max-w-3xl min-w-3/5 max-md:w-full m-auto px-2 flex items-center gap-2 hide-scrollbar overflow-x-scroll my-4"
     >
       <UDropdownMenu
         :items="dropdownTermOptions"

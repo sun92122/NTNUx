@@ -40,7 +40,9 @@
                 v-if="item.trailingIcon"
                 :name="item.trailingIcon"
                 class="rounded-none ml-auto group-hover:visible group-hover:text-default border-0 size-5 p-0 text-dimmed"
-                :class="item.trailingIconShown ? 'visible' : 'pointer-fine:collapse'"
+                :class="
+                  item.trailingIconShown ? 'visible' : 'pointer-fine:collapse'
+                "
               ></UIcon>
             </div>
           </template>
@@ -73,6 +75,7 @@ import type { ContextMenuItem } from "@nuxt/ui";
 import type { Course } from "@/composables/useCourseTable";
 
 import { optionMap, locationMap } from "@/composables/useConstants";
+import { copyToClipboard } from "@/composables/useTools";
 
 const props = defineProps({
   course: {
@@ -81,26 +84,6 @@ const props = defineProps({
   },
 });
 
-const toast = useToast();
-function customToast(
-  id: string,
-  title: string,
-  icon: string = "tabler:copy",
-  description?: string,
-) {
-  toast.add({
-    id: id,
-    title: title,
-    description: description,
-    icon: icon,
-    progress: false,
-    type: "foreground",
-  });
-}
-function copyToClipboard(text: string, label: string) {
-  navigator.clipboard.writeText(text);
-  customToast(`copy-${label}`, `已複製${label}（${text}）`, "tabler:copy");
-}
 const course = computed(() => {
   return props.course;
 });
@@ -263,9 +246,11 @@ const infoItems = computed<CourseInfoItem[]>(
       },
       {
         icon: "tabler:clock",
-        label: "上課時間",
-        title: course.value?.time ? course.value.time.join("/") : "",
-        disabled: !course.value?.time,
+        label: course.value?.time?.length ? "上課時間" : undefined,
+        title: course.value?.time?.length
+          ? course.value.time.join("/")
+          : "無上課時間資料",
+        disabled: !course.value?.time?.length,
       },
       course.value?.location
         ? (course.value?.location.search("/") || -1) >= 0
@@ -307,8 +292,7 @@ const infoItems = computed<CourseInfoItem[]>(
             }
         : {
             icon: "tabler:map-pin",
-            label: "上課地點",
-            title: "",
+            title: "無上課地點資訊",
             disabled: true,
           },
       {

@@ -21,7 +21,13 @@ export function routerPushWithQuery(
 
 export function jsonLzEncode(obj: any) {
   try {
-    return compressToBase64(JSONC.minify(obj));
+    // return compressToBase64(JSONC.minify(obj));
+    if (typeof obj === "string") {
+      return compressToBase64(obj);
+    } else {
+      const jsonString = JSONC.minify(JSONC.stringify(obj));
+      return compressToBase64(jsonString);
+    }
   } catch (e) {
     console.error("Failed to compress JSON:", e);
     return "";
@@ -35,4 +41,29 @@ export function jsonLzDecode(str: string) {
     console.error("Failed to decompress JSON:", e);
     return null;
   }
+}
+
+function customCopyToast(
+  id: string,
+  title: string,
+  icon: string = "tabler:copy",
+  description?: string,
+) {
+  useToast().add({
+    id: id,
+    title: title,
+    description: description,
+    icon: icon,
+    progress: false,
+    type: "foreground",
+  });
+}
+
+export function copyToClipboard(text: string, label: string) {
+  navigator.clipboard.writeText(text);
+  customCopyToast(
+    `copy-${label}`,
+    `已複製${label}（${text.length > 10 ? text.slice(0, 10) + "..." : text}）`,
+    "tabler:copy",
+  );
 }
