@@ -27,7 +27,14 @@
             color="neutral"
             variant="link"
           />
-          <UButton label="加入" size="lg" color="neutral" variant="soft" />
+          <UButton
+            :label="isAdded ? '已加入' : '加入'"
+            size="lg"
+            :color="isAdded ? 'primary' : 'neutral'"
+            :variant="isAdded ? 'solid' : 'soft'"
+            class="w-14 items-center justify-center px-0 cursor-pointer"
+            @click="toggleCourse"
+          ></UButton>
         </div>
       </div>
     </div>
@@ -90,6 +97,14 @@
 // /courses/[year]/[term]/[id]/[[title]].vue
 import type { Course, AllTermsData } from "@/composables/useCourseTable";
 import { fetchTermData } from "@/composables/useCourseTable";
+import {
+  getTimetable,
+  toggleCourseInTimetable,
+} from "@/composables/useTimetable";
+import {
+  addToTimetableToast,
+  removeFromTimetableToast,
+} from "@/composables/useTools";
 
 const route = useRoute();
 const defaultTerm = useState<string>(
@@ -193,6 +208,27 @@ function updateSeoMeta() {
 }
 updateSeoMeta();
 
+const courseKey = computed(() => {
+  return (
+    course.value?.id ||
+    `${course.value?.course_code}-${course.value?.course_group}`
+  );
+});
+const isAdded = ref(
+  course.value ? isCourseInTimetable(yt, course.value) : false,
+);
+
+function toggleCourse() {
+  toggleCourseInTimetable(yt, course.value as Course);
+  if (isCourseInTimetable(yt, course.value as Course)) {
+    isAdded.value = true;
+    addToTimetableToast(course.value?.name as string, courseKey.value);
+  } else {
+    isAdded.value = false;
+    removeFromTimetableToast(course.value?.name as string, courseKey.value);
+  }
+}
+
 // update description when course changes
 watch(
   course,
@@ -214,5 +250,9 @@ onMounted(() => {
       course.value?.course_code || courseId.split("-", 2)[0] || "",
     );
   }
+
+  getTimetable(yt);
+
+  isAdded.value = course.value ? isCourseInTimetable(yt, course.value) : false;
 });
 </script>

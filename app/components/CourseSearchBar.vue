@@ -42,7 +42,10 @@
             base: 'px-8 pb-3 pt-8 peer',
           }"
           class="text-base border-gray-300 search-input w-full h-full max-md:h-16"
-          @blur="globalFilterInput = globalFilterInput.trim()"
+          @blur="
+            globalFilterInput = globalFilterInput.trim();
+            updateGlobalFilter();
+          "
         >
           <label
             :class="[

@@ -43,7 +43,7 @@ export function jsonLzDecode(str: string) {
   }
 }
 
-function customCopyToast(
+function customToast(
   id: string,
   title: string,
   icon: string = "tabler:copy",
@@ -61,9 +61,24 @@ function customCopyToast(
 
 export function copyToClipboard(text: string, label: string) {
   navigator.clipboard.writeText(text);
-  customCopyToast(
+  customToast(
     `copy-${label}`,
     `已複製${label}（${text.length > 10 ? text.slice(0, 10) + "..." : text}）`,
     "tabler:copy",
+  );
+}
+
+export function addToTimetableToast(courseName: string, courseId: string) {
+  customToast(
+    `add-${courseName}`,
+    `已加入課表：${courseName}（${courseId}）`,
+    "tabler:check",
+  );
+}
+export function removeFromTimetableToast(courseName: string, courseId: string) {
+  customToast(
+    `remove-${courseName}`,
+    `已從課表移除：${courseName}（${courseId}）`,
+    "tabler:x",
   );
 }

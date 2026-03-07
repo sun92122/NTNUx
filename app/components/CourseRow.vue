@@ -133,7 +133,14 @@
         ]"
       >
         <UButton icon="tabler:heart" size="lg" color="neutral" variant="link" />
-        <UButton label="加入" size="lg" color="neutral" variant="soft" />
+        <UButton
+          :label="isAdded ? '已加入' : '加入'"
+          size="lg"
+          :color="isAdded ? 'primary' : 'neutral'"
+          :variant="isAdded ? 'solid' : 'soft'"
+          class="w-14 items-center justify-center px-0 cursor-pointer"
+          @click="toggleCourse"
+        ></UButton>
       </div>
       <span v-if="course?.restriction" class="pt-1 text-xs">
         {{
@@ -150,10 +157,15 @@
 <script setup lang="ts">
 import type { Course } from "@/composables/useCourseTable";
 import { optionMap, generalCoreMap } from "@/composables/useConstants";
+import { toggleCourseInTimetable } from "@/composables/useTimetable";
+import {
+  addToTimetableToast,
+  removeFromTimetableToast,
+} from "@/composables/useTools";
 
 const config = useRuntimeConfig();
 
-defineProps({
+const props = defineProps({
   course: {
     type: Object as () => Course | undefined,
     required: true,
@@ -186,4 +198,32 @@ const toggle = (e: any) => {
     densePopover.value.toggle(e);
   }
 };
+
+const yt = computed(() => `${props.course?.year}-${props.course?.term}`);
+const courseKey = computed(() => {
+  return (
+    props.course?.id ||
+    `${props.course?.course_code}-${props.course?.course_group}`
+  );
+});
+const isAdded = ref(
+  props.course ? isCourseInTimetable(yt.value, props.course as Course) : false,
+);
+
+function toggleCourse() {
+  toggleCourseInTimetable(yt.value, props.course as Course);
+  if (isCourseInTimetable(yt.value, props.course as Course)) {
+    isAdded.value = true;
+    addToTimetableToast(props.course?.name as string, courseKey.value);
+  } else {
+    isAdded.value = false;
+    removeFromTimetableToast(props.course?.name as string, courseKey.value);
+  }
+}
+
+onMounted(() => {
+  isAdded.value = props.course
+    ? isCourseInTimetable(yt.value, props.course as Course)
+    : false;
+});
 </script>
