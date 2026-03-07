@@ -45,7 +45,7 @@ export interface Course {
   time: string[]; // 時間（列表）(tl)
   location: string; // 地點（"/" 分隔）(lc)
   time_location: string[]; // 時間地點 (列表，原始資訊) (ti)
-  time_location_list: string[]; // 時間地點（列表）(tll)
+  time_location_list: { d: string; p: string; l: string }[]; // 時間地點（結構化列表）(tll)
   time_location_slash: string; // 時間地點（"/" 分隔）(tls)
 
   intensive: boolean; // 密集課程（Y/None）(i)
@@ -61,7 +61,7 @@ export interface Course {
   description?: string; // 課程描述，從跨域 API 獲取
 }
 
-type TermData = Array<Course>;
+export type TermData = Array<Course>;
 
 export interface AllTermsData {
   [term: string]: TermData;
