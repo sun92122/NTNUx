@@ -301,7 +301,7 @@ const defaultTimetableSettings: TimetableSettings = {
   hidePeriods: ["0", "5", "C", "D"],
   showCourseTeacher: true,
   showCourseLocation: true,
-};
+} as const;
 export const timetableSettings = ref<TimetableSettings>(
   defaultTimetableSettings,
 );
@@ -337,10 +337,10 @@ export function getTimetableSettings() {
           rawValue: storedValue,
         },
       );
-      timetableSettings.value = {} as TimetableSettings;
+      timetableSettings.value = { ...defaultTimetableSettings };
     }
   } else {
-    timetableSettings.value = {} as TimetableSettings;
+    timetableSettings.value = { ...defaultTimetableSettings };
   }
 }
 
@@ -361,6 +361,6 @@ export function setTimetableSettings(settings: TimetableSettings) {
 }
 
 export function resetTimetableSettings() {
-  timetableSettings.value = defaultTimetableSettings;
-  setTimetableSettings(defaultTimetableSettings);
+  timetableSettings.value = { ...defaultTimetableSettings };
+  setTimetableSettings(timetableSettings.value);
 }

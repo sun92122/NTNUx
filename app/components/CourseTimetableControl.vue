@@ -377,7 +377,7 @@ import {
   clearTimetable,
   toggleCourseInTimetable,
   isCourseInTimetable,
-  timetableSettings,
+  timetableSettings as settings,
   getTimetableSettings,
   setTimetableSettings,
   resetTimetableSettings,
@@ -455,7 +455,7 @@ const dropdownTermOptions = computed(() =>
     };
   }),
 );
-const settings = ref<TimetableSettings>(timetableSettings.value);
+
 watch(
   settings,
   (newSettings) => {
@@ -463,18 +463,6 @@ watch(
   },
   { deep: true },
 );
-
-onMounted(() => {
-  if (!currentTermData.value || currentTermData.value.length === 0) {
-    loading.value = true;
-    refreshAll().then(() => {
-      console.log("Course data refreshed");
-      loading.value = false;
-    });
-  }
-  getTimetableSettings();
-  settings.value = timetableSettings.value;
-});
 
 const clearTimetableModalOpen = ref(false);
 const resetSettingsModalOpen = ref(false);
@@ -535,4 +523,15 @@ function exportTimetable() {
     "/share/timetable?courses=" +
     `${exportCourseDataParams(currentTerm.value, includeColorInExport.value)}`;
 }
+
+onMounted(() => {
+  if (!currentTermData.value || currentTermData.value.length === 0) {
+    loading.value = true;
+    refreshAll().then(() => {
+      console.log("Course data refreshed");
+      loading.value = false;
+    });
+  }
+  getTimetableSettings();
+});
 </script>
