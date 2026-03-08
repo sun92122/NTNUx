@@ -280,10 +280,12 @@
           >
             <template #item="{ item }">
               <div
-                class="w-full grid grid-cols-[30px_50px_auto_20px] gap-4 items-start justify-items-start p-1.5 cursor-pointer"
+                class="w-full grid grid-cols-[30px_50px_auto_20px] gap-4 sm:gap-2 items-start justify-items-start p-1.5 cursor-pointer"
                 @click="
-                  if (item) {
-                    toggleCourseInTimetable(currentTerm, item as Course);
+                  () => {
+                    if (item) {
+                      toggleCourseInTimetable(currentTerm, item as Course);
+                    }
                   }
                 "
               >

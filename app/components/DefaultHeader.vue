@@ -155,7 +155,7 @@ const startViewTransition = (event: MouseEvent) => {
 };
 </script>
 
-<style lang="scss">
+<style>
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;

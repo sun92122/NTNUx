@@ -32,6 +32,11 @@
 <script lang="ts" setup>
 import type { FooterColumn } from "@nuxt/ui";
 
+const randomCos = useState(
+  "randomCos",
+  () => Math.floor(Math.random() * 4) + 1,
+);
+const cosUrl = `https://cos${randomCos.value}.ntnu.edu.tw/AasEnrollStudent`;
 const columns: FooterColumn[] = [
   {
     label: "更多功能",
@@ -65,10 +70,7 @@ const columns: FooterColumn[] = [
       },
       {
         label: "師大選課系統",
-        href: `https://cos${
-          // random number 1-5
-          Math.floor(Math.random() * 5) + 1
-        }s.ntnu.edu.tw/AasEnrollStudent`,
+        href: cosUrl,
         target: "_blank",
       },
       {

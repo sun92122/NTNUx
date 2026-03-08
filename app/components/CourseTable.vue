@@ -184,6 +184,7 @@ const handleScroll = () => {
 };
 
 const scrollToTop = () => {
+  rowVirtualizer.value.scrollToIndex(0);
   window.scrollTo({
     top: 0,
     behavior: "smooth",
