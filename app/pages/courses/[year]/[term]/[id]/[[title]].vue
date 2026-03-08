@@ -42,7 +42,7 @@
     <!-- info -->
     <div
       v-if="course"
-      class="w-full max-w-5xl mt-4 mx-2 lg:mx-auto p-4 rounded-lg bg-white dark:bg-gray-800 shadow grid grid-cols-1 md:grid-cols-[300px_auto] gap-4"
+      class="w-[calc(100%-1rem)] max-w-5xl mt-4 mx-auto p-4 rounded-lg bg-white dark:bg-gray-800 shadow grid grid-cols-1 md:grid-cols-[300px_auto] gap-4"
     >
       <CourseInfo :course="course" />
 
@@ -53,7 +53,7 @@
       label="顯示課程大綱"
       color="primary"
       variant="outline"
-      class="mt-4 w-full max-w-5xl mx-auto block cursor-pointer"
+      class="mt-4 w-[calc(100%-1rem)] max-w-5xl mx-auto cursor-pointer flex"
       @click="showIframeEvent"
       :loading="showIframeLoading"
       block
@@ -67,7 +67,7 @@
             ? ((windowWidth - 10) / 950) * 2000 + 'px'
             : '800px',
       }"
-      class="overflow-hidden max-w-[95vw] mx-auto"
+      class="overflow-hidden max-w-screen w-fit mx-auto"
     >
       <iframe
         :src="
@@ -78,6 +78,13 @@
           `classes1=${course.class_kind}&deptGroup=${course.department_group}`
         "
         :height="windowWidth < 950 ? '2000px' : '800px'"
+        :width="
+          windowWidth < 950
+            ? `950px`
+            : windowWidth < 1040
+              ? `${windowWidth - 16}px`
+              : '1024px'
+        "
         frameborder="0"
         :style="{
           '-webkit-transform': `scale(${
@@ -86,8 +93,9 @@
           '-moz-transform': `scale(${
             windowWidth < 950 ? (windowWidth - 10) / 950 : 1
           })`,
+          'margin-left': windowWidth < 950 ? `5px` : `0`,
         }"
-        class="mt-4 mx-auto bg-white w-full max-w-237.5 origin-top-left"
+        class="mt-4 mx-auto bg-white origin-top-left"
       ></iframe>
     </div>
   </div>
