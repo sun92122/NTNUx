@@ -611,10 +611,8 @@ async function updateRouterQuery(
     route.path == newPath &&
     JSON.stringify(route.query) === JSON.stringify(newQuery)
   ) {
-    console.trace("Same: ", newPath, newQuery, route.path, route.query);
     return;
   }
-  console.trace("Navigate to: ", newPath, newQuery);
   await navigateTo({
     path: newPath,
     query: newQuery,
