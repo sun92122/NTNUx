@@ -1,7 +1,17 @@
+<!-- 
+query: {
+  y: string; // year-term, undefined if default term is used
+  s: string; // search input
+  d: string; // dept filter, e.g. "CS,EE"
+  g: string; // general education filter, e.g. "A,B,C"
+  p: string; // program filter, e.g. "prog1,prog2"
+}
+-->
+
 <template>
   <div class="search-bar-container w-full flex flex-col justify-center">
     <div
-      class="breadcrumb-container max-w-full m-auto px-2 flex items-center gap-2 hide-scrollbar overflow-x-scroll"
+      class="breadcrumb-container max-w-full h-fit m-auto max-md:my-1.5 px-2 flex items-center gap-2 hide-scrollbar overflow-x-scroll"
     >
       <UButton
         v-for="(breadcrumb, index) in modeBreadcrumbs"
@@ -15,17 +25,17 @@
         :color="breadcrumb?.active ? 'primary' : 'neutral'"
         size="xl"
         class="px-2 cursor-pointer"
-        @click="breadcrumb.do && breadcrumb.do()"
+        @click="breadcrumb.do?.()"
       />
     </div>
     <div
-      class="relative search-bar max-w-3xl w-2/3 max-md:w-full m-auto max-md:flex-col max-md:items-center"
+      class="relative search-bar max-w-3xl w-4/5 max-md:w-full m-auto max-md:flex-col max-md:items-center"
     >
       <UFieldGroup
-        class="flex items-center max-md:flex-col max-md:items-stretch"
+        class="flex items-center max-md:flex-col max-md:items-stretch justify-between"
         :class="[
           'w-full md:h-16 md:rounded-full overflow-hidden shadow-xs shadow-gray-400',
-          'max-md:rounded-none max-md:h-fit max-md:shadow-none max-md:border-b-2 max-md:border-t-2 max-md:border-gray-200',
+          'max-md:rounded-none max-md:h-fit max-md:shadow-none max-md:border-t-[1.5px] max-md:border-b-[1.5px] max-md:border-gray-200 max-md:dark:border-gray-700',
         ]"
         label=""
         :orientation="windowWidth < 768 ? 'vertical' : 'horizontal'"
@@ -41,17 +51,21 @@
           :ui="{
             base: 'px-8 pb-3 pt-8 peer',
           }"
-          class="text-base border-gray-300 search-input w-full h-full max-md:h-16"
+          class="text-base border-gray-300 search-input w-full md:not-last:max-w-[calc(50%-1px)] max-md:h-16"
           @blur="
-            globalFilterInput = globalFilterInput.trim();
-            updateGlobalFilter();
+            () => {
+              globalFilterInput = globalFilterInput.trim();
+              updateGlobalFilter();
+            }
           "
         >
           <label
             :class="[
-              'pointer-events-none absolute left-8 top-1/2 -translate-y-1/1 text-xs text-primary', // has text
-              'peer-focus:top-1/2 peer-focus:-translate-y-1/1 peer-focus:text-xs peer-focus:text-primary', // focus
-              'peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:object-left peer-placeholder-shown:text-base peer-placeholder-shown:text-dimmed', // placeholder
+              'pointer-events-none absolute left-8', // has text
+              !globalFilterInput?.length
+                ? 'top-1/2 -translate-y-1/2 object-left text-base text-dimmed ' +
+                  'peer-focus:top-1/2 peer-focus:-translate-y-1/1 peer-focus:object-left peer-focus:text-xs peer-focus:text-primary' // no text + focus
+                : 'top-1/2 -translate-y-1/1 text-xs text-primary object-left',
               'transition-all duration-200 ease-in-out',
             ]"
           >
@@ -69,11 +83,10 @@
         </UInput>
 
         <!-- Extra search -->
-        <USeparator
+        <div
           v-if="['dept', 'general', 'program'].includes(mode)"
-          :orientation="windowWidth < 768 ? 'horizontal' : 'vertical'"
-          class="h-[80%] w-4 max-md:w-full max-md:h-1"
-        />
+          class="h-[80%] max-md:h-0.5 w-px max-md:w-full bg-gray-300 dark:bg-gray-700"
+        ></div>
         <USelectMenu
           v-if="['dept', 'general', 'program'].includes(mode)"
           :items="
@@ -90,7 +103,11 @@
           multiple
           trailingIcon=""
           :filterFields="['label', 'value']"
-          class="search-input w-full md:max-w-1/2 h-full max-md:h-16 text-base hover:bg-elevated ring-0 p-0"
+          :content="{
+            avoidCollisions: true,
+          }"
+          :autofocus="false"
+          class="search-input w-full md:max-w-[calc(50%-1px)] max-md:h-16 text-base hover:bg-elevated ring-0 p-0"
           @update:model-value="
             mode === 'dept'
               ? deptDropdownOptions.updateHandler()
@@ -106,7 +123,7 @@
               color="neutral"
               variant="ghost"
               label=""
-              class="text-base border-gray-300 w-full px-8 pb-3 pt-8 peer"
+              class="cursor-pointer text-base border-gray-300 w-full px-8 pb-3 pt-8 peer"
             >
               <div class="h-5"></div>
               <label
@@ -181,7 +198,7 @@
       </div>
     </div>
     <div
-      class="advanced-search-control max-w-3xl min-w-3/5 max-md:w-full m-auto px-2 flex items-center gap-2 hide-scrollbar overflow-x-scroll my-4"
+      class="advanced-search-control max-w-3xl w-4/5 max-md:w-full m-auto px-2 flex items-center gap-2 hide-scrollbar overflow-x-scroll my-4"
     >
       <UDropdownMenu
         :items="dropdownTermOptions"
@@ -193,11 +210,32 @@
         <UButton
           :label="currentTerm || '學期'"
           :color="currentTerm ? 'primary' : 'neutral'"
-          variant="outline"
+          variant="subtle"
           size="lg"
           icon="tabler:calendar"
         />
       </UDropdownMenu>
+
+      <UButton
+        v-if="
+          route.path?.includes('/search') &&
+          Object.values(route.query).filter((v) => !!v).length > 0
+        "
+        label="清除所有篩選"
+        color="error"
+        variant="subtle"
+        size="lg"
+        icon="tabler:filter-off"
+        @click="
+          () => {
+            if (dropdownModel && dropdownModel.length > 0) {
+              dropdownModel = [];
+            }
+            globalFilterInput = '';
+            updateGlobalFilter().then(reflash);
+          }
+        "
+      />
     </div>
   </div>
 </template>
@@ -216,7 +254,7 @@ import {
   prefetchDefaultTermData,
   getTable,
 } from "~/composables/useCourseTable";
-import { jsonLzDecode, routerPushWithQuery } from "~/composables/useTools";
+import { jsonLzDecode } from "~/composables/useTools";
 
 const windowWidth = useState("windowWidth", () => window?.innerWidth || 1200);
 const config = useRuntimeConfig();
@@ -245,21 +283,17 @@ const mode = computed(() => {
 const globalFilterInput = useState("globalFilterInput", () => "");
 const globalFilterInputRef = useTemplateRef("input");
 
-function updateGlobalFilter() {
-  updateGlobalFilterByInput(globalFilterInput.value);
-  if (!route.path.includes("/search")) {
-    navigateTo({
-      path: "/search/quick",
-      query: { s: globalFilterInput.value.replace(" ", "+") },
-    });
-  } else {
-    router.push({
-      query: {
-        ...route.query,
-        s: globalFilterInput.value.replace(" ", "+") || undefined,
-      },
-    });
+async function updateGlobalFilter() {
+  if (getGlobalFilterInput() === globalFilterInput.value) {
+    return;
   }
+  updateGlobalFilterByInput(globalFilterInput.value);
+  await updateRouterQuery(
+    route.path.includes("/search") ? route.path : "/search/quick",
+    {
+      s: globalFilterInput.value.replace(" ", "+") || undefined,
+    },
+  );
 }
 
 // each year in termList is like "114", we need to convert it to "114-1", "114-2", "114-暑期", termList is like ["114", "113", "112"]
@@ -274,6 +308,7 @@ const dropdownTermOptions = computed(() =>
           value: `${year}-1`,
           onSelect() {
             currentTerm.value = `${year}-1`;
+            updateRouterQuery();
           },
         },
         {
@@ -281,6 +316,7 @@ const dropdownTermOptions = computed(() =>
           value: `${year}-2`,
           onSelect() {
             currentTerm.value = `${year}-2`;
+            updateRouterQuery();
           },
         },
         {
@@ -288,6 +324,7 @@ const dropdownTermOptions = computed(() =>
           value: `${year}-3`,
           onSelect() {
             currentTerm.value = `${year}-3`;
+            updateRouterQuery();
           },
         },
       ],
@@ -320,9 +357,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     activeLabel: "快速搜尋",
     active: mode.value === "quick",
     do: () => {
-      if (mode.value !== "quick") {
-        routerPushWithQuery(route, router, "/search/quick", {});
-      }
+      updateRouterQuery("/search/quick");
       clearAndSetAllFilters({});
     },
   },
@@ -331,9 +366,6 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     activeLabel: "系所課程",
     active: mode.value === "dept",
     do: () => {
-      if (mode.value !== "dept") {
-        routerPushWithQuery(route, router, "/search/dept", {});
-      }
       clearAndSetAllFilters({});
       deptDropdownOptions.model.value = deptDropdownOptions.getFromQuery();
       deptDropdownOptions.updateHandler();
@@ -344,9 +376,6 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     activeLabel: "通識課程",
     active: mode.value === "general",
     do: () => {
-      if (mode.value !== "general") {
-        routerPushWithQuery(route, router, "/search/general", {});
-      }
       clearAndSetAllFilters({});
       generalDropdownOptions.model.value =
         generalDropdownOptions.getFromQuery();
@@ -358,9 +387,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     activeLabel: "普通體育",
     active: mode.value === "pe",
     do: () => {
-      if (mode.value !== "pe") {
-        routerPushWithQuery(route, router, "/search/pe", {});
-      }
+      updateRouterQuery("/search/pe");
       clearAndSetAllFilters({
         department_code: ["PE"],
       });
@@ -377,9 +404,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     activeLabel: "全民國防",
     active: mode.value === "nd",
     do: () => {
-      if (mode.value !== "nd") {
-        routerPushWithQuery(route, router, "/search/nd", {});
-      }
+      updateRouterQuery("/search/nd");
       clearAndSetAllFilters({
         name: "全民國防教育軍事訓練",
       });
@@ -389,9 +414,6 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     label: "學分學程",
     active: mode.value === "program",
     do: () => {
-      if (mode.value !== "program") {
-        routerPushWithQuery(route, router, "/search/program", {});
-      }
       clearAndSetAllFilters({});
       programDropdownOptions.model.value =
         programDropdownOptions.getFromQuery();
@@ -403,9 +425,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     activeLabel: "臺大系統課程",
     active: mode.value === "interschool",
     do: () => {
-      if (mode.value !== "interschool") {
-        routerPushWithQuery(route, router, "/search/interschool", {});
-      }
+      updateRouterQuery("/search/interschool");
       clearAndSetAllFilters({
         department_code: ["9UAA", "9MAA", "9DAA", "9UAB", "9MAB"],
       });
@@ -415,9 +435,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     label: "英文三",
     active: mode.value === "english3",
     do: () => {
-      if (mode.value !== "english3") {
-        routerPushWithQuery(route, router, "/search/english3", {});
-      }
+      updateRouterQuery("/search/english3");
       clearAndSetAllFilters({
         name: "英文（三）",
       });
@@ -427,9 +445,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     label: "英文授課",
     active: mode.value === "emi",
     do: () => {
-      if (mode.value !== "emi") {
-        routerPushWithQuery(route, router, "/search/emi", {});
-      }
+      updateRouterQuery("/search/emi");
       clearAndSetAllFilters({
         english_teaching: true,
       });
@@ -459,7 +475,7 @@ const deptDropdownOptions = {
       );
     }
     // push to dept search page with query
-    routerPushWithQuery(route, router, "/search/dept", {
+    updateRouterQuery("/search/dept", {
       d:
         deptDropdownOptions.model.value
           ?.map((item: any) => item.value)
@@ -495,7 +511,7 @@ const generalDropdownOptions = {
       );
     }
     // push to general education search page with query
-    routerPushWithQuery(route, router, "/search/general", {
+    updateRouterQuery("/search/general", {
       g:
         generalDropdownOptions.model.value
           ?.map((item: any) => item.value)
@@ -531,7 +547,7 @@ const programDropdownOptions = {
       );
     }
     // push to program search page with query
-    routerPushWithQuery(route, router, "/search/program", {
+    updateRouterQuery("/search/program", {
       p:
         programDropdownOptions.model.value
           ?.map((item: any) => item.value)
@@ -574,7 +590,48 @@ const dropdownModel = computed({
   },
 });
 
+async function updateRouterQuery(
+  path: string | undefined = undefined,
+  query: Record<string, any> = {},
+  force: boolean = false,
+) {
+  const newPath = path || route.path;
+  const newQuery = force
+    ? query
+    : {
+        y:
+          defaultTerm.value !== currentTerm.value
+            ? currentTerm.value
+            : undefined,
+        // preserve existing query except s, which is the search input
+        s: route.query.s,
+        ...query,
+      };
+  if (
+    route.path == newPath &&
+    JSON.stringify(route.query) === JSON.stringify(newQuery)
+  ) {
+    console.trace("Same: ", newPath, newQuery, route.path, route.query);
+    return;
+  }
+  console.trace("Navigate to: ", newPath, newQuery);
+  await navigateTo({
+    path: newPath,
+    query: newQuery,
+  });
+}
+function reflash() {
+  modeBreadcrumbs.value.forEach((breadcrumb) => {
+    if (breadcrumb.active) {
+      breadcrumb.do && breadcrumb.do();
+    }
+  });
+}
+
 onMounted(() => {
+  if (route.query.y && typeof route.query.y === "string") {
+    currentTerm.value = route.query.y;
+  }
   if (route.query.s && typeof route.query.s === "string") {
     globalFilterInput.value = route.query.s.replace(/\+/g, " ");
     updateGlobalFilterByInput(globalFilterInput.value);
@@ -595,10 +652,6 @@ onMounted(() => {
 
   tableWatchVersion.value += 1;
 
-  modeBreadcrumbs.value.forEach((breadcrumb) => {
-    if (breadcrumb.active) {
-      breadcrumb.do && breadcrumb.do();
-    }
-  });
+  reflash();
 });
 </script>
