@@ -209,7 +209,13 @@ query: {
       >
         <UButton
           :label="currentTerm || '學期'"
-          :color="currentTerm ? 'primary' : 'neutral'"
+          :color="
+            currentTerm
+              ? currentTerm === defaultTerm
+                ? 'primary'
+                : 'warning'
+              : 'neutral'
+          "
           variant="subtle"
           size="lg"
           icon="tabler:calendar"
@@ -217,22 +223,20 @@ query: {
       </UDropdownMenu>
 
       <UButton
-        v-if="
-          route.path?.includes('/search') &&
-          Object.values(route.query).filter((v) => !!v).length > 0
-        "
+        v-if="route.path?.includes('/search') && !isFilterEmpty"
         label="清除所有篩選"
         color="error"
         variant="subtle"
         size="lg"
         icon="tabler:filter-off"
+        class="cursor-pointer"
         @click="
           () => {
             if (dropdownModel && dropdownModel.length > 0) {
               dropdownModel = [];
             }
             globalFilterInput = '';
-            updateGlobalFilter().then(reflash);
+            updateGlobalFilter(true).then(reflash);
           }
         "
       />
@@ -283,8 +287,8 @@ const mode = computed(() => {
 const globalFilterInput = useState("globalFilterInput", () => "");
 const globalFilterInputRef = useTemplateRef("input");
 
-async function updateGlobalFilter() {
-  if (getGlobalFilterInput() === globalFilterInput.value) {
+async function updateGlobalFilter(force: boolean = false) {
+  if (getGlobalFilterInput() === globalFilterInput.value && !force) {
     return;
   }
   updateGlobalFilterByInput(globalFilterInput.value);
@@ -308,7 +312,7 @@ const dropdownTermOptions = computed(() =>
           value: `${year}-1`,
           onSelect() {
             currentTerm.value = `${year}-1`;
-            updateRouterQuery();
+            updateRouterQuery(undefined, route.query).then(reflash);
           },
         },
         {
@@ -316,7 +320,7 @@ const dropdownTermOptions = computed(() =>
           value: `${year}-2`,
           onSelect() {
             currentTerm.value = `${year}-2`;
-            updateRouterQuery();
+            updateRouterQuery(undefined, route.query).then(reflash);
           },
         },
         {
@@ -324,7 +328,7 @@ const dropdownTermOptions = computed(() =>
           value: `${year}-3`,
           onSelect() {
             currentTerm.value = `${year}-3`;
-            updateRouterQuery();
+            updateRouterQuery(undefined, route.query).then(reflash);
           },
         },
       ],
@@ -599,13 +603,13 @@ async function updateRouterQuery(
   const newQuery = force
     ? query
     : {
+        // preserve existing query except s, which is the search input
+        s: route.query.s,
+        ...query,
         y:
           defaultTerm.value !== currentTerm.value
             ? currentTerm.value
             : undefined,
-        // preserve existing query except s, which is the search input
-        s: route.query.s,
-        ...query,
       };
   if (
     route.path == newPath &&
@@ -625,6 +629,13 @@ function reflash() {
     }
   });
 }
+const isFilterEmpty = computed(() => {
+  const {
+    y: _, // current term is not considered as a filter
+    ...filtersQuery
+  } = route.query;
+  return Object.values(filtersQuery || {}).filter((v) => !!v).length === 0;
+});
 
 onMounted(() => {
   if (route.query.y && typeof route.query.y === "string") {
