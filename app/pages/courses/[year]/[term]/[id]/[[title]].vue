@@ -1,6 +1,36 @@
 <template>
   <div class="page-container w-full">
-    <div class="px-8 w-full max-w-6xl m-auto mt-4"></div>
+    <div class="px-8 w-full max-w-5xl m-auto mt-4 justify-between flex">
+      <UButton
+        label="返回搜尋"
+        variant="link"
+        color="neutral"
+        icon="tabler:chevron-left"
+        class="px-0"
+        @click="
+          () => {
+            // if history is /search/*, go back to previous page, else go to /search/quick
+            if (previousRoute?.includes('/search')) {
+              router.back();
+            } else {
+              router.push({
+                path: '/search/quick',
+                query: {
+                  y: `${course?.year}-${course?.term}`,
+                },
+              });
+            }
+          }
+        "
+      />
+      <UButton
+        label="前往課表"
+        variant="link"
+        color="neutral"
+        trailing-icon="tabler:chevron-right"
+        class="px-0"
+      />
+    </div>
 
     <!-- title -->
     <div class="px-8 w-full max-w-5xl m-auto mt-4">
@@ -115,6 +145,7 @@ import {
 } from "@/composables/useTools";
 
 const route = useRoute();
+const router = useRouter();
 const defaultTerm = useState<string>(
   "defaultTerm",
   () => (useRuntimeConfig().public.ntnuxDefaultTerm as string) || "",
@@ -132,6 +163,7 @@ const showIframeEvent = () => {
     }, 1000);
   }
 };
+const previousRoute = useState<string>("previousRoute");
 
 const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
 const denseDataAllTerms = useState<AllTermsData>(
