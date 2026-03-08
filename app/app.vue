@@ -63,9 +63,12 @@ onBeforeMount(() => {
 *:after {
   box-sizing: border-box;
 }
+:root,
 body {
+  background-color: var(--ui-bg);
   font-family: "LXGW WenKai Mono TC", monospace, "avutmv2";
 }
+:root,
 .hide-scrollbar {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* Internet Explorer and Edge */

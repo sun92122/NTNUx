@@ -1,7 +1,7 @@
 <template>
   <div
     :class="[
-      last ? 'border-b-0' : 'border-b-2 border-gray-200',
+      last ? 'border-b-0' : 'border-b-2 border-gray-200 dark:border-gray-700',
       'course-row relative px-4 py-3 w-full items-start',
       'grid gap-x-2 grid-cols-[56px_6fr_6fr_7fr] grid-rows-[auto_1fr] grid-flow-col',
       'max-md:flex max-md:flex-col max-md:items-start',
