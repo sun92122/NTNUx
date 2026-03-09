@@ -599,7 +599,9 @@ async function updateRouterQuery(
   query: Record<string, any> = {},
   force: boolean = false,
 ) {
-  const newPath = path || route.path;
+  const newPath = route.path?.includes("/dev")
+    ? "/dev" + (path || route.path)
+    : path || route.path;
   const newQuery = force
     ? query
     : {
