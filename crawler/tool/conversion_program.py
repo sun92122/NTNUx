@@ -1,4 +1,3 @@
-from tool import analysis
 import argparse
 import json
 import os
@@ -31,10 +30,12 @@ def get_program_conversion(program_codes: str, program_dir: dict[str, str]) -> s
     raise ValueError(
         f"找不到對應的學程名稱，請檢查 wrangler.toml 配置，原始代碼: {program_codes}")
 
+
 def main(yt: str):
+    from tool.analysis import get_program_dir
     config_path = os.path.join(os.path.dirname(
         __file__), "..", "..", "wrangler.toml")
-    program_dir = analysis.get_program_dir(config_path)
+    program_dir = get_program_dir(config_path)
 
     # check if yt is exist in original_data directory
     data_path = os.path.abspath(os.path.join(
@@ -55,8 +56,7 @@ def main(yt: str):
         except ValueError as e:
             print(e)
             course["p"] = program_codes
-        
-        
+
     # write back to data.json (minified)
     with open(os.path.join(data_path, "data.json"), "w", encoding="utf-8") as f:
         json.dump(course_json, f, ensure_ascii=False, separators=(',', ':'))

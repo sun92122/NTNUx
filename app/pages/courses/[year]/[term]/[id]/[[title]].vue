@@ -1,6 +1,44 @@
 <template>
   <div class="page-container w-full">
-    <div class="px-8 w-full max-w-6xl m-auto mt-4"></div>
+    <div class="px-8 w-full max-w-5xl m-auto mt-4 justify-between flex">
+      <UButton
+        label="返回搜尋"
+        variant="link"
+        color="neutral"
+        icon="tabler:chevron-left"
+        class="px-0 cursor-pointer"
+        @click="
+          () => {
+            // if history is /search/*, go back to previous page, else go to /search/quick
+            if (previousRoute?.includes('/search')) {
+              router.back();
+            } else {
+              router.push({
+                path: '/search/quick',
+                query: {
+                  y: `${course?.year}-${course?.term}`,
+                },
+              });
+            }
+          }
+        "
+      />
+      <UButton
+        label="前往課表"
+        variant="link"
+        color="neutral"
+        trailing-icon="tabler:chevron-right"
+        class="px-0 cursor-pointer"
+        @click="
+          navigateTo({
+            path: '/user/timetable',
+            query: {
+              y: `${course?.year}-${course?.term}`,
+            },
+          })
+        "
+      />
+    </div>
 
     <!-- title -->
     <div class="px-8 w-full max-w-5xl m-auto mt-4">
@@ -21,20 +59,16 @@
             'course-button flex flex-row items-center justify-end gap-2',
           ]"
         >
-          <UButton
-            icon="tabler:heart"
-            size="lg"
-            color="neutral"
-            variant="link"
+          <CourseFavoritesButton
+            :course-name="course?.name"
+            :course-code="course?.course_code"
           />
-          <UButton
-            :label="isAdded ? '已加入' : '加入'"
-            size="lg"
-            :color="isAdded ? 'primary' : 'neutral'"
-            :variant="isAdded ? 'solid' : 'soft'"
-            class="w-14 items-center justify-center px-0 cursor-pointer"
-            @click="toggleCourse"
-          ></UButton>
+          <CourseTimetableButton
+            :yt="`${course?.year}-${course?.term}`"
+            :course="course"
+            :is-added="isAdded"
+            @change="isAdded = $event"
+          />
         </div>
       </div>
     </div>
@@ -42,7 +76,7 @@
     <!-- info -->
     <div
       v-if="course"
-      class="w-full max-w-5xl mt-4 mx-2 lg:mx-auto p-4 rounded-lg bg-white dark:bg-gray-800 shadow grid grid-cols-1 md:grid-cols-[300px_auto] gap-4"
+      class="w-[calc(100%-1rem)] max-w-5xl mt-4 mx-auto p-4 rounded-lg bg-white dark:bg-gray-800 shadow grid grid-cols-1 md:grid-cols-[300px_auto] gap-4"
     >
       <CourseInfo :course="course" />
 
@@ -53,7 +87,7 @@
       label="顯示課程大綱"
       color="primary"
       variant="outline"
-      class="mt-4 w-full max-w-5xl mx-auto block cursor-pointer"
+      class="mt-4 w-[calc(100%-1rem)] max-w-5xl mx-auto cursor-pointer flex"
       @click="showIframeEvent"
       :loading="showIframeLoading"
       block
@@ -67,7 +101,7 @@
             ? ((windowWidth - 10) / 950) * 2000 + 'px'
             : '800px',
       }"
-      class="overflow-hidden max-w-[95vw] mx-auto"
+      class="overflow-hidden max-w-screen w-fit mx-auto"
     >
       <iframe
         :src="
@@ -78,6 +112,13 @@
           `classes1=${course.class_kind}&deptGroup=${course.department_group}`
         "
         :height="windowWidth < 950 ? '2000px' : '800px'"
+        :width="
+          windowWidth < 950
+            ? `950px`
+            : windowWidth < 1040
+              ? `${windowWidth - 16}px`
+              : '1024px'
+        "
         frameborder="0"
         :style="{
           '-webkit-transform': `scale(${
@@ -86,8 +127,9 @@
           '-moz-transform': `scale(${
             windowWidth < 950 ? (windowWidth - 10) / 950 : 1
           })`,
+          'margin-left': windowWidth < 950 ? `5px` : `0`,
         }"
-        class="mt-4 mx-auto bg-white w-full max-w-237.5 origin-top-left"
+        class="mt-4 mx-auto bg-white origin-top-left"
       ></iframe>
     </div>
   </div>
@@ -95,18 +137,17 @@
 
 <script setup lang="ts">
 // /courses/[year]/[term]/[id]/[[title]].vue
-import type { Course, AllTermsData } from "@/composables/useCourseTable";
+import type {
+  Course,
+  AllTermsData,
+  AllTermsDenseData,
+} from "@/composables/useCourseTable";
 import { fetchTermData } from "@/composables/useCourseTable";
-import {
-  getTimetable,
-  toggleCourseInTimetable,
-} from "@/composables/useTimetable";
-import {
-  addToTimetableToast,
-  removeFromTimetableToast,
-} from "@/composables/useTools";
+import { isCourseInTimetable } from "@/composables/useTimetable";
+import { loadFavoriteCourses } from "@/composables/useFavorites";
 
 const route = useRoute();
+const router = useRouter();
 const defaultTerm = useState<string>(
   "defaultTerm",
   () => (useRuntimeConfig().public.ntnuxDefaultTerm as string) || "",
@@ -124,9 +165,10 @@ const showIframeEvent = () => {
     }, 1000);
   }
 };
+const previousRoute = useState<string>("previousRoute");
 
 const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
-const denseDataAllTerms = useState<AllTermsData>(
+const denseDataAllTerms = useState<AllTermsDenseData>(
   "denseDataAllTerms",
   () => ({}),
 );
@@ -152,11 +194,6 @@ const course = computed<Course | undefined>(() => {
   }
   return dataAllTerms.value[yt]?.find((c) => c.id === courseId);
 });
-
-if (!course.value) {
-  // If course is not found, try to fetch the term data
-  fetchTermData(yt, false);
-}
 
 const description = ref("");
 async function getCourseDescription(code: string) {
@@ -208,51 +245,42 @@ function updateSeoMeta() {
 }
 updateSeoMeta();
 
-const courseKey = computed(() => {
-  return (
-    course.value?.id ||
-    `${course.value?.course_code}-${course.value?.course_group}`
-  );
-});
 const isAdded = ref(
   course.value ? isCourseInTimetable(yt, course.value) : false,
 );
 
-function toggleCourse() {
-  toggleCourseInTimetable(yt, course.value as Course);
-  if (isCourseInTimetable(yt, course.value as Course)) {
-    isAdded.value = true;
-    addToTimetableToast(course.value?.name as string, courseKey.value);
-  } else {
-    isAdded.value = false;
-    removeFromTimetableToast(course.value?.name as string, courseKey.value);
-  }
-}
-
-// update description when course changes
-watch(
-  course,
-  (newCourse) => {
-    if (newCourse) {
-      getCourseDescription(
-        course.value?.course_code || courseId.split("-", 2)[0] || "",
-      );
-      description.value = newCourse.description || "";
-      updateSeoMeta();
-    }
-  },
-  { immediate: true, deep: true },
-);
-
-onMounted(() => {
-  if (course.value) {
+function initialize() {
+  if (
+    course.value &&
+    (!course.value.description || course.value.description === "")
+  ) {
     getCourseDescription(
       course.value?.course_code || courseId.split("-", 2)[0] || "",
     );
+    description.value = course.value?.description || "";
+    updateSeoMeta();
   }
-
-  getTimetable(yt);
-
+  loadFavoriteCourses();
   isAdded.value = course.value ? isCourseInTimetable(yt, course.value) : false;
+}
+
+onMounted(() => {
+  if (!course.value) {
+    // If course is not found, try to fetch the term data
+    fetchTermData(yt, false)
+      .refresh()
+      .then(() => {
+        if (!course.value) {
+          console.error("Course not found after fetching term data:", {
+            yt,
+            courseId,
+          });
+        } else {
+          initialize();
+        }
+      });
+  } else {
+    initialize();
+  }
 });
 </script>

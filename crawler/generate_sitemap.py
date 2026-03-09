@@ -23,7 +23,7 @@ def generate_sitemap(year: int, term: int):
     ]
 
     # read tsv file
-    tsv_file = os.path.join(DATA_DIR, f"{year}-{term}.tsv")
+    tsv_file = os.path.join(DATA_DIR, f"{year}-{term}", "data.tsv")
     if not os.path.exists(tsv_file):
         print(f"找不到課程資料檔案: {tsv_file}")
         return
@@ -33,8 +33,12 @@ def generate_sitemap(year: int, term: int):
     for _, row in courses_df.iterrows():
         course_year = row.get('acadm_year')
         course_term = row.get('acadm_term')
-        course_serial = row.get(
-            'serial_no') or f"{row.get('course_code')}-{row.get('course_group')}"
+        # course_serial = row.get(
+        #     'serial_no') or f"{row.get('course_code')}-{row.get('course_group')}"
+        if row.get('serial_no') and not pd.isna(row.get('serial_no')):
+            course_serial = row.get('serial_no')
+        else:
+            course_serial = f"{row.get('course_code')}-{row.get('course_group') if not pd.isna(row.get('course_group')) else ''}"
         course_name = urllib.parse.quote(
             str(row.get('chn_name')).split('<')[0].strip())
 

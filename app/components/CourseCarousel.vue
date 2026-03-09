@@ -199,4 +199,10 @@ onMounted(() => {
     scrollToCurrent();
   }, 50);
 });
+
+onUpdated(() => {
+  setTimeout(() => {
+    scrollToCurrent();
+  }, 50);
+});
 </script>

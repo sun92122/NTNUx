@@ -1,8 +1,9 @@
 import pandas as pd
 import re
 import tomllib
-import base64
+import lzstring
 import json
+from jsonc_parser.parser import JsoncParser
 import os
 from . import conversion_program
 
@@ -249,13 +250,16 @@ def get_program_dir(config_path: str | None = None) -> dict[str, str]:
     :param config_path: 配置檔案路徑
     :return: 學程列表
     """
-    value = os.getenv("NUXT_PUBLIC_NTNUX_PROGRAMS")
-    if value is None and config_path is not None:
-        config = load_wrangler_config(config_path)
-        value = config["vars"]["NUXT_PUBLIC_NTNUX_PROGRAMS"]
-    assert value is not None, "找不到學程列表，請確保環境變數 NUXT_PUBLIC_NTNUX_PROGRAMS 已設定或 wrangler.toml 中包含該配置"
+    value = os.getenv("NUXT_PUBLIC_NTNUX_PROGRAMS_LZ")
+    try:
+        if value is None and config_path is not None:
+            config = load_wrangler_config(config_path)
+            value = config["vars"]["NUXT_PUBLIC_NTNUX_PROGRAMS_LZ"]
+    except (KeyError, FileNotFoundError) as e:
+        print(f"無法從 wrangler 配置中獲取 NUXT_PUBLIC_NTNUX_PROGRAMS_LZ: {e}")
+    assert value is not None, "找不到學程列表，請確保環境變數 NUXT_PUBLIC_NTNUX_PROGRAMS_LZ 已設定或 wrangler.toml 中包含該配置"
     # decode from base64 json string
-    decoded_value = base64.b64decode(value).decode("utf-8")
+    decoded_value = lzstring.LZString().decompressFromBase64(value) or "[]"
     program_list: list[dict] = json.loads(decoded_value)
     return_dir = {}
 
