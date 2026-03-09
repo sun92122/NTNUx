@@ -132,15 +132,16 @@
           'max-md:absolute max-md:right-4 max-md:top-4',
         ]"
       >
-        <UButton icon="tabler:heart" size="lg" color="neutral" variant="link" />
-        <UButton
-          :label="isAdded ? '已加入' : '加入'"
-          size="lg"
-          :color="isAdded ? 'primary' : 'neutral'"
-          :variant="isAdded ? 'solid' : 'soft'"
-          class="w-14 items-center justify-center px-0 cursor-pointer"
-          @click="toggleCourse"
-        ></UButton>
+        <CourseFavoritesButton
+          :course-name="course?.name"
+          :course-code="course?.course_code"
+        />
+        <CourseTimetableButton
+          :yt="`${course?.year}-${course?.term}`"
+          :course="course"
+          :is-added="isAdded"
+          @change="isAdded = $event"
+        />
       </div>
       <span v-if="course?.restriction" class="pt-1 text-xs">
         {{
@@ -157,13 +158,6 @@
 <script setup lang="ts">
 import type { Course } from "@/composables/useCourseTable";
 import { optionMap, generalCoreMap } from "@/composables/useConstants";
-import { toggleCourseInTimetable } from "@/composables/useTimetable";
-import {
-  addToTimetableToast,
-  removeFromTimetableToast,
-} from "@/composables/useTools";
-
-const config = useRuntimeConfig();
 
 const props = defineProps({
   course: {
@@ -200,26 +194,10 @@ const toggle = (e: any) => {
 };
 
 const yt = computed(() => `${props.course?.year}-${props.course?.term}`);
-const courseKey = computed(() => {
-  return (
-    props.course?.id ||
-    `${props.course?.course_code}-${props.course?.course_group}`
-  );
-});
+
 const isAdded = ref(
   props.course ? isCourseInTimetable(yt.value, props.course as Course) : false,
 );
-
-function toggleCourse() {
-  toggleCourseInTimetable(yt.value, props.course as Course);
-  if (isCourseInTimetable(yt.value, props.course as Course)) {
-    isAdded.value = true;
-    addToTimetableToast(props.course?.name as string, courseKey.value);
-  } else {
-    isAdded.value = false;
-    removeFromTimetableToast(props.course?.name as string, courseKey.value);
-  }
-}
 
 onMounted(() => {
   isAdded.value = props.course

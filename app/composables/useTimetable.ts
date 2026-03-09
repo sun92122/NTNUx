@@ -82,6 +82,7 @@ function getCourseTimetableItem(
 }
 
 export function isCourseInTimetable(term: string, course: Course): boolean {
+  getTimetable(term);
   const timetable = allTimetable.value[term] || ({} as Timetable);
   const courseKey =
     course?.id || `${course.course_code}-${course.course_group}`;

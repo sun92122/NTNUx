@@ -67,6 +67,17 @@ export interface AllTermsData {
   [term: string]: TermData;
 }
 
+export interface Dense {
+  date: string; // 日期，格式為 "YYYYMMDD(X)"
+  time_location: string;
+}
+export interface TermDenseData {
+  [course_key: string]: Dense[]; // course_key: `${course_code}-${course_group}`
+}
+export interface AllTermsDenseData {
+  [term: string]: TermDenseData;
+}
+
 const table = ref<any>(null);
 // change to a number to trigger watch when table data may have changed
 
@@ -79,7 +90,7 @@ export function useCourseTable() {
   const currentTerm = useState<string>("currentTerm", () => defaultTerm.value);
 
   const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
-  const denseDataAllTerms = useState<AllTermsData>(
+  const denseDataAllTerms = useState<AllTermsDenseData>(
     "denseDataAllTerms",
     () => ({}),
   );
@@ -90,8 +101,8 @@ export function useCourseTable() {
   const currentTermData = computed<TermData>(() => {
     return dataAllTerms.value[currentTerm.value] || [];
   });
-  const currentTermDenseData = computed<TermData>(() => {
-    return denseDataAllTerms.value[currentTerm.value] || [];
+  const currentTermDenseData = computed<TermDenseData>(() => {
+    return denseDataAllTerms.value[currentTerm.value] || {};
   });
   const currentTermUpdateTime = computed<string>(() => {
     return updateTimeAllTerms.value[currentTerm.value] || "unknown";

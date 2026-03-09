@@ -55,4 +55,13 @@ const currentTimetable = computed<Timetable>(() => {
 const settings = computed<TimetableSettings>(() => {
   return timetableSettings.value || {};
 });
+
+onMounted(() => {
+  // 預先載入課表資料
+  const term = useRoute().query.y as string;
+  if (term) {
+    currentTerm.value = term;
+    getTimetable(currentTerm.value);
+  }
+});
 </script>

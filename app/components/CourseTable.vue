@@ -201,6 +201,7 @@ onMounted(() => {
   if (!tableOptions?.data) {
     refreshAll();
   }
+  loadFavoriteCourses();
 });
 onUnmounted(() => {
   window.removeEventListener("scroll", handleScroll);

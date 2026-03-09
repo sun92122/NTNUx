@@ -52,15 +52,34 @@ export function copyToClipboard(text: string, label: string) {
 
 export function addToTimetableToast(courseName: string, courseId: string) {
   customToast(
-    `add-${courseName}`,
-    `已加入課表：${courseName}（${courseId}）`,
+    courseId,
+    `${courseName}（${courseId}）`,
     "tabler:check",
+    "已加入課表",
   );
 }
 export function removeFromTimetableToast(courseName: string, courseId: string) {
   customToast(
-    `remove-${courseName}`,
-    `已從課表移除：${courseName}（${courseId}）`,
+    courseId,
+    `${courseName}（${courseId}）`,
     "tabler:x",
+    "已從課表移除",
+  );
+}
+
+export function addToFavoritesToast(courseName: string, courseId: string) {
+  customToast(
+    courseId,
+    `${courseName}（${courseId}）`,
+    "tabler:heart-filled",
+    "已加入收藏",
+  );
+}
+export function removeFromFavoritesToast(courseName: string, courseId: string) {
+  customToast(
+    courseId,
+    `${courseName}（${courseId}）`,
+    "tabler:heart-broken",
+    "已從收藏移除",
   );
 }
