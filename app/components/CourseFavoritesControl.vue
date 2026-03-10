@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-row justify-between my-4 max-w-3xl mx-auto">
+  <div class="flex flex-row flex-wrap max-sm:px-2 justify-between my-4 max-w-3xl mx-auto gap-2.5">
     <div>
       <USelectMenu
         v-model="selectedTermItems"

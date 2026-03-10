@@ -65,6 +65,7 @@ onBeforeMount(() => {
 }
 html,
 body {
+  padding: 0 !important;
   touch-action: manipulation;
   background-color: var(--ui-bg);
   font-family: "LXGW WenKai Mono TC", monospace, "avutmv2";
