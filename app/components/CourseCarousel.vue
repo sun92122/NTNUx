@@ -9,96 +9,98 @@
     <div class="text-lg md:text-4xl font-bold mb-6">選課日程</div>
 
     <!-- carousel -->
-    <UCarousel
-      ref="carousel"
-      v-slot="{ item }"
-      :items="carouselItem"
-      class-names
-      prev-icon="tabler:arrow-narrow-left"
-      next-icon="tabler:arrow-narrow-right"
-      class="mx-auto max-w-[98vw] w-240"
-      :ui="{
-        viewport: 'overflow-visible hide-scrollbar',
-        container: 'ms-0',
-        item: 'h-auto basis-xs ps-0 w-xs',
-      }"
-    >
-      <UCard
-        variant="soft"
-        class="mx-2 bg-white dark:bg-gray-800 shadow-md"
-        :class="item.title ? '' : 'collapse'"
+    <ClientOnly>
+      <UCarousel
+        ref="carousel"
+        v-slot="{ item }"
+        :items="carouselItem"
+        class-names
+        prev-icon="tabler:arrow-narrow-left"
+        next-icon="tabler:arrow-narrow-right"
+        class="mx-auto max-w-[98vw] w-240"
         :ui="{
-          header: 'border-b-0',
-          body: 'border-b-0',
-          footer: 'sm:px-4',
+          viewport: 'overflow-visible hide-scrollbar',
+          container: 'ms-0',
+          item: 'h-auto basis-xs ps-0 w-xs',
         }"
       >
-        <template #header>
-          <div
-            class="flex flex-col text-lg font-bold items-center justify-center select-none"
-          >
-            <div>
-              {{ item?.title }}
+        <UCard
+          variant="soft"
+          class="mx-2 bg-white dark:bg-gray-800 shadow-md"
+          :class="item.title ? '' : 'collapse'"
+          :ui="{
+            header: 'border-b-0',
+            body: 'border-b-0',
+            footer: 'sm:px-4',
+          }"
+        >
+          <template #header>
+            <div
+              class="flex flex-col text-lg font-bold items-center justify-center select-none"
+            >
+              <div>
+                {{ item?.title }}
+              </div>
+              <div>
+                <span v-if="item.dateTime[0]?.time" class="text-sm text-dimmed">
+                  {{ item.dateTime[0]?.time }}
+                </span>
+                <span class="text-3xl" :style="{ color: item.color }">
+                  {{ item.dateTime[0]?.date }}
+                </span>
+                <span v-if="item.dateTime[1]" class="text-3xl"> - </span>
+                <span
+                  v-if="item.dateTime[1]"
+                  class="text-3xl"
+                  :style="{ color: item.color }"
+                >
+                  {{ item.dateTime[1]?.date }}
+                </span>
+                <span v-if="item.dateTime[1]?.time" class="text-sm text-dimmed">
+                  {{ item.dateTime[1]?.time }}
+                </span>
+              </div>
             </div>
-            <div>
-              <span v-if="item.dateTime[0]?.time" class="text-sm text-dimmed">
-                {{ item.dateTime[0]?.time }}
-              </span>
-              <span class="text-3xl" :style="{ color: item.color }">
-                {{ item.dateTime[0]?.date }}
-              </span>
-              <span v-if="item.dateTime[1]" class="text-3xl"> - </span>
-              <span
-                v-if="item.dateTime[1]"
-                class="text-3xl"
-                :style="{ color: item.color }"
-              >
-                {{ item.dateTime[1]?.date }}
-              </span>
-              <span v-if="item.dateTime[1]?.time" class="text-sm text-dimmed">
-                {{ item.dateTime[1]?.time }}
-              </span>
-            </div>
-          </div>
-        </template>
+          </template>
 
-        <div class="h-64 select-none">
-          <UTimeline
-            v-if="item.step"
-            :items="
-              Array.from(
-                item.step.entries().map(([index, step]) => ({
-                  ...step,
-                  icon: step.icon || `tabler:number-${index + 1}`,
-                })),
-              )
-            "
-            class="mt-4"
-            :ui="{
-              date: 'text-md',
-              title: 'text-md',
-              description: 'whitespace-pre-line',
-              wrapper: 'pb-4',
-            }"
-            color="neutral"
-          />
-        </div>
-
-        <template #footer>
-          <div class="h-6 select-none">
-            <UButton
-              v-if="item.info"
-              :label="item.info"
-              :to="item.infoUrl"
-              target="_blank"
-              icon="tabler:external-link"
-              variant="link"
+          <div class="h-64 select-none">
+            <UTimeline
+              v-if="item.step"
+              :items="
+                Array.from(
+                  item.step.entries().map(([index, step]) => ({
+                    ...step,
+                    icon: step.icon || `tabler:number-${index + 1}`,
+                  })),
+                )
+              "
+              class="mt-4"
+              :ui="{
+                date: 'text-md',
+                title: 'text-md',
+                description: 'whitespace-pre-line',
+                wrapper: 'pb-4',
+              }"
               color="neutral"
             />
           </div>
-        </template>
-      </UCard>
-    </UCarousel>
+
+          <template #footer>
+            <div class="h-6 select-none">
+              <UButton
+                v-if="item.info"
+                :label="item.info"
+                :to="item.infoUrl"
+                target="_blank"
+                icon="tabler:external-link"
+                variant="link"
+                color="neutral"
+              />
+            </div>
+          </template>
+        </UCard>
+      </UCarousel>
+    </ClientOnly>
   </div>
 </template>
 
@@ -141,21 +143,39 @@ const scheduleData = useState<ScheduleData>("schedule", () => {
 const items = computed(() => scheduleData.value?.items || []);
 const year = computed(() => scheduleData.value?.year || "");
 const semester = computed(() => scheduleData.value?.term || "");
-const carouselItem = computed<CourseCarouselItem[]>(() => {
-  const emptyItem: CourseCarouselItem = {
-    dateTime: [],
-    color: "",
-  };
-  return [
-    emptyItem,
-    emptyItem,
-    emptyItem,
-    ...items.value,
-    emptyItem,
-    emptyItem,
-    emptyItem,
-  ];
-});
+// const carouselItem = computed<CourseCarouselItem[]>(() => {
+//   const emptyItem: CourseCarouselItem = {
+//     dateTime: [],
+//     color: "",
+//   };
+//   return [
+//     emptyItem,
+//     emptyItem,
+//     emptyItem,
+//     ...items.value,
+//     emptyItem,
+//     emptyItem,
+//     emptyItem,
+//   ];
+// });
+const carouselItem = ref<CourseCarouselItem[]>(items.value);
+watch(
+  () => carousel.value?.emblaApi?.scrollSnapList()?.length,
+  () => {
+    if (
+      (carousel.value?.emblaApi?.scrollSnapList()?.length || 0) >
+      items.value.length
+    ) {
+      return;
+    }
+    const emptyItem: CourseCarouselItem = {
+      dateTime: [],
+      color: "",
+    };
+    carouselItem.value = [emptyItem, ...carouselItem.value, emptyItem];
+  },
+  { immediate: true },
+);
 
 function scrollToCurrent() {
   if (!carousel.value) return;
@@ -186,23 +206,17 @@ function scrollToCurrent() {
       items.value.length) - items.value.length || 0) / 2;
   if (currentIndex !== -1) {
     carousel.value?.emblaApi?.scrollTo(currentIndex + Math.floor(shiftIndex));
-    console.log("Scrolled to current schedule item:", {
-      currentIndex,
-      item: items.value[currentIndex],
-      shiftIndex,
-    });
+    // console.trace("Scrolled to current schedule item:", {
+    //   currentIndex,
+    //   item: items.value[currentIndex],
+    //   shiftIndex,
+    // });
   }
 }
 
 onMounted(() => {
   setTimeout(() => {
     scrollToCurrent();
-  }, 50);
-});
-
-onUpdated(() => {
-  setTimeout(() => {
-    scrollToCurrent();
-  }, 50);
+  }, 200);
 });
 </script>
