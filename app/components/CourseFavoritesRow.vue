@@ -1,10 +1,12 @@
 <template>
-  <div class="flex flex-row items-center gap-4 py-2 px-4">
+  <div
+    class="flex flex-row max-sm:grid max-sm:grid-cols-[auto_fit-content] items-center gap-x-4 gap-y-2 py-2 px-4"
+  >
     <!-- left to right: (year, term), teacher, (time, location, ?dense), (info link, add to timetable) -->
-    <span class="text-sm text-dimmed">
-      {{ course?.year }}-{{ course?.term?.replace("3", "暑期") }}
-    </span>
-    <div class="gap-2 flex flex-row items-center">
+    <div class="gap-2 flex flex-row flex-wrap items-center max-sm:order-1">
+      <span class="text-sm text-dimmed">
+        {{ course?.year }}-{{ course?.term?.replace("3", "暑期") }}
+      </span>
       <UBadge icon="tabler:user" variant="soft" color="neutral">
         {{ course?.teacher }}
       </UBadge>
@@ -17,7 +19,10 @@
         英文授課
       </UBadge>
     </div>
-    <div v-if="denseInfo" class="ml-2 flex flex-col gap-0.5">
+    <div
+      v-if="denseInfo"
+      class="ml-2 flex flex-col gap-0.5 max-sm:order-3 max-sm:col-span-2"
+    >
       <div v-for="d in denseInfo" :key="d?.date">
         <span class="text-sm text-dimmed">
           {{ d?.date }}
@@ -27,7 +32,10 @@
         </span>
       </div>
     </div>
-    <div v-else class="ml-2 gap-2 flex flex-row items-center">
+    <div
+      v-else
+      class="ml-2 gap-2 flex flex-row items-center max-sm:order-3 max-sm:col-span-2"
+    >
       <UBadge
         icon="tabler:clock"
         :color="time.match(/.* (0|1)([-/\n\r]|$)/) ? 'warning' : 'neutral'"
@@ -44,7 +52,7 @@
         {{ location }}
       </UBadge>
     </div>
-    <div class="ml-auto">
+    <div class="ml-auto max-sm:order-2">
       <UButton
         :label="isAdded ? '已加入' : '加入'"
         size="lg"

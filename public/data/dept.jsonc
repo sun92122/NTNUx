@@ -38,8 +38,7 @@
   },
   {
     "type": "label",
-    "label": "臺大系統校際",
-    "value": "9"
+    "label": "臺大系統校際"
   },
   // "9UAA": "校際臺大（學）",
   {
@@ -68,6 +67,10 @@
   },
   {
     "type": "separator"
+  },
+  {
+    "type": "label",
+    "label": "教育學院"
   },
   // "E": "教育學院",
   {
@@ -232,6 +235,10 @@
   {
     "type": "separator"
   },
+  {
+    "type": "label",
+    "label": "文學院"
+  },
   // "L": "文學院",
   {
     "label": "文學院",
@@ -324,6 +331,10 @@
   },
   {
     "type": "separator"
+  },
+  {
+    "type": "label",
+    "label": "理學院"
   },
   // "S": "理學院",
   {
@@ -453,6 +464,10 @@
   {
     "type": "separator"
   },
+  {
+    "type": "label",
+    "label": "藝術學院"
+  },
   // "T": "藝術學院",
   {
     "label": "藝術學院",
@@ -495,6 +510,10 @@
   },
   {
     "type": "separator"
+  },
+  {
+    "type": "label",
+    "label": "科技與工程學院"
   },
   // "H": "科技學院",
   {
@@ -584,6 +603,10 @@
   {
     "type": "separator"
   },
+  {
+    "type": "label",
+    "label": "運動與休閒學院"
+  },
   // "A": "運休學院",
   {
     "label": "運休學院",
@@ -626,6 +649,10 @@
   },
   {
     "type": "separator"
+  },
+  {
+    "type": "label",
+    "label": "國際與社會科學學院"
   },
   // "I": "國社學院",
   {
@@ -687,6 +714,13 @@
     "label": "全球研究學位學程（學）",
     "value": "IUH0"
   },
+  {
+    "type": "separator"
+  },
+  {
+    "type": "label",
+    "label": "音樂學院"
+  },
   // "MU90": "音樂系（學）",
   {
     "label": "音樂系（學）",
@@ -720,6 +754,10 @@
   {
     "type": "separator"
   },
+  {
+    "type": "label",
+    "label": "管理學院"
+  },
   // "O": "管理學院",
   {
     "label": "管理學院",
@@ -748,6 +786,10 @@
   {
     "type": "separator"
   },
+  {
+    "type": "label",
+    "label": "跨域科技產業創新研究學院"
+  },
   // "C": "產創學院",
   {
     "label": "產創學院",
@@ -768,8 +810,7 @@
   },
   {
     "type": "label",
-    "label": "學程",
-    "value": "Z"
+    "label": "學程"
   },
   // "ZU79": "PASSION偏鄉學程",
   {

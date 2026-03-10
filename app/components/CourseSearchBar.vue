@@ -85,28 +85,19 @@ query: {
         <!-- Extra search -->
         <div
           v-if="['dept', 'general', 'program'].includes(mode)"
-          class="h-[80%] max-md:h-0.5 w-px max-md:w-full bg-gray-300 dark:bg-gray-700"
+          class="h-[80%] max-md:h-px w-px max-md:w-full bg-gray-300 dark:bg-gray-700"
         ></div>
         <USelectMenu
           v-if="['dept', 'general', 'program'].includes(mode)"
-          :items="
-            mode === 'dept'
-              ? deptDropdownOptions.items.value
-              : mode === 'general'
-                ? generalDropdownOptions.items.value
-                : mode === 'program'
-                  ? programDropdownOptions.items.value
-                  : []
-          "
+          :items="selectMenuItems"
           v-model="dropdownModel"
           placeholder=""
           multiple
           trailingIcon=""
-          :filterFields="['label', 'value']"
+          ignore-filter
           :content="{
             avoidCollisions: true,
           }"
-          :autofocus="false"
           class="search-input w-full md:max-w-[calc(50%-1px)] max-md:h-16 text-base hover:bg-elevated ring-0 p-0"
           @update:model-value="
             mode === 'dept'
@@ -117,7 +108,25 @@ query: {
                   ? programDropdownOptions.updateHandler()
                   : () => {}
           "
+          :resetSearchTermOnSelect="false"
+          :search-input="false"
+          :ui="{
+            label: 'marked [&:has(+_.marked)]:hidden last:hidden',
+            separator: 'marked [&:has(+_.marked)]:hidden last:hidden',
+          }"
         >
+          <template #content-top>
+            <UInput
+              v-model="selectMenuSearchTerm"
+              color="neutral"
+              variant="ghost"
+              placeholder="搜尋選項"
+              clearable
+              class="mb-2 w-full p-0"
+              :ui="{ base: 'px-4 py-2' }"
+            />
+          </template>
+
           <template #default="{ modelValue }">
             <UButton
               color="neutral"
@@ -155,7 +164,9 @@ query: {
                 <span class="inline-flex">{{
                   modelValue && modelValue.length > 0
                     ? modelValue.length < 5
-                      ? modelValue.map((item: any) => item.label).join(", ")
+                      ? modelValue
+                          .map((item: any) => (item as any)?.label)
+                          .join(", ")
                       : modelValue
                           .slice(0, 3)
                           .map((item: any) => item.label)
@@ -172,12 +183,16 @@ query: {
 
           <template #item-leading="{ item }">
             <UBadge
-              v-if="item"
+              v-if="(item as any)?.value"
               class="font-bold rounded-full! w-10 justify-center"
               color="secondary"
               variant="soft"
               :label="(item as any)?.value"
             />
+          </template>
+
+          <template #item-label="{ item }">
+            <span>{{ (item as any)?.label }}</span>
           </template>
         </USelectMenu>
       </UFieldGroup>
@@ -570,6 +585,7 @@ const programDropdownOptions = {
 };
 const bufferModel = ref<any>(null);
 
+const selectMenuSearchTerm = ref("");
 const dropdownModel = computed({
   get() {
     if (mode.value === "dept") {
@@ -592,6 +608,32 @@ const dropdownModel = computed({
       bufferModel.value = value;
     }
   },
+});
+const selectMenuItems = computed(() => {
+  if (mode.value === "dept") {
+    return deptDropdownOptions.items.value.filter(
+      (item: any) =>
+        !item?.value ||
+        item?.label.includes(selectMenuSearchTerm.value) ||
+        item?.value.includes(selectMenuSearchTerm.value),
+    );
+  } else if (mode.value === "general") {
+    return generalDropdownOptions.items.value.filter(
+      (item: any) =>
+        !item?.value ||
+        item?.label.includes(selectMenuSearchTerm.value) ||
+        item?.value.includes(selectMenuSearchTerm.value),
+    );
+  } else if (mode.value === "program") {
+    return programDropdownOptions.items.value.filter(
+      (item: any) =>
+        !item?.value ||
+        item?.label.includes(selectMenuSearchTerm.value) ||
+        item?.value.includes(selectMenuSearchTerm.value),
+    );
+  } else {
+    return [];
+  }
 });
 
 async function updateRouterQuery(

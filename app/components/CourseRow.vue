@@ -74,7 +74,7 @@
     <div
       class="course-info order-4 badge-group flex flex-wrap gap-y-1 gap-x-2 pt-2"
     >
-      <UBadge variant="soft" color="neutral">
+      <UBadge variant="soft" :color="course?.credits ? 'neutral' : 'warning'">
         {{ course?.credits }} 學分
       </UBadge>
       <UBadge variant="soft" color="neutral">
