@@ -63,8 +63,9 @@ onBeforeMount(() => {
 *:after {
   box-sizing: border-box;
 }
-:root,
+html,
 body {
+  touch-action: manipulation;
   background-color: var(--ui-bg);
   font-family: "LXGW WenKai Mono TC", monospace, "avutmv2";
 }
