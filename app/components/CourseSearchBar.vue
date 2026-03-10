@@ -85,7 +85,7 @@ query: {
         <!-- Extra search -->
         <div
           v-if="['dept', 'general', 'program'].includes(mode)"
-          class="h-[80%] max-md:h-px w-px max-md:w-full bg-gray-300 dark:bg-gray-700"
+          class="h-[80%] max-md:h-0.5 w-px max-md:w-full bg-gray-300 dark:bg-gray-700"
         ></div>
         <USelectMenu
           v-if="['dept', 'general', 'program'].includes(mode)"

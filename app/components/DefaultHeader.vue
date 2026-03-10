@@ -1,7 +1,11 @@
 <template>
   <UHeader to="#" :toggle="false" :ui="{ center: 'flex' }">
     <template #left>
-      <UDropdownMenu :items="dropdownItems" :content="{ sideOffset: 14 }">
+      <UDropdownMenu
+        :items="dropdownItems"
+        :content="{ sideOffset: 14 }"
+        size="xl"
+      >
         <UButton
           icon="tabler:menu-2"
           color="neutral"
@@ -37,8 +41,19 @@
     <template #right>
       <ClientOnly>
         <UButton
-          :aria-label="`Switch to ${nextTheme} mode`"
-          :icon="colorMode == 'dark' ? 'tabler:moon' : 'tabler:sun'"
+          v-if="nextTheme === 'dark'"
+          :aria-label="`Switch to dark mode`"
+          icon="tabler:sun"
+          color="neutral"
+          variant="ghost"
+          size="lg"
+          class="rounded-full"
+          @click="startViewTransition"
+        />
+        <UButton
+          v-else
+          :aria-label="`Switch to light mode`"
+          icon="tabler:moon"
           color="neutral"
           variant="ghost"
           size="lg"
@@ -110,17 +125,23 @@ const dropdownItems = computed(() => [
 /// SOURCE: https://github.com/nuxt-ui-templates/portfolio/blob/main/app/components/ColorModeButton.vue
 /// Copyright (c) 2025 Nuxt UI Templates
 
-const colorMode = computed({
-  get: () => useColorMode().value,
-  set: (_color) => (useColorMode().preference = _color),
-});
+const colorMode = useColorMode();
 
 const nextTheme = computed(() =>
   colorMode.value === "dark" ? "light" : "dark",
 );
 
 const switchTheme = () => {
-  colorMode.value = nextTheme.value;
+  colorMode.preference = nextTheme.value;
+  useHead({
+    meta: [
+      {
+        key: "theme-color",
+        name: "theme-color",
+        content: colorMode.value === "dark" ? "#1e293b" : "#f8fafc",
+      },
+    ],
+  });
 };
 
 const startViewTransition = (event: MouseEvent) => {

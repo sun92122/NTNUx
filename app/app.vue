@@ -13,6 +13,11 @@
 </template>
 
 <script setup>
+const colorMode = useColorMode();
+const color = computed(() =>
+  colorMode.value === "dark" ? "#1e293b" : "#f8fafc",
+);
+
 useHead({
   title: "",
   titleTemplate: (titleChunk) => {
@@ -20,6 +25,13 @@ useHead({
       ? `${titleChunk.trim()}｜NTNUx`
       : "NTNUx｜課程查詢系統";
   },
+  meta: [
+    {
+      key: "theme-color",
+      name: "theme-color",
+      content: color,
+    },
+  ],
 });
 useSeoMeta({
   title: "NTNUx｜課程查詢系統",
