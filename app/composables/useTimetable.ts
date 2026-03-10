@@ -229,7 +229,10 @@ export function exportCourseDataIds(
   return exportData.join("\n");
 }
 
-export async function importCourses(input: string): Promise<{
+export async function importCourses(
+  input: string,
+  term: string = "",
+): Promise<{
   timetable: Timetable;
   errorEntries: string[];
 }> {
@@ -238,6 +241,7 @@ export async function importCourses(input: string): Promise<{
     () => (useRuntimeConfig().public.ntnuxDefaultTerm as string) || "",
   );
   const currentTerm = useState<string>("currentTerm", () => defaultTerm.value);
+  const activeTerm = term || currentTerm.value;
   const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
 
   const timetable: Timetable = {};
@@ -248,17 +252,17 @@ export async function importCourses(input: string): Promise<{
     const [key, color] = entry.split(":");
     if (key) {
       // fetch course data by key
-      const course = dataAllTerms.value[currentTerm.value]?.find(
+      const course = dataAllTerms.value[activeTerm]?.find(
         (c) =>
           c.id === key ||
           `${c.course_code}-${c.course_group}` === key ||
           `${c.course_code}` === key,
       );
       if (!course) {
-        await fetchTermData(currentTerm.value)
+        await fetchTermData(activeTerm)
           .refresh()
           .then(() => {
-            const refreshedCourse = dataAllTerms.value[currentTerm.value]?.find(
+            const refreshedCourse = dataAllTerms.value[activeTerm]?.find(
               (c) =>
                 c.id === key ||
                 `${c.course_code}-${c.course_group}` === key ||
@@ -293,9 +297,9 @@ export async function importCourses(input: string): Promise<{
 }
 
 // Timetable settings
-const defaultTimetableSettings: TimetableSettings = {
+export const defaultTimetableSettings: TimetableSettings = {
   showWeekend: false,
-  spanContinuous: false,
+  spanContinuous: true,
   allowOverlap: false,
   hidePeriod: false,
   hidePeriodTime: false,
@@ -364,4 +368,20 @@ export function setTimetableSettings(settings: TimetableSettings) {
 export function resetTimetableSettings() {
   timetableSettings.value = { ...defaultTimetableSettings };
   setTimetableSettings(timetableSettings.value);
+}
+
+export function exportTimetableSettings(settings: TimetableSettings): string {
+  // only export settings that are different from default settings
+  const exportData: Partial<TimetableSettings> = {};
+  for (const key in settings) {
+    if (
+      settings[key as keyof TimetableSettings] !==
+      defaultTimetableSettings[key as keyof TimetableSettings]
+    ) {
+      exportData[key as keyof TimetableSettings] = settings[
+        key as keyof TimetableSettings
+      ] as any;
+    }
+  }
+  return encodeURIComponent(jsonLzEncode(exportData));
 }
