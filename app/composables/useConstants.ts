@@ -13,6 +13,18 @@ export const modeList = [
   "emi",
 ] as const;
 
+export const modeMap: Record<string, string> = {
+  quick: "快速搜尋",
+  dept: "系所課程",
+  general: "通識課程",
+  program: "學程課程",
+  pe: "普通體育",
+  nd: "全民國防",
+  interschool: "校際選課",
+  english3: "英文三",
+  emi: "EMI課程",
+} as const;
+
 export const optionMap = {
   必: "必修",
   選: "選修",

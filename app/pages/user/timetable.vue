@@ -1,21 +1,8 @@
-<!-- 使用者課表，使用 Cookie 儲存課程資料  -->
+<!-- 使用者課表，使用 LocalStorage 儲存課程資料  -->
 
 <template>
   <!-- controls -->
   <CourseTimetableControl />
-
-  <!-- for testing -->
-  <!-- <ClientOnly>
-    <div class="max-w-3xl mx-auto">{{ currentTimetable }}</div>
-  </ClientOnly>
-  <UButton
-    @click="clearTimetable(currentTerm)"
-    color="error"
-    variant="outline"
-    class="mx-auto block"
-  >
-    Clear Timetable
-  </UButton> -->
 
   <!-- timetable -->
   <ClientOnly>
@@ -54,6 +41,18 @@ const currentTimetable = computed<Timetable>(() => {
 });
 const settings = computed<TimetableSettings>(() => {
   return timetableSettings.value || {};
+});
+
+const title = "我的課表";
+useHead({
+  title: title,
+});
+useSeoMeta({
+  title: title,
+  appleMobileWebAppTitle: title,
+  ogTitle: title,
+  twitterTitle: title,
+  ogUrl: "https://ntnux.org/user/timetable",
 });
 
 onMounted(() => {

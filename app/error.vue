@@ -55,4 +55,14 @@ const handleReload = () => {
     window.location.reload();
   }
 };
+
+useHead({
+  title: `錯誤 ${error.statusCode} - NTNUx`,
+});
+useSeoMeta({
+  title: `錯誤 ${error.statusCode} - NTNUx`,
+  appleMobileWebAppTitle: `錯誤 ${error.statusCode} - NTNUx`,
+  ogTitle: `錯誤 ${error.statusCode} - NTNUx`,
+  twitterTitle: `錯誤 ${error.statusCode} - NTNUx`,
+});
 </script>

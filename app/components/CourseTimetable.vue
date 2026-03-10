@@ -232,7 +232,7 @@
               {{ selectedCourse?.tl?.join("/") }}
             </div>
             <div class="flex justify-between items-center">
-              <UPopover>
+              <UPopover v-if="!shared">
                 <UButton color="neutral" variant="outline">
                   <template #leading>
                     <span
@@ -266,10 +266,11 @@
               <ULink
                 :to="
                   selectedCourse?.id
-                    ? `/courses/${currentTerm.replace('-', '/')}/${selectedCourse?.id}`
-                    : `/courses/${currentTerm.replace('-', '/')}/${selectedCourse?.course_code}/${selectedCourse?.course_group}`
+                    ? `/courses/${activeTerm.replace('-', '/')}/${selectedCourse?.id}`
+                    : `/courses/${activeTerm.replace('-', '/')}/${selectedCourse?.course_code}/${selectedCourse?.course_group}`
                 "
                 target="_blank"
+                class="ml-auto"
               >
                 查看課程詳情
               </ULink>
@@ -293,6 +294,8 @@ import { days, periods, periodMap } from "@/composables/useConstants";
 const props = defineProps<{
   timetable: Timetable;
   settings: TimetableSettings;
+  shared?: boolean | undefined;
+  term?: string | undefined;
 }>();
 const config = useRuntimeConfig();
 const defaultTerm = useState<string>(
@@ -300,6 +303,7 @@ const defaultTerm = useState<string>(
   () => (config.public.ntnuxDefaultTerm as string) || "",
 );
 const currentTerm = useState<string>("currentTerm", () => defaultTerm.value);
+const activeTerm = computed(() => props.term || currentTerm.value);
 
 interface dayPeriodToCourse {
   [day: string]: {

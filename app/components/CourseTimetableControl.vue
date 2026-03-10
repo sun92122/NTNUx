@@ -163,7 +163,7 @@
           label="匯入"
           color="neutral"
           variant="outline"
-          icon="tabler:upload"
+          icon="tabler:download"
           @click="importModalOpen = true"
           class="h-9 cursor-pointer"
         />
@@ -334,7 +334,7 @@
           label="匯出課表"
           color="neutral"
           variant="outline"
-          icon="tabler:download"
+          icon="tabler:upload"
           class="h-9 cursor-pointer"
           @click="
             exportTimetable();
@@ -348,6 +348,21 @@
             label="在匯出資料中包含課程背景顏色"
             @change="exportTimetable"
           />
+          <USwitch
+            v-model="includeSettingsInExport"
+            label="在匯出資料中包含課表設定"
+            @change="exportTimetable"
+          />
+          <UFormField label="加上你的暱稱">
+            <UInput
+              v-model="includeAuthInExport"
+              placeholder="選填，分享時會顯示在課表上，方便朋友認出來是你的課表"
+              class="w-full"
+              color="neutral"
+              variant="outline"
+              @update:model-value="exportTimetable"
+            />
+          </UFormField>
           <UInput
             v-model="exportUrl"
             label="分享連結（點擊複製）"
@@ -386,6 +401,7 @@ import {
   setTimetableSettings,
   resetTimetableSettings,
   importCourses,
+  exportTimetableSettings,
 } from "@/composables/useTimetable";
 import { periods } from "@/composables/useConstants";
 import { copyToClipboard } from "@/composables/useTools";
@@ -484,7 +500,7 @@ function submitImport() {
   const input =
     importTextarea.value.search("courses=") !== -1
       ? decodeURIComponent(
-          importTextarea.value.split("courses=")[1]?.trim() || "",
+          importTextarea.value.split("courses=")[1]?.trim().split("&")[0] || "",
         )
       : importTextarea.value.trim();
   importCourses(input).then(({ timetable, errorEntries }) => {
@@ -512,6 +528,8 @@ const exportModalOpen = ref(false);
 const exportData = ref("");
 const exportUrl = ref("");
 const includeColorInExport = ref(false);
+const includeSettingsInExport = ref(false);
+const includeAuthInExport = ref("");
 function exportTimetable() {
   const timetable = allTimetable.value[currentTerm.value];
   if (!timetable || Object.keys(timetable).length === 0) {
@@ -525,7 +543,13 @@ function exportTimetable() {
   exportUrl.value =
     window.location.origin +
     "/share/timetable?courses=" +
-    `${exportCourseDataParams(currentTerm.value, includeColorInExport.value)}`;
+    `${exportCourseDataParams(currentTerm.value, includeColorInExport.value)}` +
+    (includeAuthInExport.value.trim() !== ""
+      ? `&auth=${encodeURIComponent(includeAuthInExport.value.trim())}`
+      : "") +
+    (includeSettingsInExport.value
+      ? `&settings=${exportTimetableSettings(settings.value)}`
+      : "");
 }
 
 onMounted(() => {
