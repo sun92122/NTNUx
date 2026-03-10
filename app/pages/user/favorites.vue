@@ -16,6 +16,18 @@
 import { prefetchDefaultTermData } from "@/composables/useCourseTable";
 import { loadFavoriteCourses } from "@/composables/useFavorites";
 
+const title = "我的收藏課程";
+useHead({
+  title: title,
+});
+useSeoMeta({
+  title: title,
+  appleMobileWebAppTitle: title,
+  ogTitle: title,
+  twitterTitle: title,
+  ogUrl: "https://ntnux.org/user/favorites",
+});
+
 onMounted(() => {
   prefetchDefaultTermData(false);
   loadFavoriteCourses();
