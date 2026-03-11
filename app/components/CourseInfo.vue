@@ -75,6 +75,7 @@
             block
             class="text-left rounded-sm border-none h-10"
             variant="ghost"
+            :ui="{ label: 'mr-auto' }"
           />
         </div>
       </template>
@@ -91,7 +92,11 @@
 import type { ContextMenuItem } from "@nuxt/ui";
 import type { Course } from "@/composables/useCourseTable";
 
-import { optionMap, locationMap } from "@/composables/useConstants";
+import {
+  optionMap,
+  locationMap,
+  generalCoreMap,
+} from "@/composables/useConstants";
 import { copyToClipboard } from "@/composables/useTools";
 
 const props = defineProps({
@@ -240,14 +245,30 @@ const infoItems = computed<CourseInfoItem[]>(
             ]
           : undefined,
       },
-      {
-        icon: "tabler:layout-dashboard",
-        title: course.value?.course_category
-          ? optionMap[course.value.course_category as keyof typeof optionMap] ||
-            course.value.course_category
-          : "不明課程類別",
-        disabled: !course.value?.course_category,
-      },
+      course.value?.course_category === "通"
+        ? {
+            icon: "tabler:layout-dashboard",
+            title: "通識",
+            content: course.value?.general_education
+              ? course.value.general_education.split("/").map((cat) => ({
+                  label: generalCoreMap[cat] || cat,
+                  to: `/search/general?g=${encodeURIComponent(cat)}`,
+                  trailingIcon: "tabler:filter-search",
+                }))
+              : undefined,
+            collapsed: generalCollapsed,
+            click: () => {
+              generalCollapsed.value = !generalCollapsed.value;
+            },
+          }
+        : {
+            icon: "tabler:layout-dashboard",
+            title: course.value?.course_category
+              ? optionMap[course.value.course_category] ||
+                course.value.course_category
+              : "不明課程類別",
+            disabled: !course.value?.course_category,
+          },
       {
         icon: "tabler:school",
         title: course.value?.credits
@@ -370,6 +391,7 @@ const infoItems = computed<CourseInfoItem[]>(
       },
     ] as CourseInfoItem[],
 );
+const generalCollapsed = ref(true);
 const locationCollapsed = ref(false);
 const programCollapsed = ref(true);
 const infoModalOpen = ref(false);

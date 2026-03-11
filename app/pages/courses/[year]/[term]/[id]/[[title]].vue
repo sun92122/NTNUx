@@ -79,7 +79,7 @@
     <!-- info -->
     <div
       v-if="course"
-      class="w-[calc(100%-1rem)] max-w-5xl mt-4 mx-auto p-4 rounded-lg bg-white dark:bg-gray-800 shadow grid grid-cols-1 md:grid-cols-[300px_auto] gap-4"
+      class="w-[calc(100%-1rem)] max-w-5xl mt-2 mx-auto p-4 rounded-lg bg-white dark:bg-gray-800 shadow grid grid-cols-1 md:grid-cols-[300px_auto] gap-4"
     >
       <CourseInfo :course="course" />
 
