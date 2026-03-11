@@ -38,9 +38,9 @@ export interface Course {
   count_enrolled: number; // 選課人數 (co)
   count_used_authorized: number; // 已使用授權碼數量 (au)
   count_enrolled_without_authorized: number; // 非授權碼選課人數 (ce)
-  limit_enrollment: number; // 選課人數上限 (lh)
-  limit_authorized: number; // 授權碼數量 (a)
-  limit_system: number; // 系統各校開放名額 (l)
+  limit_enrollment: number | undefined; // 選課人數上限 (lh)
+  limit_authorized: number | undefined; // 授權碼數量 (a)
+  limit_system: number | undefined; // 系統各校開放名額 (l)
 
   time: string[]; // 時間（列表）(tl)
   location: string; // 地點（"/" 分隔）(lc)
@@ -333,9 +333,9 @@ function formatCourseData(rawData: any): Course {
     count_enrolled: rawData.co ? Number(rawData.co) : 0,
     count_used_authorized: rawData.au ? Number(rawData.au) : 0,
     count_enrolled_without_authorized: rawData.ce ? Number(rawData.ce) : 0,
-    limit_enrollment: rawData.lh ? Number(rawData.lh) : 0,
-    limit_authorized: rawData.a ? Number(rawData.a) : 0,
-    limit_system: rawData.l ? Number(rawData.l) : 0,
+    limit_enrollment: rawData.lh ? Number(rawData.lh) : undefined,
+    limit_authorized: rawData.a ? Number(rawData.a) : undefined,
+    limit_system: rawData.l ? Number(rawData.l) : undefined,
 
     time: Array.isArray(rawData.tl) ? rawData.tl : [],
     location: rawData.lc || "",

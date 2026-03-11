@@ -33,6 +33,28 @@
           class="whitespace-pre-wrap indent-8"
         ></p>
       </template>
+      <template #user-count-body="{ item, index, open, ui }">
+        <div
+          class="sm:ml-4 mb-2 flex flex-row items-end gap-4 sm:gap-8 select-none"
+        >
+          <div v-for="c in (item as AccordionItem).contents || []">
+            <span class="text-sm max-[420px]:text-xs">{{ c.label }}</span>
+            <div class="flex items-end gap-1 font-mono">
+              <span v-if="c.current !== null" class="text-4xl font-bold">{{
+                c.current
+              }}</span>
+              <span v-if="c.current !== null">/</span>
+              <span
+                :class="{
+                  'text-4xl font-bold': c.current === null,
+                  'text-sm': c.current !== null,
+                }"
+                >{{ c.max === undefined ? "無" : c.max }}</span
+              >
+            </div>
+          </div>
+        </div>
+      </template>
     </UAccordion>
   </div>
 </template>
@@ -71,6 +93,34 @@ const accordionItems = computed<AccordionItem[]>(() => [
     disabled: !course.value?.comment,
   },
   {
+    label: "選課資訊",
+    icon: "tabler:users",
+    contents: [
+      {
+        label: "選課總人數",
+        current: course.value?.count_enrolled_without_authorized,
+        max: course.value?.limit_enrollment,
+      },
+      {
+        label: "已使用授權碼",
+        current: course.value
+          ? Math.max(
+              0,
+              course.value.count_enrolled -
+                course.value.count_enrolled_without_authorized,
+            )
+          : null,
+        max: course.value?.limit_authorized,
+      },
+      {
+        label: "系統各校開放名額",
+        current: null,
+        max: course.value?.limit_system,
+      },
+    ],
+    slot: "user-count",
+  },
+  {
     label: "課程簡介",
     icon: "tabler:bookmark",
     content: course.value?.description,
@@ -92,12 +142,12 @@ watch(
   () => {
     if (course.value?.description) {
       // If description becomes available, ensure the "課程簡介" section is open
-      if (!accordionModel.value.includes("2")) {
-        accordionModel.value.push("2");
+      if (!accordionModel.value.includes("3")) {
+        accordionModel.value.push("3");
       }
     } else {
       // If description becomes unavailable, remove the "課程簡介" section from the open state
-      accordionModel.value = accordionModel.value.filter((key) => key !== "2");
+      accordionModel.value = accordionModel.value.filter((key) => key !== "3");
     }
   },
 );
