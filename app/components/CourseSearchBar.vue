@@ -11,7 +11,9 @@ query: {
 <template>
   <div class="search-bar-container w-full flex flex-col justify-center">
     <div
+      ref="modeScrollContainer"
       class="breadcrumb-container max-w-full h-fit m-auto max-md:my-1.5 px-2 flex items-center gap-2 hide-scrollbar overflow-x-scroll"
+      @scroll.passive="handleScroll"
     >
       <UButton
         v-for="(breadcrumb, index) in modeBreadcrumbs"
@@ -370,6 +372,7 @@ interface modeBreadcrumb extends BreadcrumbItem {
   activeLabel?: string;
   do?: Function;
 }
+const modeScrollContainer = ref<any>(null);
 const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
   {
     label: "快速",
@@ -378,6 +381,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     do: () => {
       updateRouterQuery("/search/quick");
       clearAndSetAllFilters({});
+      handleBreadcrumbClick();
     },
   },
   {
@@ -388,6 +392,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
       clearAndSetAllFilters({});
       deptDropdownOptions.model.value = deptDropdownOptions.getFromQuery();
       deptDropdownOptions.updateHandler();
+      handleBreadcrumbClick();
     },
   },
   {
@@ -399,6 +404,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
       generalDropdownOptions.model.value =
         generalDropdownOptions.getFromQuery();
       generalDropdownOptions.updateHandler();
+      handleBreadcrumbClick();
     },
   },
   {
@@ -410,12 +416,16 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
       clearAndSetAllFilters({
         department_code: ["PE"],
       });
+      handleBreadcrumbClick();
     },
   },
   {
     label: "進階搜尋",
     do: () => {
       // TODO: implement advanced search page
+      advancedSearchOpen.value = true;
+      advancedTimeSearchOpen.value = true;
+      handleBreadcrumbClick();
     },
   },
   {
@@ -427,6 +437,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
       clearAndSetAllFilters({
         name: "全民國防教育軍事訓練",
       });
+      handleBreadcrumbClick();
     },
   },
   {
@@ -437,6 +448,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
       programDropdownOptions.model.value =
         programDropdownOptions.getFromQuery();
       programDropdownOptions.updateHandler();
+      handleBreadcrumbClick();
     },
   },
   {
@@ -448,6 +460,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
       clearAndSetAllFilters({
         department_code: ["9UAA", "9MAA", "9DAA", "9UAB", "9MAB"],
       });
+      handleBreadcrumbClick();
     },
   },
   {
@@ -458,6 +471,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
       clearAndSetAllFilters({
         name: "英文（三）",
       });
+      handleBreadcrumbClick();
     },
   },
   {
@@ -468,9 +482,26 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
       clearAndSetAllFilters({
         english_teaching: true,
       });
+      handleBreadcrumbClick();
     },
   },
 ]);
+const currentScrollPosition = useState("currentScrollPosition", () => 0);
+// function getScrollPosition() {
+//   currentScrollPosition.value = modeScrollContainer.value
+//     ? modeScrollContainer.value?.scrollLeft
+//     : 0;
+// }
+function handleScroll(event: any) {
+  currentScrollPosition.value = event.target?.scrollLeft || 0;
+}
+async function handleBreadcrumbClick() {
+  await nextTick();
+
+  if (modeScrollContainer.value) {
+    modeScrollContainer.value.scrollLeft = currentScrollPosition.value;
+  }
+}
 
 const tableWatchVersion = useState("tableWatchVersion", () => 0);
 const table = computed(() => getTable());
@@ -681,7 +712,7 @@ const isFilterEmpty = computed(() => {
   return Object.values(filtersQuery || {}).filter((v) => !!v).length === 0;
 });
 
-onMounted(() => {
+onMounted(async () => {
   if (route.query.y && typeof route.query.y === "string") {
     currentTerm.value = route.query.y;
   }
@@ -706,5 +737,11 @@ onMounted(() => {
   tableWatchVersion.value += 1;
 
   reflash();
+
+  handleBreadcrumbClick();
+});
+
+onUpdated(async () => {
+  handleBreadcrumbClick();
 });
 </script>
