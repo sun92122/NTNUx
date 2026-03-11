@@ -42,8 +42,11 @@
 
     <!-- title -->
     <div class="px-8 w-full max-w-5xl m-auto mt-4">
-      <div class="text-2xl font-bold">
+      <div class="text-2xl font-bold flex-wrap">
         {{ course?.name || title || "課程資訊" }}
+      </div>
+      <div class="text-xs text-dimmed">
+        {{ course?.full_name_en?.split("<")[0]?.trim() }}
       </div>
       <div class="mt-1 flex flex-row justify-between">
         <p class="text-sm text-dimmed">
