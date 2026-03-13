@@ -51,9 +51,12 @@
           @blur="
             () => {
               globalFilterInput = globalFilterInput.trim();
-              updateFiltersToQuery(undefined, {
-                s: globalFilterInput.replace(' ', '+') || undefined,
-              });
+              updateFiltersToQuery(
+                route.path.includes('/search') ? undefined : '/search/quick',
+                {
+                  s: globalFilterInput.replace(' ', '+') || undefined,
+                },
+              );
             }
           "
         >
@@ -205,9 +208,12 @@
           @click="
             () => {
               globalFilterInput = globalFilterInput.trim();
-              updateFiltersToQuery(undefined, {
-                s: globalFilterInput.replace(' ', '+') || undefined,
-              });
+              updateFiltersToQuery(
+                route.path.includes('/search') ? undefined : '/search/quick',
+                {
+                  s: globalFilterInput.replace(' ', '+') || undefined,
+                },
+              );
             }
           "
         />
@@ -240,7 +246,7 @@
 
       <UButton
         v-if="route.path?.includes('/search') && !isFilterEmpty"
-        label="清除所有篩選"
+        label="清空篩選"
         color="error"
         variant="subtle"
         size="lg"
@@ -252,9 +258,7 @@
               route.path.includes('/search') ? undefined : '/search/quick',
               {},
               { clear: true, clearGlobal: true, clearAdvanced: true },
-            ).finally(() => {
-              onflash();
-            });
+            );
           }
         "
       />
@@ -319,6 +323,11 @@
                 i: booleanToQueryValue(advancedValues.intensive.value),
                 e: booleanToQueryValue(advancedValues.english_teaching.value),
                 di: booleanToQueryValue(advancedValues.digital_course.value),
+                c: advancedValues.credits.value
+                  ? advancedValues.credits.value.join(',')
+                  : undefined,
+                nf:
+                  advancedValues.exclude_full.value === true ? '1' : undefined,
                 es: advancedValues.exclude.value
                   ? advancedValues.exclude.value.replace(/ /g, '+')
                   : undefined,
@@ -412,6 +421,85 @@
               class="not-last:mr-2"
             />
           </UFormField>
+          <UFormField
+            label="學分"
+            :ui="{
+              label: 'text-base mb-2',
+            }"
+          >
+            <UButton
+              v-for="(label, key) in {
+                '0': '0',
+                '1': '1',
+                '2': '2',
+                '3': '3',
+                '4': '4',
+                '5': '5以上',
+              }"
+              :key="key"
+              :label="label"
+              size="xl"
+              :color="
+                advancedValues.credits.value?.includes(parseInt(key))
+                  ? 'primary'
+                  : 'neutral'
+              "
+              :variant="
+                advancedValues.credits.value?.includes(parseInt(key))
+                  ? 'subtle'
+                  : 'outline'
+              "
+              @click="
+                () => {
+                  if (advancedValues.credits.value?.includes(parseInt(key))) {
+                    advancedValues.credits.value =
+                      advancedValues.credits.value.filter(
+                        (c) => c !== parseInt(key),
+                      );
+                  } else {
+                    advancedValues.credits.value = [
+                      ...(advancedValues.credits.value || []),
+                      parseInt(key),
+                    ].sort((a, b) => a - b);
+                  }
+                }
+              "
+              class="not-last:mr-2"
+            />
+          </UFormField>
+          <UFormField
+            label="選課資訊"
+            :ui="{
+              label: 'text-base mb-2',
+            }"
+          >
+            <UButton
+              label="排除額滿課程"
+              size="xl"
+              :color="
+                advancedValues.exclude_full.value === true
+                  ? 'primary'
+                  : advancedValues.exclude_full.value === false
+                    ? 'error'
+                    : 'neutral'
+              "
+              :variant="
+                advancedValues.exclude_full.value === undefined
+                  ? 'outline'
+                  : 'subtle'
+              "
+              @click="
+                () => {
+                  if (advancedValues.exclude_full.value) {
+                    advancedValues.exclude_full.value = undefined;
+                  } else {
+                    advancedValues.exclude_full.value = true;
+                  }
+                }
+              "
+              class="not-last:mr-2"
+            />
+          </UFormField>
         </div>
         <div
           v-if="advancedTimeSearchOpen"
@@ -456,17 +544,11 @@
 <script lang="ts" setup>
 import type { BreadcrumbItem, SelectMenuItem } from "@nuxt/ui";
 import {
-  useCourseFilter,
   getGlobalFilterInput,
   updateGlobalFilterByInput,
-  addColumnFilter,
   removeColumnFilter,
   clearAndSetAllFilters,
 } from "~/composables/useCourseFilter";
-import {
-  prefetchDefaultTermData,
-  getTable,
-} from "~/composables/useCourseTable";
 import { jsonLzDecode } from "~/composables/useTools";
 
 const windowWidth = useState("windowWidth", () => window?.innerWidth || 1200);
@@ -494,8 +576,8 @@ const globalFilterInput = useState("globalFilterInput", () => "");
 const globalFilterInputRef = useTemplateRef("input");
 
 // each year in termList is like "114", we need to convert it to "114-1", "114-2", "114-暑期", termList is like ["114", "113", "112"]
-const dropdownTermOptions = computed(() =>
-  termList.value.map((year) => {
+const dropdownTermOptions = computed(() => [
+  ...termList.value.map((year) => {
     return {
       label: year,
 
@@ -505,7 +587,10 @@ const dropdownTermOptions = computed(() =>
           value: `${year}-1`,
           onSelect() {
             currentTerm.value = `${year}-1`;
-            updateFiltersToQuery(undefined, { y: `${year}-1` });
+            updateFiltersToQuery(
+              route.path.includes("/search") ? undefined : "/search/quick",
+              { y: `${year}-1` },
+            );
           },
         },
         {
@@ -513,7 +598,10 @@ const dropdownTermOptions = computed(() =>
           value: `${year}-2`,
           onSelect() {
             currentTerm.value = `${year}-2`;
-            updateFiltersToQuery(undefined, { y: `${year}-2` });
+            updateFiltersToQuery(
+              route.path.includes("/search") ? undefined : "/search/quick",
+              { y: `${year}-2` },
+            );
           },
         },
         {
@@ -521,13 +609,27 @@ const dropdownTermOptions = computed(() =>
           value: `${year}-3`,
           onSelect() {
             currentTerm.value = `${year}-3`;
-            updateFiltersToQuery(undefined, { y: `${year}-3` });
+            updateFiltersToQuery(
+              route.path.includes("/search") ? undefined : "/search/quick",
+              { y: `${year}-3` },
+            );
           },
         },
       ],
     };
   }),
-);
+  {
+    label: `預設（${defaultTerm.value}）`,
+    value: defaultTerm.value,
+    onSelect() {
+      currentTerm.value = defaultTerm.value;
+      updateFiltersToQuery(
+        route.path.includes("/search") ? undefined : "/search/quick",
+        { y: undefined },
+      );
+    },
+  },
+]);
 
 defineShortcuts({
   "/": {
@@ -564,6 +666,9 @@ const advancedValues = {
   intensive: ref<boolean | undefined>(undefined),
   english_teaching: ref<boolean | undefined>(undefined),
   digital_course: ref<boolean | undefined>(undefined),
+
+  credits: ref<number[] | undefined>(undefined),
+  exclude_full: ref<boolean | undefined>(undefined),
 
   exclude: ref<string>(""),
 };
@@ -901,9 +1006,7 @@ function getFiltersFromQuery() {
     query.y && typeof query.y === "string" ? query.y : defaultTerm.value;
   // global filter
   const globalFilter =
-    query.s && typeof query.s === "string"
-      ? query.s.replace(/\+/g, " ")
-      : getGlobalFilterInput();
+    query.s && typeof query.s === "string" ? query.s.replace(/\+/g, " ") : "";
   // advanced filters
   filters.location =
     query.gl || query.hl || query.ol
@@ -919,12 +1022,12 @@ function getFiltersFromQuery() {
     query.e === "1" ? true : query.e === "0" ? false : undefined;
   filters.digital_course =
     query.di === "1" ? true : query.di === "0" ? false : undefined;
-  // filters.credits =
-  //   query.c && typeof query.c === "string"
-  //     ? query.c.split(",").map((c) => parseInt(c))
-  //     : undefined;
-  // filters.count_enrolled_without_authorized =
-  //   query.nf === "1" ? true : query.nf === "0" ? false : undefined;
+  filters.credits =
+    query.c && typeof query.c === "string"
+      ? query.c.split(",").map((c) => parseInt(c))
+      : undefined;
+  filters.count_enrolled_without_authorized =
+    query.nf === "1" ? true : query.nf === "0" ? false : undefined;
   // // exclude filter
   // filters.full_name =
   //   query.es && typeof query.es === "string"
@@ -941,10 +1044,8 @@ function getFiltersFromQuery() {
   if (term) {
     currentTerm.value = term;
   }
-  if (globalFilter) {
-    globalFilterInput.value = globalFilter;
-    updateGlobalFilterByInput(globalFilterInput.value);
-  }
+  globalFilterInput.value = globalFilter || "";
+  updateGlobalFilterByInput(globalFilterInput.value);
 
   // department_code
   switch (mode.value) {
@@ -1006,16 +1107,22 @@ function getFiltersFromQuery() {
   }
 
   // DEBUG
-  console.trace("filters from query: ", filters);
+  // console.trace("filters from query: ", filters);
   clearAndSetAllFilters(filters);
 
   advancedValues.g_location.value = filters.location?.g;
   advancedValues.h_location.value = filters.location?.h;
   advancedValues.o_location.value = filters.location?.o;
+
   advancedValues.intensive.value = filters.intensive;
   advancedValues.english_teaching.value = filters.english_teaching;
   advancedValues.digital_course.value = filters.digital_course;
+
+  advancedValues.credits.value = filters.credits;
+  advancedValues.exclude_full.value = filters.count_enrolled_without_authorized;
+
   advancedValues.exclude.value = filters.full_name;
+
   timeSelected.value = filters.time_location_list;
   timeLoose.value = loose;
 }

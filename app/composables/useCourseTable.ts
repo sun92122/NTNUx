@@ -19,6 +19,8 @@ import {
   exboolFilterFunction,
   ttlFilterFunction,
   locationFilterFunction,
+  creditsFilterFunction,
+  fullFilterFunction,
 } from "./useCourseFilter";
 
 export interface Course {
@@ -180,10 +182,10 @@ export function useCourseTable() {
           filterFn: exboolFilterFunction,
         }),
         columnHelper.accessor("credits", {
-          // number in list filter
+          filterFn: creditsFilterFunction,
         }),
         columnHelper.accessor("count_enrolled_without_authorized", {
-          //
+          filterFn: fullFilterFunction,
         }),
         // experimental filters
         columnHelper.accessor("full_name", {
@@ -236,6 +238,8 @@ export function useCourseTable() {
       exboolFilterFunction: exboolFilterFunction,
       ttlFilterFunction: ttlFilterFunction,
       locationFilterFunction: locationFilterFunction,
+      creditsFilterFunction: creditsFilterFunction,
+      fullFilterFunction: fullFilterFunction,
     },
   };
 

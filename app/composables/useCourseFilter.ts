@@ -216,6 +216,37 @@ export function locationFilterFunction(
   return true;
 }
 
+export function creditsFilterFunction(
+  row: Row<any>,
+  columnId: string,
+  filterValue: number[] | undefined,
+) {
+  if (!filterValue || filterValue.length === 0) {
+    return true;
+  }
+  return filterValue.includes(row.getValue(columnId));
+}
+
+export function fullFilterFunction(
+  row: Row<any>,
+  columnId: string,
+  filterValue: boolean | undefined,
+) {
+  if (filterValue === undefined) {
+    return true;
+  } else if (filterValue) {
+    return (
+      (row.original.count_enrolled_without_authorized || 0) <
+      (row.original.limit_enrollment || 0)
+    );
+  } else {
+    return (
+      (row.original.count_enrolled_without_authorized || 0) >=
+      (row.original.limit_enrollment || Infinity)
+    );
+  }
+}
+
 export function addColumnFilter(columnId: string, value: any) {
   const filters = useState<Record<string, any>>(
     "courseTableFilters",
