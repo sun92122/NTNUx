@@ -27,20 +27,23 @@ query: {
         :color="breadcrumb?.active ? 'primary' : 'neutral'"
         size="xl"
         class="px-2 cursor-pointer"
-        @click="breadcrumb.do?.()"
+        @click="
+          () => {
+            breadcrumb.do?.();
+          }
+        "
       />
     </div>
     <div
       class="relative search-bar max-w-3xl w-4/5 max-md:w-full m-auto max-md:flex-col max-md:items-center"
     >
-      <UFieldGroup
+      <div
         class="flex items-center max-md:flex-col max-md:items-stretch justify-between"
         :class="[
           'w-full md:h-16 md:rounded-full overflow-hidden shadow-xs shadow-gray-400',
-          'max-md:rounded-none max-md:h-fit max-md:shadow-none max-md:border-t-[1.5px] max-md:border-b-[1.5px] max-md:border-gray-200 max-md:dark:border-gray-700',
+          'max-md:rounded-none max-md:h-fit max-md:max-h-33 max-md:shadow-none max-md:border-t-[1.5px] max-md:border-b-[1.5px] max-md:border-gray-200 max-md:dark:border-gray-700',
+          'gap-[0.8px] bg-elevated',
         ]"
-        label=""
-        :orientation="windowWidth < 768 ? 'vertical' : 'horizontal'"
       >
         <UInput
           ref="input"
@@ -51,9 +54,10 @@ query: {
           placeholder=""
           clearable
           :ui="{
-            base: 'px-8 pb-3 pt-8 peer',
+            root: 'peer/p',
+            base: 'px-8 pb-3 pt-8 peer rounded-none md:rounded-full md:w-[calc(100%+28px)] md:-mr-7 z-40',
           }"
-          class="text-base border-gray-300 search-input w-full md:not-last:max-w-[calc(50%-1px)] max-md:h-16"
+          class="bg-default text-base border-gray-300 search-input w-full max-md:h-16"
           @blur="
             () => {
               globalFilterInput = globalFilterInput.trim();
@@ -63,7 +67,7 @@ query: {
         >
           <label
             :class="[
-              'pointer-events-none absolute left-8', // has text
+              'pointer-events-none absolute left-8 z-50', // has text
               !globalFilterInput?.length
                 ? 'top-1/2 -translate-y-1/2 object-left text-base text-dimmed ' +
                   'peer-focus:top-1/2 peer-focus:-translate-y-1/1 peer-focus:object-left peer-focus:text-xs peer-focus:text-primary' // no text + focus
@@ -75,7 +79,7 @@ query: {
           </label>
           <label
             :class="[
-              'pointer-events-none absolute left-8 top-8 text-base text-dimmed collapse', // has text
+              'pointer-events-none absolute left-8 top-8 text-base text-dimmed collapse z-50', // has text
               'peer-placeholder-shown:peer-focus:visible', // focus + placeholder
               'transition-all duration-50 ease-in-out',
             ]"
@@ -84,11 +88,6 @@ query: {
           </label>
         </UInput>
 
-        <!-- Extra search -->
-        <div
-          v-if="['dept', 'general', 'program'].includes(mode)"
-          class="h-[80%] max-md:h-0.5 w-px max-md:w-full bg-gray-300 dark:bg-gray-700"
-        ></div>
         <USelectMenu
           v-if="['dept', 'general', 'program'].includes(mode)"
           :items="selectMenuItems"
@@ -100,7 +99,12 @@ query: {
           :content="{
             avoidCollisions: true,
           }"
-          class="search-input w-full md:max-w-[calc(50%-1px)] max-md:h-16 text-base hover:bg-elevated ring-0 p-0"
+          :class="[
+            'bg-default search-input w-full max-md:h-16 text-base hover:bg-elevated ring-0 p-0',
+            'rounded-none md:rounded-full md:-ml-7 z-40',
+            'before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-px before:h-1/2 before:bg-elevated',
+            'before:transition-all before:duration-150 before:ease-in-out hover:before:scale-y-0 peer-has-[input:hover]/p:before:scale-y-0',
+          ]"
           @update:model-value="
             mode === 'dept'
               ? deptDropdownOptions.updateHandler()
@@ -130,16 +134,12 @@ query: {
           </template>
 
           <template #default="{ modelValue }">
-            <UButton
-              color="neutral"
-              variant="ghost"
-              label=""
-              class="cursor-pointer text-base border-gray-300 w-full px-8 pb-3 pt-8 peer"
+            <div
+              class="cursor-pointer text-base border-gray-300 w-full h-16 px-8 pb-3 pt-8 peer z-39"
             >
-              <div class="h-5"></div>
               <label
                 :class="[
-                  'pointer-events-none absolute left-8 md:left-2 top-1/2',
+                  'pointer-events-none absolute left-8 top-1/2 z-50',
                   'object-left text-dimmed text-base', // placeholder
                   'transition-all duration-200 ease-in-out',
                   modelValue && modelValue.length > 0
@@ -157,7 +157,7 @@ query: {
               </label>
               <label
                 :class="[
-                  'pointer-events-none absolute left-8 md:left-2 top-8 text-base collapse object-left', // no text
+                  'pointer-events-none absolute left-8 top-8 text-base collapse object-left z-50', // no text
                   modelValue && modelValue.length > 0
                     ? 'visible text-default' // has text
                     : '',
@@ -180,7 +180,7 @@ query: {
                       }[mode] || "篩選"
                 }}</span>
               </label>
-            </UButton>
+            </div>
           </template>
 
           <template #item-leading="{ item }">
@@ -197,10 +197,10 @@ query: {
             <span>{{ (item as any)?.label }}</span>
           </template>
         </USelectMenu>
-      </UFieldGroup>
-      <!-- search button -->
+      </div>
+
       <div
-        class="absolute right-0 top-0 h-full w-16 flex items-center justify-center pr-2.5 z-10"
+        class="absolute right-0 top-0 h-full w-16 flex items-center justify-center pr-2.5 z-51"
         :class="
           ['dept', 'general', 'program'].includes(mode) ? 'max-md:h-1/2' : ''
         "
@@ -246,7 +246,7 @@ query: {
         variant="subtle"
         size="lg"
         icon="tabler:filter-off"
-        class="cursor-pointer"
+        class="cursor-pointer gap-1"
         @click="
           () => {
             if (dropdownModel && dropdownModel.length > 0) {
