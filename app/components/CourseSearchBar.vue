@@ -924,9 +924,23 @@ const isFilterEmpty = computed(() => {
     y: _, // current term is not considered as a filter
     oa: __, // open advanced search is not a filter
     ot: ___, // open time search is not a filter
-    ...filtersQuery
+    tl: ____,
+    s,
+    d,
+    g,
+    p,
+    gl,
+    hl,
+    ol,
+    i,
+    e,
+    di,
+    c,
+    nf,
+    es,
+    t,
   } = route.query;
-  return Object.values(filtersQuery || {}).filter((v) => !!v).length === 0;
+  return ![s, d, g, p, gl, hl, ol, i, e, di, c, nf, es, t].some((v) => !!v);
 });
 const isAdvancedFilterEmpty = computed(() => {
   const { gl, hl, ol, i, e, di, c, nf, es } = route.query;
