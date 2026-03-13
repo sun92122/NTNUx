@@ -1,4 +1,5 @@
 import type { ColumnFiltersState, Row } from "@tanstack/vue-table";
+import { days, periods } from "@/composables/useConstants";
 
 export function useCourseFilter() {
   const filters = useState<Record<string, any>>(
@@ -70,7 +71,7 @@ export function deptFilterFunction(
   columnId: string,
   filterValue: string[],
 ) {
-  const fuzzyClassKind = useState<Boolean>(
+  const fuzzyClassKind = useState<boolean>(
     "courseTableFuzzyClassKind",
     () => true,
   );
@@ -121,10 +122,101 @@ export function arrayContainsStringFilterFunction(
   });
 }
 
-export function addColumnFilter(
+export const exboolFilterFunction = (
+  row: Row<any>,
   columnId: string,
-  value: boolean | string | number | string[],
+  filterValue: boolean,
+) => {
+  if (filterValue === undefined) {
+    return true;
+  }
+  const rowValue = row.getValue(columnId);
+  if (typeof rowValue !== "boolean") {
+    return false;
+  }
+  return rowValue === filterValue;
+};
+
+export function ttlFilterFunction(
+  row: Row<any>,
+  columnId: string,
+  filterValue: Set<string>,
 ) {
+  // if filterValue is empty, return true
+  if (!filterValue || filterValue.size === 0) {
+    return true;
+  }
+
+  const timeLoose = useState<boolean>("courseTableTimeLoose", () => false);
+  const tllList: { d: string; p: string; l: string }[] =
+    row.original.time_location_list || [];
+
+  if (tllList.length === 0) {
+    return false;
+  }
+
+  if (timeLoose.value) {
+    // if any of the time/location matches, return true
+    return Array.from(tllList).some((tll) => {
+      const tp = `${days.indexOf(tll.d as any)}-${periods.indexOf(tll.p as any)}`;
+      return filterValue.has(tp);
+    });
+  } else {
+    // if all of the time/location matches, return true
+    return Array.from(tllList).every((tll) => {
+      const tp = `${days.indexOf(tll.d as any)}-${periods.indexOf(tll.p as any)}`;
+      return filterValue.has(tp);
+    });
+  }
+}
+
+export function locationFilterFunction(
+  row: Row<any>,
+  columnId: string,
+  filterValue: Record<string, boolean | undefined> | undefined,
+) {
+  if (
+    !filterValue ||
+    Object.values(filterValue).every((v) => v === undefined)
+  ) {
+    return true;
+  }
+  const { g, h, o } = filterValue;
+  if (g && h && o) {
+    return true;
+  }
+  if (g === false && h == false && o === false) {
+    return false;
+  }
+  const locationFlag = { g: false, h: false, o: false };
+  const locationList = row.original.location?.split("/") || "";
+  for (const location of locationList) {
+    if (location.startsWith("公館 ")) {
+      locationFlag.g = true;
+    } else if (location.startsWith("和平 ")) {
+      locationFlag.h = true;
+    } else {
+      locationFlag.o = true;
+    }
+  }
+
+  if (
+    (g === false && locationFlag.g) ||
+    (h === false && locationFlag.h) ||
+    (o === false && locationFlag.o) ||
+    !(
+      (g === true && locationFlag.g) ||
+      (h === true && locationFlag.h) ||
+      (o === true && locationFlag.o) ||
+      (!g && !h && !o)
+    )
+  ) {
+    return false;
+  }
+  return true;
+}
+
+export function addColumnFilter(columnId: string, value: any) {
   const filters = useState<Record<string, any>>(
     "courseTableFilters",
     () => ({}),
@@ -145,5 +237,12 @@ export function clearAndSetAllFilters(filters: Record<string, any>) {
     "courseTableFilters",
     () => ({}),
   );
-  allFilters.value = filters;
+  // allFilters.value = filters;
+  for (const key in filters) {
+    if (filters[key] === undefined || filters[key] === null) {
+      delete allFilters.value[key];
+    } else {
+      allFilters.value[key] = filters[key];
+    }
+  }
 }

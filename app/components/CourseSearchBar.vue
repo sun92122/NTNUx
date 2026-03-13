@@ -1,13 +1,3 @@
-<!-- 
-query: {
-  y: string; // year-term, undefined if default term is used
-  s: string; // search input
-  d: string; // dept filter, e.g. "CS,EE"
-  g: string; // general education filter, e.g. "A,B,C"
-  p: string; // program filter, e.g. "prog1,prog2"
-}
--->
-
 <template>
   <div class="search-bar-container w-full flex flex-col justify-center">
     <div
@@ -61,7 +51,9 @@ query: {
           @blur="
             () => {
               globalFilterInput = globalFilterInput.trim();
-              updateGlobalFilter();
+              updateFiltersToQuery(undefined, {
+                s: globalFilterInput.replace(' ', '+') || undefined,
+              });
             }
           "
         >
@@ -210,7 +202,14 @@ query: {
           icon="tabler:search"
           size="xl"
           class="rounded-full cursor-pointer"
-          @click="updateGlobalFilter()"
+          @click="
+            () => {
+              globalFilterInput = globalFilterInput.trim();
+              updateFiltersToQuery(undefined, {
+                s: globalFilterInput.replace(' ', '+') || undefined,
+              });
+            }
+          "
         />
       </div>
     </div>
@@ -249,15 +248,208 @@ query: {
         class="cursor-pointer gap-1"
         @click="
           () => {
-            if (dropdownModel && dropdownModel.length > 0) {
-              dropdownModel = [];
-            }
-            globalFilterInput = '';
-            updateGlobalFilter(true).then(reflash);
+            updateFiltersToQuery(
+              route.path.includes('/search') ? undefined : '/search/quick',
+              {},
+              { clear: true, clearGlobal: true, clearAdvanced: true },
+            ).finally(() => {
+              onflash();
+            });
+          }
+        "
+      />
+      <UButton
+        label="更多篩選"
+        size="lg"
+        :color="isAdvancedFilterEmpty ? 'neutral' : 'primary'"
+        :icon="isAdvancedFilterEmpty ? undefined : 'tabler:filter-plus'"
+        :variant="isAdvancedFilterEmpty ? 'outline' : 'subtle'"
+        class="cursor-pointer gap-1"
+        @click="
+          () => {
+            advancedSearchOpen = true;
+          }
+        "
+      />
+      <UButton
+        label="時間篩選"
+        size="lg"
+        :color="isTimeFilterEmpty ? 'neutral' : 'primary'"
+        :icon="isTimeFilterEmpty ? undefined : 'tabler:filter-plus'"
+        :variant="isTimeFilterEmpty ? 'outline' : 'subtle'"
+        class="cursor-pointer gap-1"
+        @click="
+          () => {
+            advancedTimeSearchOpen = true;
           }
         "
       />
     </div>
+    <UModal
+      v-model:open="advancedOpen"
+      :title="
+        advancedSearchOpen
+          ? '更多篩選條件'
+          : advancedTimeSearchOpen
+            ? '時間篩子'
+            : '更多篩選條件'
+      "
+      description="更多篩選條件"
+      class="w-[calc(100%-2rem)]"
+      :class="
+        advancedSearchOpen && advancedTimeSearchOpen ? 'max-w-3xl' : 'max-w-md'
+      "
+      :ui="{
+        header:
+          'py-2! min-h-12!' + advancedSearchOpen || advancedTimeSearchOpen
+            ? ''
+            : 'hidden!',
+        description: 'sr-only',
+        body: 'p-0! max-h-[80vh] flex flex-row max-md:flex-col gap-px bg-muted',
+      }"
+      @update:open="
+        (open) => {
+          if (!open) {
+            updateFiltersToQuery(
+              route.path.includes('/search') ? undefined : '/search/quick',
+              {
+                gl: booleanToQueryValue(advancedValues.g_location.value),
+                hl: booleanToQueryValue(advancedValues.h_location.value),
+                ol: booleanToQueryValue(advancedValues.o_location.value),
+                i: booleanToQueryValue(advancedValues.intensive.value),
+                e: booleanToQueryValue(advancedValues.english_teaching.value),
+                di: booleanToQueryValue(advancedValues.digital_course.value),
+                es: advancedValues.exclude.value
+                  ? advancedValues.exclude.value.replace(/ /g, '+')
+                  : undefined,
+                t:
+                  timeSelected && timeSelected.size > 0
+                    ? Array.from(timeSelected).join(',')
+                    : undefined,
+                tl: timeLoose ? '1' : undefined,
+
+                oa: undefined,
+                ot: undefined,
+              },
+            );
+          }
+        }
+      "
+      :aria-describedby="undefined"
+    >
+      <template #body>
+        <div
+          v-if="advancedSearchOpen"
+          class="p-4 bg-default flex flex-col gap-4 w-full overflow-auto hide-scrollbar"
+        >
+          <UFormField
+            label="上課地點"
+            :ui="{
+              label: 'text-base mb-2',
+            }"
+          >
+            <UButton
+              v-for="(label, key) in {
+                g_location: '公館',
+                h_location: '和平',
+                o_location: '其它',
+              }"
+              :key="key"
+              :label="label"
+              size="xl"
+              :color="
+                advancedValues[key].value === true
+                  ? 'primary'
+                  : advancedValues[key].value === false
+                    ? 'error'
+                    : 'neutral'
+              "
+              :variant="
+                advancedValues[key].value === undefined ? 'outline' : 'subtle'
+              "
+              @click="
+                () => {
+                  advancedValues[key].value = getNextBoolean(
+                    advancedValues[key].value,
+                  );
+                }
+              "
+              class="not-last:mr-2"
+            />
+          </UFormField>
+          <UFormField
+            label="上課形式"
+            :ui="{
+              label: 'text-base mb-2',
+            }"
+          >
+            <UButton
+              v-for="(label, key) in {
+                intensive: '密集課程',
+                english_teaching: '英文授課',
+                digital_course: '數位課程',
+              }"
+              :key="key"
+              :label="label"
+              size="xl"
+              :color="
+                advancedValues[key].value === true
+                  ? 'primary'
+                  : advancedValues[key].value === false
+                    ? 'error'
+                    : 'neutral'
+              "
+              :variant="
+                advancedValues[key].value === undefined ? 'outline' : 'subtle'
+              "
+              @click="
+                () => {
+                  advancedValues[key].value = getNextBoolean(
+                    advancedValues[key].value,
+                  );
+                }
+              "
+              class="not-last:mr-2"
+            />
+          </UFormField>
+        </div>
+        <div
+          v-if="advancedTimeSearchOpen"
+          class="p-4 bg-default flex flex-col gap-4 w-full overflow-auto hide-scrollbar"
+        >
+          <div class="w-fit mx-auto">
+            <div class="text-base w-full flex h-8 items-center justify-between">
+              時間篩選
+              <UButton
+                v-if="(timeSelected?.size || 0) > 0"
+                label="重置"
+                color="error"
+                variant="outline"
+                @click="
+                  () => {
+                    timeSelected = new Set();
+                    removeColumnFilter('time_location_list');
+                  }
+                "
+              />
+            </div>
+            <div>
+              <USwitch
+                v-model="timeLoose"
+                label="寬鬆篩選"
+                description="關閉時為嚴格篩選，不會出現所選節次以外的課程"
+                :ui="{
+                  container: 'my-auto',
+                  description: 'text-xs',
+                }"
+                class="my-4"
+              />
+              <CourseTimeSelect />
+            </div>
+          </div>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -293,9 +485,6 @@ const defaultTerm = useState<string>(
 const currentTerm = useState<string>("currentTerm", () => defaultTerm.value);
 
 const route = useRoute();
-const router = useRouter();
-const { globalFilter } = useCourseFilter();
-
 const params = ref(route.params);
 const mode = computed(() => {
   return params.value.mode as string;
@@ -303,19 +492,6 @@ const mode = computed(() => {
 
 const globalFilterInput = useState("globalFilterInput", () => "");
 const globalFilterInputRef = useTemplateRef("input");
-
-async function updateGlobalFilter(force: boolean = false) {
-  if (getGlobalFilterInput() === globalFilterInput.value && !force) {
-    return;
-  }
-  updateGlobalFilterByInput(globalFilterInput.value);
-  await updateRouterQuery(
-    route.path.includes("/search") ? route.path : "/search/quick",
-    {
-      s: globalFilterInput.value.replace(" ", "+") || undefined,
-    },
-  );
-}
 
 // each year in termList is like "114", we need to convert it to "114-1", "114-2", "114-暑期", termList is like ["114", "113", "112"]
 const dropdownTermOptions = computed(() =>
@@ -329,7 +505,7 @@ const dropdownTermOptions = computed(() =>
           value: `${year}-1`,
           onSelect() {
             currentTerm.value = `${year}-1`;
-            updateRouterQuery(undefined, route.query).then(reflash);
+            updateFiltersToQuery(undefined, { y: `${year}-1` });
           },
         },
         {
@@ -337,7 +513,7 @@ const dropdownTermOptions = computed(() =>
           value: `${year}-2`,
           onSelect() {
             currentTerm.value = `${year}-2`;
-            updateRouterQuery(undefined, route.query).then(reflash);
+            updateFiltersToQuery(undefined, { y: `${year}-2` });
           },
         },
         {
@@ -345,7 +521,7 @@ const dropdownTermOptions = computed(() =>
           value: `${year}-3`,
           onSelect() {
             currentTerm.value = `${year}-3`;
-            updateRouterQuery(undefined, route.query).then(reflash);
+            updateFiltersToQuery(undefined, { y: `${year}-3` });
           },
         },
       ],
@@ -363,10 +539,55 @@ defineShortcuts({
   enter: {
     usingInput: "globalFilterInput",
     handler: () => {
-      updateGlobalFilter();
+      globalFilterInput.value = globalFilterInput.value.trim();
+      updateFiltersToQuery(undefined, {
+        s: globalFilterInput.value.replace(" ", "+") || undefined,
+      });
     },
   },
 });
+
+const advancedSearchOpen = ref(false);
+const advancedTimeSearchOpen = ref(false);
+const advancedOpen = computed({
+  get: () => advancedSearchOpen.value || advancedTimeSearchOpen.value,
+  set: (value: boolean) => {
+    advancedSearchOpen.value = value;
+    advancedTimeSearchOpen.value = value;
+  },
+});
+const advancedValues = {
+  g_location: ref<boolean | undefined>(undefined),
+  h_location: ref<boolean | undefined>(undefined),
+  o_location: ref<boolean | undefined>(undefined),
+
+  intensive: ref<boolean | undefined>(undefined),
+  english_teaching: ref<boolean | undefined>(undefined),
+  digital_course: ref<boolean | undefined>(undefined),
+
+  exclude: ref<string>(""),
+};
+
+const timeSelected = useState<Set<string>>(
+  "timeSelectedCells",
+  () => new Set(),
+);
+const timeLoose = useState<boolean>("courseTableTimeLoose", () => false);
+function getNextBoolean(value: boolean | undefined): boolean | undefined {
+  if (value === undefined) {
+    return true;
+  } else if (value === true) {
+    return false;
+  } else {
+    return undefined;
+  }
+}
+function booleanToQueryValue(value: boolean | undefined): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  return value ? "1" : "0";
+}
 
 interface modeBreadcrumb extends BreadcrumbItem {
   activeLabel?: string;
@@ -379,9 +600,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     activeLabel: "快速搜尋",
     active: mode.value === "quick",
     do: () => {
-      updateRouterQuery("/search/quick");
-      clearAndSetAllFilters({});
-      handleBreadcrumbClick();
+      updateFiltersToQuery("/search/quick", {}, { clear: true });
     },
   },
   {
@@ -389,10 +608,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     activeLabel: "系所課程",
     active: mode.value === "dept",
     do: () => {
-      clearAndSetAllFilters({});
-      deptDropdownOptions.model.value = deptDropdownOptions.getFromQuery();
-      deptDropdownOptions.updateHandler();
-      handleBreadcrumbClick();
+      updateFiltersToQuery("/search/dept", {}, { clear: true });
     },
   },
   {
@@ -400,11 +616,7 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     activeLabel: "通識課程",
     active: mode.value === "general",
     do: () => {
-      clearAndSetAllFilters({});
-      generalDropdownOptions.model.value =
-        generalDropdownOptions.getFromQuery();
-      generalDropdownOptions.updateHandler();
-      handleBreadcrumbClick();
+      updateFiltersToQuery("/search/general", {}, { clear: true });
     },
   },
   {
@@ -412,20 +624,19 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     activeLabel: "普通體育",
     active: mode.value === "pe",
     do: () => {
-      updateRouterQuery("/search/pe");
-      clearAndSetAllFilters({
-        department_code: ["PE"],
-      });
-      handleBreadcrumbClick();
+      updateFiltersToQuery("/search/pe", {}, { clear: true });
     },
   },
   {
     label: "進階搜尋",
     do: () => {
-      // TODO: implement advanced search page
-      advancedSearchOpen.value = true;
-      advancedTimeSearchOpen.value = true;
-      handleBreadcrumbClick();
+      updateFiltersToQuery(
+        route.path.includes("/search") ? undefined : "/search/quick",
+        {
+          oa: 1,
+          ot: 1,
+        },
+      );
     },
   },
   {
@@ -433,22 +644,14 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     activeLabel: "全民國防",
     active: mode.value === "nd",
     do: () => {
-      updateRouterQuery("/search/nd");
-      clearAndSetAllFilters({
-        name: "全民國防教育軍事訓練",
-      });
-      handleBreadcrumbClick();
+      updateFiltersToQuery("/search/nd", {}, { clear: true });
     },
   },
   {
     label: "學分學程",
     active: mode.value === "program",
     do: () => {
-      clearAndSetAllFilters({});
-      programDropdownOptions.model.value =
-        programDropdownOptions.getFromQuery();
-      programDropdownOptions.updateHandler();
-      handleBreadcrumbClick();
+      updateFiltersToQuery("/search/program", {}, { clear: true });
     },
   },
   {
@@ -456,42 +659,30 @@ const modeBreadcrumbs = computed<modeBreadcrumb[]>(() => [
     activeLabel: "臺大系統課程",
     active: mode.value === "interschool",
     do: () => {
-      updateRouterQuery("/search/interschool");
-      clearAndSetAllFilters({
-        department_code: ["9UAA", "9MAA", "9DAA", "9UAB", "9MAB"],
-      });
-      handleBreadcrumbClick();
+      updateFiltersToQuery("/search/interschool", {}, { clear: true });
     },
   },
   {
     label: "英文三",
     active: mode.value === "english3",
     do: () => {
-      updateRouterQuery("/search/english3");
-      clearAndSetAllFilters({
-        name: "英文（三）",
-      });
-      handleBreadcrumbClick();
+      updateFiltersToQuery("/search/english3", {}, { clear: true });
     },
   },
   {
     label: "英文授課",
-    active: mode.value === "emi",
     do: () => {
-      updateRouterQuery("/search/emi");
-      clearAndSetAllFilters({
-        english_teaching: true,
-      });
-      handleBreadcrumbClick();
+      updateFiltersToQuery(
+        route.path.includes("/search") ? undefined : "/search/quick",
+        {
+          oa: 1,
+          e: 1,
+        },
+      );
     },
   },
 ]);
 const currentScrollPosition = useState("currentScrollPosition", () => 0);
-// function getScrollPosition() {
-//   currentScrollPosition.value = modeScrollContainer.value
-//     ? modeScrollContainer.value?.scrollLeft
-//     : 0;
-// }
 function handleScroll(event: any) {
   currentScrollPosition.value = event.target?.scrollLeft || 0;
 }
@@ -503,9 +694,6 @@ async function handleBreadcrumbClick() {
   }
 }
 
-const tableWatchVersion = useState("tableWatchVersion", () => 0);
-const table = computed(() => getTable());
-
 const deptDropdownOptions = {
   items: useState<SelectMenuItem[]>(
     "deptDropdownItems",
@@ -516,30 +704,16 @@ const deptDropdownOptions = {
   ),
   model: ref<SelectMenuItem[]>([]),
   updateHandler: () => {
-    if (deptDropdownOptions.model.value.length === 0) {
-      removeColumnFilter("department_code");
-    } else {
-      addColumnFilter(
-        "department_code",
-        deptDropdownOptions.model.value.map((item: any) => item.value),
-      );
-    }
-    // push to dept search page with query
-    updateRouterQuery("/search/dept", {
-      d:
-        deptDropdownOptions.model.value
-          ?.map((item: any) => item.value)
-          ?.join(",") || undefined,
-    });
-  },
-  getFromQuery() {
-    const query = route.query.d;
-    if (typeof query === "string") {
-      return deptDropdownOptions.items.value.filter((item: any) =>
-        query.split(",").includes(item.value),
-      );
-    }
-    return [];
+    updateFiltersToQuery(
+      "/search/dept",
+      {
+        d:
+          deptDropdownOptions.model.value
+            ?.map((item: any) => item.value)
+            ?.join(",") || undefined,
+      },
+      { clear: true },
+    );
   },
 };
 const generalDropdownOptions = {
@@ -552,30 +726,16 @@ const generalDropdownOptions = {
   ),
   model: ref<SelectMenuItem[]>([]),
   updateHandler: () => {
-    if (generalDropdownOptions.model.value.length === 0) {
-      addColumnFilter("general_education", ["all"]);
-    } else {
-      addColumnFilter(
-        "general_education",
-        generalDropdownOptions.model.value.map((item: any) => item.value),
-      );
-    }
-    // push to general education search page with query
-    updateRouterQuery("/search/general", {
-      g:
-        generalDropdownOptions.model.value
-          ?.map((item: any) => item.value)
-          ?.join(",") || undefined,
-    });
-  },
-  getFromQuery() {
-    const query = route.query.g;
-    if (typeof query === "string") {
-      return generalDropdownOptions.items.value.filter((item: any) =>
-        query.split(",").includes(item.value),
-      );
-    }
-    return [];
+    updateFiltersToQuery(
+      "/search/general",
+      {
+        g:
+          generalDropdownOptions.model.value
+            ?.map((item: any) => item.value)
+            ?.join(",") || undefined,
+      },
+      { clear: true },
+    );
   },
 };
 const programDropdownOptions = {
@@ -588,30 +748,16 @@ const programDropdownOptions = {
   ),
   model: ref<SelectMenuItem[]>([]),
   updateHandler: () => {
-    if (programDropdownOptions.model.value.length === 0) {
-      addColumnFilter("credit_program", ["all"]);
-    } else {
-      addColumnFilter(
-        "credit_program",
-        programDropdownOptions.model.value.map((item: any) => item.value),
-      );
-    }
-    // push to program search page with query
-    updateRouterQuery("/search/program", {
-      p:
-        programDropdownOptions.model.value
-          ?.map((item: any) => item.value)
-          ?.join(",") || undefined,
-    });
-  },
-  getFromQuery() {
-    const query = route.query.p;
-    if (typeof query === "string") {
-      return programDropdownOptions.items.value.filter((item: any) =>
-        query.split(",").includes(item.value),
-      );
-    }
-    return [];
+    updateFiltersToQuery(
+      "/search/program",
+      {
+        p:
+          programDropdownOptions.model.value
+            ?.map((item: any) => item.value)
+            ?.join(",") || undefined,
+      },
+      { clear: true },
+    );
   },
 };
 const bufferModel = ref<any>(null);
@@ -641,107 +787,288 @@ const dropdownModel = computed({
   },
 });
 const selectMenuItems = computed(() => {
-  if (mode.value === "dept") {
-    return deptDropdownOptions.items.value.filter(
-      (item: any) =>
-        !item?.value ||
-        item?.label.includes(selectMenuSearchTerm.value) ||
-        item?.value.includes(selectMenuSearchTerm.value),
-    );
-  } else if (mode.value === "general") {
-    return generalDropdownOptions.items.value.filter(
-      (item: any) =>
-        !item?.value ||
-        item?.label.includes(selectMenuSearchTerm.value) ||
-        item?.value.includes(selectMenuSearchTerm.value),
-    );
-  } else if (mode.value === "program") {
-    return programDropdownOptions.items.value.filter(
-      (item: any) =>
-        !item?.value ||
-        item?.label.includes(selectMenuSearchTerm.value) ||
-        item?.value.includes(selectMenuSearchTerm.value),
-    );
-  } else {
-    return [];
+  switch (mode.value) {
+    case "dept":
+      return deptDropdownOptions.items.value.filter(
+        (item: any) =>
+          !item?.value ||
+          item?.label.includes(selectMenuSearchTerm.value) ||
+          item?.value.includes(selectMenuSearchTerm.value),
+      );
+    case "general":
+      return generalDropdownOptions.items.value.filter(
+        (item: any) =>
+          !item?.value ||
+          item?.label.includes(selectMenuSearchTerm.value) ||
+          item?.value.includes(selectMenuSearchTerm.value),
+      );
+    case "program":
+      return programDropdownOptions.items.value.filter(
+        (item: any) =>
+          !item?.value ||
+          item?.label.includes(selectMenuSearchTerm.value) ||
+          item?.value.includes(selectMenuSearchTerm.value),
+      );
+    default:
+      return [];
   }
 });
 
-async function updateRouterQuery(
-  path: string | undefined = undefined,
-  query: Record<string, any> = {},
-  force: boolean = false,
-) {
-  const newPath = route.path?.includes("/dev")
-    ? "/dev" + (path || route.path)
-    : path || route.path;
-  const newQuery = force
-    ? query
-    : {
-        // preserve existing query except s, which is the search input
-        s: route.query.s,
-        ...query,
-        y:
-          defaultTerm.value !== currentTerm.value
-            ? currentTerm.value
-            : undefined,
-      };
-  if (
-    route.path == newPath &&
-    JSON.stringify(route.query) === JSON.stringify(newQuery)
-  ) {
-    return;
-  }
-  await navigateTo({
-    path: newPath,
-    query: newQuery,
-  });
-}
-function reflash() {
-  modeBreadcrumbs.value.forEach((breadcrumb) => {
-    if (breadcrumb.active) {
-      breadcrumb.do && breadcrumb.do();
-    }
-  });
-}
 const isFilterEmpty = computed(() => {
   const {
     y: _, // current term is not considered as a filter
+    oa: __, // open advanced search is not a filter
+    ot: ___, // open time search is not a filter
     ...filtersQuery
   } = route.query;
   return Object.values(filtersQuery || {}).filter((v) => !!v).length === 0;
 });
+const isAdvancedFilterEmpty = computed(() => {
+  const { gl, hl, ol, i, e, di, c, nf, es } = route.query;
+  return ![gl, hl, ol, i, e, di, c, nf, es].some((v) => !!v);
+});
+const isTimeFilterEmpty = computed(() => {
+  return !route.query?.t;
+});
+
+function onflash() {
+  // open advanced search if oa is 1
+  if (useRoute().query.oa) {
+    advancedSearchOpen.value = true;
+  }
+  if (useRoute().query.ot) {
+    advancedTimeSearchOpen.value = true;
+  }
+  getFiltersFromQuery();
+  handleBreadcrumbClick();
+
+  const courseTableFilters = useState<Record<string, any>>(
+    "courseTableFilters",
+    () => ({}),
+  );
+  console.log(
+    "initial courseTableFilters: ",
+    courseTableFilters.value,
+    useRoute().query,
+  );
+}
+watch(
+  () => route.query,
+  () => {
+    console.log("route query changed: ", route.query);
+    onflash();
+  },
+);
 
 onMounted(async () => {
-  if (route.query.y && typeof route.query.y === "string") {
-    currentTerm.value = route.query.y;
-  }
-  if (route.query.s && typeof route.query.s === "string") {
-    globalFilterInput.value = route.query.s.replace(/\+/g, " ");
-    updateGlobalFilterByInput(globalFilterInput.value);
-  }
-  if (!globalFilterInput.value) {
-    globalFilterInput.value =
-      getGlobalFilterInput() ||
-      route.query.s?.toString().replace(/\+/g, " ") ||
-      "";
-  }
-  if (globalFilterInput.value) {
-    updateGlobalFilterByInput(globalFilterInput.value);
-  }
-
-  if (!mode.value) {
-    prefetchDefaultTermData();
-  }
-
-  tableWatchVersion.value += 1;
-
-  reflash();
-
-  handleBreadcrumbClick();
+  console.log("onMounted in CourseSearchBar.vue", route.query);
+  onflash();
 });
 
-onUpdated(async () => {
-  handleBreadcrumbClick();
-});
+function getFiltersFromQuery() {
+  // query: {
+  //   y: string; // year-term, undefined if default term is used
+
+  //   s: string; // search input
+
+  //   d: string; // dept filter, e.g. "CS,EE"
+  //   g: string; // general education filter, e.g. "A,B,C"
+  //   p: string; // program filter, e.g. "prog1,prog2"
+
+  //   gl: 1 / 0; // g location filter, 1 for true, 0 for false, undefined for all
+  //   hl: 1 / 0; // h location filter, 1 for true, 0 for false, undefined for all
+  //   ol: 1 / 0; // o location filter, 1 for true, 0 for false, undefined for all
+
+  //   i: 1 / 0; // intensive filter, 1 for true, 0 for false, undefined for all
+  //   e: 1 / 0; // english teaching filter, 1 for true, 0 for false, undefined for all
+  //   di: 1 / 0; // digital filter, 1 for true, 0 for false, undefined for all
+
+  //   c: string; // credit filter, e.g. "1,2,3"
+  //   nf: 1 / 0; // no full courses filter, 1 for true, 0 for false, undefined for all
+
+  //   es: string; // exclude filter
+
+  //   t: string; // time filter
+  //   tl: 1 / 0; // time loose filter, 1 for loose, 0 for strict, undefined for strict
+
+  //   oa: 1 / 0; // open advanced search
+  //   ot: 1 / 0; // open time search
+  // }
+  const query = route.query;
+  const filters: Record<string, any> = {};
+  // term
+  const term =
+    query.y && typeof query.y === "string" ? query.y : defaultTerm.value;
+  // global filter
+  const globalFilter =
+    query.s && typeof query.s === "string"
+      ? query.s.replace(/\+/g, " ")
+      : getGlobalFilterInput();
+  // advanced filters
+  filters.location =
+    query.gl || query.hl || query.ol
+      ? {
+          g: query.gl === "1" ? true : query.gl === "0" ? false : undefined,
+          h: query.hl === "1" ? true : query.hl === "0" ? false : undefined,
+          o: query.ol === "1" ? true : query.ol === "0" ? false : undefined,
+        }
+      : undefined;
+  filters.intensive =
+    query.i === "1" ? true : query.i === "0" ? false : undefined;
+  filters.english_teaching =
+    query.e === "1" ? true : query.e === "0" ? false : undefined;
+  filters.digital_course =
+    query.di === "1" ? true : query.di === "0" ? false : undefined;
+  // filters.credits =
+  //   query.c && typeof query.c === "string"
+  //     ? query.c.split(",").map((c) => parseInt(c))
+  //     : undefined;
+  // filters.count_enrolled_without_authorized =
+  //   query.nf === "1" ? true : query.nf === "0" ? false : undefined;
+  // // exclude filter
+  // filters.full_name =
+  //   query.es && typeof query.es === "string"
+  //     ? query.es.replace(/\+/g, " ")
+  //     : "";
+  // time filter
+  filters.time_location_list =
+    query.t && typeof query.t === "string"
+      ? new Set(query.t.split(",").filter((t) => t.trim() !== ""))
+      : undefined;
+  const loose = query.tl === "1";
+
+  // update filters based on query
+  if (term) {
+    currentTerm.value = term;
+  }
+  if (globalFilter) {
+    globalFilterInput.value = globalFilter;
+    updateGlobalFilterByInput(globalFilterInput.value);
+  }
+
+  // department_code
+  switch (mode.value) {
+    case "dept":
+      filters.department_code =
+        query.d && typeof query.d === "string" ? query.d.split(",") : [];
+      const deptFilter = deptDropdownOptions.items.value.filter((item: any) =>
+        filters.department_code.includes(item.value),
+      );
+      deptDropdownOptions.model.value = deptFilter;
+      break;
+    case "pe":
+      filters.department_code = ["PE"];
+      break;
+    case "interschool":
+      filters.department_code = ["9UAA", "9MAA", "9DAA", "9UAB", "9MAB"];
+      break;
+    default:
+      filters.department_code = undefined;
+      break;
+  }
+  switch (mode.value) {
+    case "general":
+      filters.general_education =
+        query.g && typeof query.g === "string" ? query.g.split(",") : ["all"];
+      const generalFilter = generalDropdownOptions.items.value.filter(
+        (item: any) => filters.general_education.includes(item.value),
+      );
+      generalDropdownOptions.model.value = generalFilter;
+      break;
+    default:
+      filters.general_education = undefined;
+      break;
+  }
+  switch (mode.value) {
+    case "program":
+      filters.credit_program =
+        query.p && typeof query.p === "string" ? query.p.split(",") : ["all"];
+      const programFilter = programDropdownOptions.items.value.filter(
+        (item: any) => filters.credit_program.includes(item.value),
+      );
+      programDropdownOptions.model.value = programFilter;
+      break;
+    default:
+      filters.credit_program = undefined;
+      break;
+  }
+  // name
+  switch (mode.value) {
+    case "nd":
+      filters.name = "全民國防教育軍事訓練";
+      break;
+    case "english3":
+      filters.name = "英文（三）";
+      break;
+    default:
+      filters.name = undefined;
+      break;
+  }
+
+  // DEBUG
+  console.trace("filters from query: ", filters);
+  clearAndSetAllFilters(filters);
+
+  advancedValues.g_location.value = filters.location?.g;
+  advancedValues.h_location.value = filters.location?.h;
+  advancedValues.o_location.value = filters.location?.o;
+  advancedValues.intensive.value = filters.intensive;
+  advancedValues.english_teaching.value = filters.english_teaching;
+  advancedValues.digital_course.value = filters.digital_course;
+  advancedValues.exclude.value = filters.full_name;
+  timeSelected.value = filters.time_location_list;
+  timeLoose.value = loose;
+}
+
+async function updateFiltersToQuery(
+  path: string | undefined = undefined,
+  filters: Record<string, any> = {},
+  opt: {
+    clear?: boolean; // whether to clear other filters that are not in the given filters, default is false
+    clearGlobal?: boolean; // whether to clear global filters that are not in the given filters, default is false
+    clearAdvanced?: boolean; // whether to clear advanced filters that are not in the given filters, default is false
+    replace?: boolean; // whether to replace the query instead of pushing, default is false
+  } = {
+    clear: false,
+    clearGlobal: false,
+    clearAdvanced: false,
+    replace: false,
+  },
+) {
+  const newPath = route.path.includes("/dev")
+    ? `/dev${path || ""}`
+    : path || route.path;
+  const currentQuery = { ...route.query };
+  if (opt.clear) {
+    delete currentQuery.d;
+    delete currentQuery.g;
+    delete currentQuery.p;
+  }
+  if (opt.clearGlobal) {
+    delete currentQuery.s;
+  }
+  if (opt.clearAdvanced) {
+    delete currentQuery.gl;
+    delete currentQuery.hl;
+    delete currentQuery.ol;
+    delete currentQuery.i;
+    delete currentQuery.e;
+    delete currentQuery.di;
+    delete currentQuery.c;
+    delete currentQuery.nf;
+    delete currentQuery.es;
+    delete currentQuery.t;
+    delete currentQuery.tl;
+  }
+  const newQuery: Record<string, any> = {
+    ...currentQuery,
+    ...filters,
+  };
+
+  navigateTo({
+    path: newPath,
+    query: newQuery,
+    replace: opt.replace,
+  });
+}
 </script>

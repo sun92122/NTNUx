@@ -16,6 +16,9 @@ import {
   globalFilterFunction,
   deptFilterFunction,
   arrayContainsStringFilterFunction,
+  exboolFilterFunction,
+  ttlFilterFunction,
+  locationFilterFunction,
 } from "./useCourseFilter";
 
 export interface Course {
@@ -153,9 +156,6 @@ export function useCourseTable() {
         columnHelper.accessor("course_code", {}),
         columnHelper.accessor("teacher", {}),
         // not in global filter but useful for advanced filter
-        columnHelper.accessor("english_teaching", {
-          filterFn: filterFns.equals,
-        }),
         columnHelper.accessor("department", {}),
         columnHelper.accessor("department_code", {
           filterFn: deptFilterFunction,
@@ -165,6 +165,33 @@ export function useCourseTable() {
         }),
         columnHelper.accessor("credit_program", {
           filterFn: arrayContainsStringFilterFunction,
+        }),
+        // advanced filters
+        columnHelper.accessor("location", {
+          filterFn: locationFilterFunction,
+        }),
+        columnHelper.accessor("intensive", {
+          filterFn: exboolFilterFunction,
+        }),
+        columnHelper.accessor("english_teaching", {
+          filterFn: exboolFilterFunction,
+        }),
+        columnHelper.accessor("digital_course", {
+          filterFn: exboolFilterFunction,
+        }),
+        columnHelper.accessor("credits", {
+          // number in list filter
+        }),
+        columnHelper.accessor("count_enrolled_without_authorized", {
+          //
+        }),
+        // experimental filters
+        columnHelper.accessor("full_name", {
+          // use for exclusive search
+          // filterFn: exboolFilterFunction,
+        }),
+        columnHelper.accessor("time_location_list", {
+          filterFn: ttlFilterFunction,
         }),
       ],
     }),
@@ -206,6 +233,9 @@ export function useCourseTable() {
     filterFns: {
       deptFilterFunction: deptFilterFunction,
       arrayContainsStringFilterFunction: arrayContainsStringFilterFunction,
+      exboolFilterFunction: exboolFilterFunction,
+      ttlFilterFunction: ttlFilterFunction,
+      locationFilterFunction: locationFilterFunction,
     },
   };
 
