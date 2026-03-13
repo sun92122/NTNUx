@@ -12,7 +12,7 @@
   --ui-primary: var(--color-blue-800);
   --ui-bg: var(--color-slate-50);
   --ui-bg-muted: var(--color-slate-100);
-  --ui-bg-elevated: var(--color-slate-100);
+  --ui-bg-elevated: var(--color-slate-200);
 }
 
 .dark {

@@ -53,14 +53,16 @@ useSeoMeta({
 
 const timetable = ref({});
 const settings = ref<any>(defaultTimetableSettings);
-try {
-  const decodedSettings: any = jsonLzDecode(route.query.settings as string);
-  settings.value = {
-    ...defaultTimetableSettings,
-    ...decodedSettings,
-  };
-} catch (error) {
-  console.warn("無法解析課表設定，使用預設設定:", error);
+if (route.query.settings?.length) {
+  try {
+    const decodedSettings: any = jsonLzDecode(route.query.settings as string);
+    settings.value = {
+      ...defaultTimetableSettings,
+      ...decodedSettings,
+    };
+  } catch (error) {
+    console.warn("無法解析課表設定，使用預設設定:", error);
+  }
 }
 const errorEntries = ref<string[]>([]);
 onMounted(() => {

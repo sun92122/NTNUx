@@ -25,13 +25,13 @@ export const modeMap: Record<string, string> = {
   emi: "EMI課程",
 } as const;
 
-export const optionMap = {
+export const optionMap: Record<string, string> = {
   必: "必修",
   選: "選修",
   通: "通識",
 } as const;
 
-export const generalCoreMap = {
+export const generalCoreMap: Record<string, string> = {
   A1: "人文藝術",
   A2: "社會科學",
   A3: "自然科學",

@@ -4,7 +4,7 @@
       v-for="item in infoItems"
       :key="item.label || item.title"
       class="w-full"
-      v-model:open="item.collapsed as any"
+      v-model:open="item.collapsed"
     >
       <UContextMenu :items="item.contentMenu" :disabled="!item.contentMenu">
         <UButton
@@ -24,7 +24,15 @@
           <template #default>
             <div class="w-full flex flex-row items-center">
               <div class="me-2 size-4">
-                <UIcon :name="item.icon" class="text-default size-4" />
+                <UIcon
+                  :name="item.icon"
+                  class="size-4"
+                  :class="
+                    item.disabled || (item as any)?.textGray
+                      ? 'text-dimmed'
+                      : 'text-default'
+                  "
+                />
               </div>
               <div class="ps-1.5 flex flex-col">
                 <span v-if="item?.label" class="text-xs text-dimmed">{{
@@ -32,7 +40,11 @@
                 }}</span>
                 <span
                   class="text-base"
-                  :class="item.disabled ? 'text-dimmed' : 'text-default'"
+                  :class="
+                    item.disabled || (item as any)?.textGray
+                      ? 'text-dimmed'
+                      : 'text-default'
+                  "
                   >{{ item.title }}</span
                 >
               </div>
@@ -63,10 +75,16 @@
             block
             class="text-left rounded-sm border-none h-10"
             variant="ghost"
+            :ui="{ label: 'mr-auto' }"
           />
         </div>
       </template>
     </UCollapsible>
+    <UModal scrollable v-model:open="infoModalOpen" title="原始資料" size="2xl">
+      <template #body>
+        <pre class="whitespace-pre-wrap break-all">{{ course }}</pre>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -74,7 +92,11 @@
 import type { ContextMenuItem } from "@nuxt/ui";
 import type { Course } from "@/composables/useCourseTable";
 
-import { optionMap, locationMap } from "@/composables/useConstants";
+import {
+  optionMap,
+  locationMap,
+  generalCoreMap,
+} from "@/composables/useConstants";
 import { copyToClipboard } from "@/composables/useTools";
 
 const props = defineProps({
@@ -124,7 +146,7 @@ interface CourseInfoItem {
     target?: string;
     trailingIcon?: string;
   }>;
-  collapsed?: Ref<boolean>;
+  collapsed?: any;
 }
 const infoItems = computed<CourseInfoItem[]>(
   () =>
@@ -223,14 +245,30 @@ const infoItems = computed<CourseInfoItem[]>(
             ]
           : undefined,
       },
-      {
-        icon: "tabler:layout-dashboard",
-        title: course.value?.course_category
-          ? optionMap[course.value.course_category as keyof typeof optionMap] ||
-            course.value.course_category
-          : "不明課程類別",
-        disabled: !course.value?.course_category,
-      },
+      course.value?.course_category === "通"
+        ? {
+            icon: "tabler:layout-dashboard",
+            title: "通識",
+            content: course.value?.general_education
+              ? course.value.general_education.split("/").map((cat) => ({
+                  label: generalCoreMap[cat] || cat,
+                  to: `/search/general?g=${encodeURIComponent(cat)}`,
+                  trailingIcon: "tabler:filter-search",
+                }))
+              : undefined,
+            collapsed: generalCollapsed,
+            click: () => {
+              generalCollapsed.value = !generalCollapsed.value;
+            },
+          }
+        : {
+            icon: "tabler:layout-dashboard",
+            title: course.value?.course_category
+              ? optionMap[course.value.course_category] ||
+                course.value.course_category
+              : "不明課程類別",
+            disabled: !course.value?.course_category,
+          },
       {
         icon: "tabler:school",
         title: course.value?.credits
@@ -342,10 +380,21 @@ const infoItems = computed<CourseInfoItem[]>(
             title: "無學分學程",
             disabled: true,
           },
+      {
+        icon: "tabler:info-circle",
+        title: "原始資料",
+        cursor: "pointer",
+        click: () => {
+          infoModalOpen.value = true;
+        },
+        textGray: true,
+      },
     ] as CourseInfoItem[],
 );
+const generalCollapsed = ref(true);
 const locationCollapsed = ref(false);
 const programCollapsed = ref(true);
+const infoModalOpen = ref(false);
 
 function getMapLink(location: string): string | undefined {
   if (

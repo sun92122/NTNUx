@@ -16,6 +16,11 @@ import {
   globalFilterFunction,
   deptFilterFunction,
   arrayContainsStringFilterFunction,
+  exboolFilterFunction,
+  ttlFilterFunction,
+  locationFilterFunction,
+  creditsFilterFunction,
+  fullFilterFunction,
 } from "./useCourseFilter";
 
 export interface Course {
@@ -38,9 +43,9 @@ export interface Course {
   count_enrolled: number; // 選課人數 (co)
   count_used_authorized: number; // 已使用授權碼數量 (au)
   count_enrolled_without_authorized: number; // 非授權碼選課人數 (ce)
-  limit_enrollment: number; // 選課人數上限 (lh)
-  limit_authorized: number; // 授權碼數量 (a)
-  limit_system: number; // 系統各校開放名額 (l)
+  limit_enrollment: number | undefined; // 選課人數上限 (lh)
+  limit_authorized: number | undefined; // 授權碼數量 (a)
+  limit_system: number | undefined; // 系統各校開放名額 (l)
 
   time: string[]; // 時間（列表）(tl)
   location: string; // 地點（"/" 分隔）(lc)
@@ -153,9 +158,6 @@ export function useCourseTable() {
         columnHelper.accessor("course_code", {}),
         columnHelper.accessor("teacher", {}),
         // not in global filter but useful for advanced filter
-        columnHelper.accessor("english_teaching", {
-          filterFn: filterFns.equals,
-        }),
         columnHelper.accessor("department", {}),
         columnHelper.accessor("department_code", {
           filterFn: deptFilterFunction,
@@ -165,6 +167,33 @@ export function useCourseTable() {
         }),
         columnHelper.accessor("credit_program", {
           filterFn: arrayContainsStringFilterFunction,
+        }),
+        // advanced filters
+        columnHelper.accessor("location", {
+          filterFn: locationFilterFunction,
+        }),
+        columnHelper.accessor("intensive", {
+          filterFn: exboolFilterFunction,
+        }),
+        columnHelper.accessor("english_teaching", {
+          filterFn: exboolFilterFunction,
+        }),
+        columnHelper.accessor("digital_course", {
+          filterFn: exboolFilterFunction,
+        }),
+        columnHelper.accessor("credits", {
+          filterFn: creditsFilterFunction,
+        }),
+        columnHelper.accessor("count_enrolled_without_authorized", {
+          filterFn: fullFilterFunction,
+        }),
+        // experimental filters
+        columnHelper.accessor("full_name", {
+          // use for exclusive search
+          // filterFn: exboolFilterFunction,
+        }),
+        columnHelper.accessor("time_location_list", {
+          filterFn: ttlFilterFunction,
         }),
       ],
     }),
@@ -206,6 +235,11 @@ export function useCourseTable() {
     filterFns: {
       deptFilterFunction: deptFilterFunction,
       arrayContainsStringFilterFunction: arrayContainsStringFilterFunction,
+      exboolFilterFunction: exboolFilterFunction,
+      ttlFilterFunction: ttlFilterFunction,
+      locationFilterFunction: locationFilterFunction,
+      creditsFilterFunction: creditsFilterFunction,
+      fullFilterFunction: fullFilterFunction,
     },
   };
 
@@ -333,9 +367,9 @@ function formatCourseData(rawData: any): Course {
     count_enrolled: rawData.co ? Number(rawData.co) : 0,
     count_used_authorized: rawData.au ? Number(rawData.au) : 0,
     count_enrolled_without_authorized: rawData.ce ? Number(rawData.ce) : 0,
-    limit_enrollment: rawData.lh ? Number(rawData.lh) : 0,
-    limit_authorized: rawData.a ? Number(rawData.a) : 0,
-    limit_system: rawData.l ? Number(rawData.l) : 0,
+    limit_enrollment: rawData.lh ? Number(rawData.lh) : undefined,
+    limit_authorized: rawData.a ? Number(rawData.a) : undefined,
+    limit_system: rawData.l ? Number(rawData.l) : undefined,
 
     time: Array.isArray(rawData.tl) ? rawData.tl : [],
     location: rawData.lc || "",
