@@ -355,7 +355,7 @@
           />
           <UFormField label="加上你的暱稱">
             <UInput
-              v-model="includeAuthInExport"
+              v-model="includeAuthorInExport"
               placeholder="選填，分享時會顯示在課表上，方便朋友認出來是你的課表"
               class="w-full"
               color="neutral"
@@ -498,9 +498,9 @@ function submitImport() {
     return;
   }
   const input =
-    importTextarea.value.search("courses=") !== -1
+    importTextarea.value.search("cs=") !== -1
       ? decodeURIComponent(
-          importTextarea.value.split("courses=")[1]?.trim().split("&")[0] || "",
+          importTextarea.value.split("cs=")[1]?.trim().split("&")[0] || "",
         )
       : importTextarea.value.trim();
   importCourses(input).then(({ timetable, errorEntries }) => {
@@ -529,7 +529,7 @@ const exportData = ref("");
 const exportUrl = ref("");
 const includeColorInExport = ref(false);
 const includeSettingsInExport = ref(false);
-const includeAuthInExport = ref("");
+const includeAuthorInExport = ref("");
 function exportTimetable() {
   const timetable = allTimetable.value[currentTerm.value];
   if (!timetable || Object.keys(timetable).length === 0) {
@@ -542,10 +542,10 @@ function exportTimetable() {
   );
   exportUrl.value =
     window.location.origin +
-    "/share/timetable?courses=" +
+    "/share/timetable?cs=" +
     `${exportCourseDataParams(currentTerm.value, includeColorInExport.value)}` +
-    (includeAuthInExport.value.trim() !== ""
-      ? `&auth=${encodeURIComponent(includeAuthInExport.value.trim())}`
+    (includeAuthorInExport.value.trim() !== ""
+      ? `&a=${encodeURIComponent(includeAuthorInExport.value.trim())}`
       : "") +
     (includeSettingsInExport.value
       ? `&settings=${exportTimetableSettings(settings.value)}`

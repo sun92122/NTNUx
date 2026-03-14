@@ -1,12 +1,12 @@
 <template>
   <div class="page-container w-full">
-    <CourseFavoritesControl />
+    <CourseFavoritesControl :favoriteCourses="favoriteCourses" />
 
     <ClientOnly>
-      <CourseFavoritesTable />
+      <CourseFavoritesTable :favoriteCourses="favoriteCourses" />
 
       <template #fallback>
-        <UProgress size="xl" color="neutral" class="max-w-md mx-auto" />
+        <UProgress size="xl" color="neutral" class="max-w-md mt-4 mx-auto" />
       </template>
     </ClientOnly>
   </div>
@@ -15,6 +15,7 @@
 <script lang="ts" setup>
 import { prefetchDefaultTermData } from "@/composables/useCourseTable";
 import { loadFavoriteCourses } from "@/composables/useFavorites";
+import { favoriteCourses } from "@/composables/useFavorites";
 
 const title = "我的收藏課程";
 useHead({

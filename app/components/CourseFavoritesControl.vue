@@ -1,5 +1,7 @@
 <template>
-  <div class="flex flex-row flex-wrap max-sm:px-2 justify-between my-4 max-w-3xl mx-auto gap-2.5">
+  <div
+    class="flex flex-row flex-wrap max-sm:px-2 justify-between my-4 max-w-3xl mx-auto gap-2.5"
+  >
     <div>
       <USelectMenu
         v-model="selectedTermItems"
@@ -10,7 +12,7 @@
         :ui="{
           item: 'flex item-center p-0! rounded cursor-pointer hover:bg-primary/10 data-selected:bg-primary/20 data-selected:text-primary',
           itemWrapper: 'max-w-[calc(100%-2rem)]',
-          itemLabel: 'w-full px-2 py-2',
+          itemLabel: 'w-full pl-2 py-2',
           itemTrailing: 'my-auto',
           separator: 'last:hidden',
           label: 'px-2 py-1 text-xs text-dimmed',
@@ -19,20 +21,37 @@
         @change="termChangeHandler"
       >
         <template #item-label="{ item }">
-          <span
-            v-if="dataAllTerms[item.value]?.length || 0 > 0"
-            class="flex justify-between items-center w-full"
-          >
+          <span class="flex justify-between items-center w-full">
             <span>{{ item.label }}</span>
-            <UBadge color="primary" variant="soft" size="sm" class="ml-2">
-              {{ `${dataAllTerms[item.value]?.length || 0} 門課` }}
-            </UBadge>
-          </span>
-          <span v-else class="flex justify-between items-center w-full">
-            <span>{{ item.label }}</span>
-            <UBadge color="neutral" variant="soft" size="sm" class="ml-2">
-              未載入
-            </UBadge>
+            <div>
+              <UBadge
+                v-if="item.value === defaultTerm"
+                color="warning"
+                variant="soft"
+                size="sm"
+                class="ml-2"
+              >
+                預設學期
+              </UBadge>
+              <UBadge
+                v-if="dataAllTerms[item.value]?.length || 0 > 0"
+                color="primary"
+                variant="soft"
+                size="sm"
+                class="ml-2"
+              >
+                {{ `${dataAllTerms[item.value]?.length || 0} 門課` }}
+              </UBadge>
+              <UBadge
+                v-else
+                color="neutral"
+                variant="soft"
+                size="sm"
+                class="ml-2"
+              >
+                未載入
+              </UBadge>
+            </div>
           </span>
         </template>
       </USelectMenu>
@@ -52,12 +71,90 @@
         variant="outline"
         @click="allClosed"
       ></UButton>
+      <UButton
+        v-if="!shared"
+        label="匯出"
+        color="neutral"
+        variant="outline"
+        icon="tabler:upload"
+        class="h-9 cursor-pointer"
+        @click="exportFavorites"
+      />
     </div>
+    <UModal
+      title="匯出收藏課程"
+      :description="'匯出包含 ' + favoriteCourses.length + ' 門課程的連結'"
+      :ui="{
+        header: 'py-2',
+        body: 'flex flex-col gap-4 !pt-2',
+        description: 'whitespace-pre-line pr-8',
+      }"
+      v-model:open="exportModalOpen"
+      scrollable
+    >
+      <template #body>
+        <UFormField label="為這些課程命名">
+          <UInput
+            v-model="includeTitleInExport"
+            placeholder="選填，例如：神奇的收藏課表、116資工雙主修"
+            class="w-full"
+            color="neutral"
+            variant="outline"
+            @update:model-value="exportFavorites"
+          >
+            <template v-if="includeTitleInExport?.length" #trailing>
+              <UButton
+                color="neutral"
+                variant="link"
+                icon="tabler:x"
+                aria-label="Clear input"
+                @click="includeTitleInExport = ''"
+              />
+            </template>
+          </UInput>
+        </UFormField>
+        <UFormField label="加上你的暱稱">
+          <UInput
+            v-model="includeAuthorInExport"
+            placeholder="選填，分享時會顯示在作者欄位"
+            class="w-full"
+            color="neutral"
+            variant="outline"
+            @update:model-value="exportFavorites"
+          >
+            <template v-if="includeAuthorInExport?.length" #trailing>
+              <UButton
+                color="neutral"
+                variant="link"
+                icon="tabler:x"
+                aria-label="Clear input"
+                @click="includeAuthorInExport = ''"
+              />
+            </template>
+          </UInput>
+        </UFormField>
+        <UInput
+          v-model="exportUrl"
+          label="分享連結（點擊複製）"
+          readonly
+          @click="copyToClipboard(exportUrl, '分享連結')"
+          class="w-full"
+          color="neutral"
+          variant="outline"
+          :ui="{ base: 'select-all! cursor-pointer' }"
+        />
+      </template>
+    </UModal>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { favoriteCourses } from "@/composables/useFavorites";
+import type { FavoriteCourses } from "@/composables/useFavorites";
+
+const { favoriteCourses, shared } = defineProps<{
+  favoriteCourses: FavoriteCourses;
+  shared?: boolean | undefined;
+}>();
 
 const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
 
@@ -104,11 +201,8 @@ function allClosed() {
   selectedFavorite.value = [];
 }
 function allOpen() {
-  // Array: 0 - favoriteCourses.value.length - 1
-  selectedFavorite.value = Array.from(
-    { length: Object.keys(favoriteCourses.value).length },
-    (_, i) => i.toString(),
-  );
+  // Array: 0 - favoriteCourses.length - 1
+  selectedFavorite.value = favoriteCourses.map((_, index) => index.toString());
 }
 
 function termChangeHandler() {
@@ -118,5 +212,27 @@ function termChangeHandler() {
       fetchTermData(term);
     }
   }
+}
+
+const exportModalOpen = ref(false);
+const exportUrl = ref("");
+const includeTitleInExport = ref("");
+const includeAuthorInExport = ref("");
+function exportFavorites() {
+  if (favoriteCourses.length === 0) {
+    alert("沒有課程可供匯出");
+    return;
+  }
+  exportModalOpen.value = true;
+  exportUrl.value =
+    window.location.origin +
+    "/share/favorites?cs=" +
+    favoriteCourses.join(",") +
+    (includeTitleInExport.value.trim() !== ""
+      ? `&title=${encodeURIComponent(includeTitleInExport.value.trim())}`
+      : "") +
+    (includeAuthorInExport.value.trim() !== ""
+      ? `&a=${encodeURIComponent(includeAuthorInExport.value.trim())}`
+      : "");
 }
 </script>

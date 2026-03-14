@@ -3,14 +3,14 @@
   /share/timetable
   query:
     - term: 課表所屬學期
-    - courses: 課表資料，格式為 "courseKey:color,courseKey:color,..."
-    - auth: 分享者名稱（選填）
+    - cs: 課表資料，格式為 "courseKey:color,courseKey:color,..."
+    - a: 分享者名稱（選填）
     - settings: jsonLz 格式的課表設定（選填）
 -->
 
 <template>
-  <h1 class="text-2xl font-bold text-center mb-6">
-    {{ auth ? `${auth}的課表` : "分享的課表" }}
+  <h1 class="text-2xl font-bold text-center my-6">
+    {{ a ? `${a}的課表` : "分享的課表" }}
   </h1>
   <!-- timetable -->
   <ClientOnly>
@@ -32,14 +32,14 @@ import { defaultTimetableSettings } from "@/composables/useTimetable";
 import { jsonLzDecode } from "@/composables/useTools";
 
 const route = useRoute();
-const { term, courses, auth } = route.query as {
+const { term, cs, a } = route.query as {
   term?: string;
-  courses?: string;
-  auth?: string;
+  cs?: string;
+  a?: string;
   settings?: string;
 };
 
-const title = auth ? `${auth}的課表` : "分享的課表";
+const title = a ? `${a}的課表` : "分享的課表";
 useHead({
   title: title,
 });
@@ -67,7 +67,7 @@ if (route.query.settings?.length) {
 const errorEntries = ref<string[]>([]);
 onMounted(() => {
   // 預先載入課表資料
-  importCourses(courses as string, term as string)
+  importCourses(cs as string, term as string)
     .then(
       ({
         timetable: importedTimetable,

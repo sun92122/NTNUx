@@ -25,12 +25,12 @@ const { courseName, courseCode } = defineProps<{
 }>();
 
 const isFavorite = computed(() =>
-  courseCode ? favoriteCourses.value[courseCode] !== undefined : false,
+  courseCode ? favoriteCourses.value.includes(courseCode) : false,
 );
 
 function toggleFavorite() {
   if (!courseCode) return;
-  toggleFavoriteCourseByCode(courseCode as string, courseName || "");
+  toggleFavoriteCourseByCode(courseCode as string);
   if (isFavorite.value) {
     addToFavoritesToast(courseName || "", courseCode || "");
   } else {
