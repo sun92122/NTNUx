@@ -1,11 +1,9 @@
 import type { Course } from "@/composables/useCourseTable";
 import { jsonLzDecode, jsonLzEncode } from "@/composables/useTools";
 
-export interface FavoriteCourses {
-  [course_code: string]: string;
-}
+export type FavoriteCourses = string[];
 
-export const favoriteCourses = ref<FavoriteCourses>({});
+export const favoriteCourses = ref<FavoriteCourses>([]);
 
 export function loadFavoriteCourses() {
   if (!import.meta.client) return;
@@ -18,6 +16,7 @@ export function loadFavoriteCourses() {
       }
     } catch (e) {
       console.error("Failed to load favorite courses:", e);
+      localStorage.removeItem("ntnux-user-favorite");
     }
   }
 }
@@ -33,31 +32,27 @@ export function saveFavoriteCourses() {
 }
 
 export function addFavoriteCourse(course: Course) {
-  favoriteCourses.value[course.course_code] = course.name;
+  favoriteCourses.value.push(course.course_code);
   saveFavoriteCourses();
 }
 
 export function removeFavoriteCourse(course: Course) {
-  delete favoriteCourses.value[course.course_code];
+  favoriteCourses.value = favoriteCourses.value.filter(
+    (code) => code !== course.course_code,
+  );
   saveFavoriteCourses();
 }
 
 export function toggleFavoriteCourse(course: Course) {
-  if (favoriteCourses.value[course.course_code]) {
-    removeFavoriteCourse(course);
-  } else {
-    addFavoriteCourse(course);
-  }
+  toggleFavoriteCourseByCode(course.course_code);
 }
 
-export function toggleFavoriteCourseByCode(
-  course_code: string,
-  course_name: string,
-) {
-  if (favoriteCourses.value[course_code]) {
-    delete favoriteCourses.value[course_code];
+export function toggleFavoriteCourseByCode(course_code: string) {
+  const index = favoriteCourses.value.findIndex((code) => code === course_code);
+  if (index !== -1) {
+    favoriteCourses.value.splice(index, 1);
   } else {
-    favoriteCourses.value[course_code] = course_name;
+    favoriteCourses.value.push(course_code);
   }
   saveFavoriteCourses();
 }

@@ -960,27 +960,15 @@ function onflash() {
   }
   getFiltersFromQuery();
   handleBreadcrumbClick();
-
-  const courseTableFilters = useState<Record<string, any>>(
-    "courseTableFilters",
-    () => ({}),
-  );
-  console.log(
-    "initial courseTableFilters: ",
-    courseTableFilters.value,
-    useRoute().query,
-  );
 }
 watch(
   () => route.query,
   () => {
-    console.log("route query changed: ", route.query);
     onflash();
   },
 );
 
 onMounted(async () => {
-  console.log("onMounted in CourseSearchBar.vue", route.query);
   onflash();
 });
 
