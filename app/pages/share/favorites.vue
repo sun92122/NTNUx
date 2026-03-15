@@ -6,17 +6,19 @@
     </h1>
     <CourseFavoritesControl
       :favoriteCourses="sharedFavoriteCourses"
+      :courseNameMap="courseNameMap"
       :shared="true"
     />
 
     <ClientOnly>
       <CourseFavoritesTable
         :favoriteCourses="sharedFavoriteCourses"
+        :courseNameMap="courseNameMap"
         :shared="true"
       />
 
       <template #fallback>
-        <UProgress size="xl" color="neutral" class="max-w-md mt-4 mx-auto" />
+        <UProgress size="xl" color="neutral" class="max-w-md mx-auto mt-20!" />
       </template>
     </ClientOnly>
   </div>
@@ -25,11 +27,30 @@
 <script lang="ts" setup>
 import { prefetchDefaultTermData } from "@/composables/useCourseTable";
 import { loadFavoriteCourses } from "@/composables/useFavorites";
+import type {
+  FavoriteCourses,
+  CourseNameMap,
+} from "@/composables/useFavorites";
 
 const { cs, title, a } = useRoute().query;
-const sharedFavoriteCourses = computed(() => {
+
+// cs: courseCode:courseName,courseCode:courseName,...
+const sharedFavorite = computed(() => {
   if (!cs || typeof cs !== "string") return [];
-  return cs.split(",").map((code) => code.trim());
+  return cs.split(",").map((item) => {
+    const [code, name] = item.split(":").map((part) => part.trim());
+    return { code, name };
+  });
+});
+const sharedFavoriteCourses = computed<FavoriteCourses>(() => {
+  return sharedFavorite.value.map((item) => item.code || "");
+});
+const courseNameMap = computed<CourseNameMap>(() => {
+  const map: CourseNameMap = {};
+  sharedFavorite.value.forEach((item) => {
+    if (item.code && item.name) map[item.code] = item.name;
+  });
+  return map;
 });
 
 const pageTitle = title ? `收藏課程（${title}）` : "我的收藏課程";

@@ -56,7 +56,7 @@
         </template>
       </USelectMenu>
     </div>
-    <div class="flex flex-row gap-2">
+    <div class="flex flex-row gap-2 mr-auto">
       <UButton
         label="全部展開"
         size="lg"
@@ -71,6 +71,103 @@
         variant="outline"
         @click="allClosed"
       ></UButton>
+      <UDropdownMenu
+        size="lg"
+        :items="[
+          {
+            label: '排列順序',
+            type: 'checkbox',
+            onUpdateChecked(checked) {
+              sorting = checked;
+            },
+            onSelect: (e) => {
+              e.preventDefault();
+            },
+            icon: 'tabler:menu-order',
+            checked: sorting,
+            color: sorting ? 'primary' : undefined,
+          },
+          {
+            label: '刪除課程',
+            type: 'checkbox',
+            onUpdateChecked(checked) {
+              deleting = checked;
+            },
+            onSelect: (e) => {
+              e.preventDefault();
+            },
+            icon: 'tabler:trash',
+            checked: deleting,
+            color: deleting ? 'error' : undefined,
+          },
+          {
+            label: '編輯標題',
+            type: 'checkbox',
+            onUpdateChecked(checked) {
+              editing = checked;
+            },
+            onSelect: (e) => {
+              e.preventDefault();
+            },
+            icon: 'tabler:pencil',
+            checked: editing,
+            color: editing ? 'primary' : undefined,
+          },
+          {
+            label: '編輯全開',
+            type: 'checkbox',
+            onUpdateChecked(checked) {
+              sorting = checked;
+              deleting = checked;
+              editing = checked;
+            },
+            onSelect: (e) => {
+              e.preventDefault();
+            },
+            icon: 'tabler:edit',
+            checked: sorting && deleting && editing,
+            color: sorting && deleting && editing ? 'success' : undefined,
+          },
+          {
+            label: '新增標題',
+            icon: 'tabler:plus',
+            onClick() {
+              headerModalOpen = true;
+            },
+          },
+        ]"
+        :ui="{
+          content: 'min-w-40',
+        }"
+      >
+        <UButton
+          label="編輯"
+          size="lg"
+          color="primary"
+          variant="outline"
+          icon="tabler:pencil"
+          class="cursor-pointer gap-1.5"
+        />
+      </UDropdownMenu>
+      <UButton
+        v-if="!shared"
+        label="清空收藏"
+        size="lg"
+        color="error"
+        variant="outline"
+        @click="clearFavoriteModalOpen = true"
+      ></UButton>
+    </div>
+    <div class="flex flex-row gap-2">
+      <UButton
+        v-if="!shared"
+        label="匯入"
+        color="neutral"
+        variant="outline"
+        icon="tabler:download"
+        class="h-9 cursor-pointer"
+        @click="importModalOpen = true"
+      />
       <UButton
         v-if="!shared"
         label="匯出"
@@ -81,6 +178,138 @@
         @click="exportFavorites"
       />
     </div>
+
+    <UModal
+      v-model:open="headerModalOpen"
+      title="新增標題"
+      description="在收藏課程中新增一個標題，用來分隔不同類別的課程"
+      :ui="{
+        header: 'py-2',
+        footer: 'justify-end py-2 gap-2',
+        content: 'max-w-md',
+      }"
+    >
+      <template #body>
+        <UInput
+          v-model="headerTitle"
+          placeholder="標題名稱，例如：必修、選修、系專業選修..."
+          class="w-full"
+          color="neutral"
+          variant="outline"
+          autofocus
+          @keyup.enter="addHeader(headerh1 ? 'h1' : headerh2 ? 'h2' : 'h1')"
+        />
+      </template>
+      <template #footer>
+        <UButton
+          label="取消"
+          variant="outline"
+          class="mr-auto"
+          @click="headerModalOpen = false"
+        />
+        <UButton
+          v-if="!headerh2"
+          :disabled="headerTitle.trim() === ''"
+          label="新增為大標題"
+          color="primary"
+          @click="addHeader('h1')"
+        />
+        <UButton
+          v-if="!headerh1"
+          :disabled="headerTitle.trim() === ''"
+          label="新增為小標題"
+          color="primary"
+          @click="addHeader('h2')"
+        />
+      </template>
+    </UModal>
+
+    <UModal
+      title="清空收藏課程"
+      description="確定要清空收藏？"
+      :ui="{ header: 'py-2', footer: 'justify-end py-2', content: 'max-w-md' }"
+      v-model:open="clearFavoriteModalOpen"
+    >
+      <template #footer>
+        <UButton
+          label="取消"
+          variant="outline"
+          class="mr-auto"
+          @click="clearFavoriteModalOpen = false"
+        />
+        <UButton
+          label="確定"
+          color="error"
+          @click="
+            clearFavoriteModalOpen = false;
+            clearFavorites();
+          "
+        />
+      </template>
+    </UModal>
+
+    <UModal
+      title="匯入收藏課程"
+      :description="'請注意：\n匯入的收藏課程將會覆蓋現有收藏課程，若有需要請先備份收藏課程。'"
+      :ui="{
+        header: 'py-2',
+        description: 'whitespace-pre-line',
+        footer: 'justify-end py-2',
+        content: 'max-w-md',
+        body: 'p-4! max-h-[70vh] overflow-y-auto',
+      }"
+      v-model:open="importModalOpen"
+      @update:open="
+        () => {
+          importConfirmed = false;
+        }
+      "
+    >
+      <template #body>
+        <UTextarea
+          v-model="importText"
+          placeholder="格式為 courseCode:courseName，一行一門課，例如：\n
+CS101:程式設計\nMA102:微積分\n或是分享連結，例如：https://ntnux.org/share/favorites?cs=..."
+          class="w-full"
+          color="neutral"
+          variant="outline"
+          :rows="6"
+          autoresize
+          :ui="{ base: 'max-sm:text-sm!' }"
+          @blur="importText = importHandler()"
+        />
+      </template>
+      <template #footer>
+        <UButton
+          label="取消"
+          color="neutral"
+          variant="outline"
+          @click="importModalOpen = false"
+        />
+        <UButton
+          v-if="!importConfirmed"
+          :disabled="importText.trim() === ''"
+          label="匯入"
+          color="primary"
+          class="ml-auto"
+          @click="importConfirmed = true"
+        />
+        <UButton
+          v-else
+          label="確定匯入"
+          color="warning"
+          class="ml-auto"
+          @click="
+            () => {
+              importCourses();
+              importModalOpen = false;
+              importConfirmed = false;
+            }
+          "
+        />
+      </template>
+    </UModal>
+
     <UModal
       title="匯出收藏課程"
       :description="'匯出包含 ' + favoriteCourses.length + ' 門課程的連結'"
@@ -98,6 +327,7 @@
             v-model="includeTitleInExport"
             placeholder="選填，例如：神奇的收藏課表、116資工雙主修"
             class="w-full"
+            :ui="{ base: 'max-sm:text-sm!' }"
             color="neutral"
             variant="outline"
             @update:model-value="exportFavorites"
@@ -118,6 +348,7 @@
             v-model="includeAuthorInExport"
             placeholder="選填，分享時會顯示在作者欄位"
             class="w-full"
+            :ui="{ base: 'max-sm:text-sm!' }"
             color="neutral"
             variant="outline"
             @update:model-value="exportFavorites"
@@ -149,10 +380,14 @@
 </template>
 
 <script lang="ts" setup>
-import type { FavoriteCourses } from "@/composables/useFavorites";
+import type {
+  FavoriteCourses,
+  CourseNameMap,
+} from "@/composables/useFavorites";
 
-const { favoriteCourses, shared } = defineProps<{
+const { favoriteCourses, courseNameMap, shared } = defineProps<{
   favoriteCourses: FavoriteCourses;
+  courseNameMap: CourseNameMap;
   shared?: boolean | undefined;
 }>();
 
@@ -214,6 +449,64 @@ function termChangeHandler() {
   }
 }
 
+const sorting = useState<boolean>("sorting", () => false);
+const deleting = useState<boolean>("deleting", () => false);
+const editing = useState<boolean>("editing", () => false);
+const clearFavoriteModalOpen = ref(false);
+function clearFavorites() {
+  favoriteCourses.splice(0, favoriteCourses.length);
+  saveFavoriteCourses();
+}
+
+const importModalOpen = ref(false);
+const importText = ref("");
+const importConfirmed = ref(false);
+function importHandler(): string {
+  const newTextLines = [];
+  const lines = importText.value.split("\n").map((line) => line.trim());
+  for (const line of lines) {
+    if (!line.includes("cs=")) {
+      newTextLines.push(line);
+      continue;
+    }
+
+    const url = new URL(line, window.location.origin);
+    const cs = url.searchParams.get("cs");
+    if (cs) {
+      for (const item of cs.split(",")) {
+        const [code, name] = item.split(":").map((part) => part.trim());
+        newTextLines.push(`${code}:${name}`);
+      }
+    } else {
+      newTextLines.push(line);
+    }
+  }
+  return newTextLines.join("\n");
+}
+function importCourses() {
+  const result = importHandler();
+
+  const newFavoriteCourses: FavoriteCourses = [];
+  const newCourseNameMap: CourseNameMap = {};
+  for (const item of result.split("\n")) {
+    const [code, name] = item.split(":").map((part) => part.trim());
+    if (code) {
+      newFavoriteCourses.push(code);
+      if (name) newCourseNameMap[code] = name;
+    }
+  }
+
+  if (result.trim() === "") {
+    alert("沒有找到有效的課程資料");
+    return;
+  }
+
+  favoriteCourses.splice(0, favoriteCourses.length, ...newFavoriteCourses);
+  Object.assign(courseNameMap, newCourseNameMap);
+  saveFavoriteCourses();
+  importText.value = "";
+  alert("匯入成功！");
+}
 const exportModalOpen = ref(false);
 const exportUrl = ref("");
 const includeTitleInExport = ref("");
@@ -227,7 +520,12 @@ function exportFavorites() {
   exportUrl.value =
     window.location.origin +
     "/share/favorites?cs=" +
-    favoriteCourses.join(",") +
+    favoriteCourses
+      .map((code) => {
+        const name = courseNameMap[code] || "";
+        return `${code}:${name}`;
+      })
+      .join(",") +
     (includeTitleInExport.value.trim() !== ""
       ? `&title=${encodeURIComponent(includeTitleInExport.value.trim())}`
       : "") +
@@ -235,4 +533,54 @@ function exportFavorites() {
       ? `&a=${encodeURIComponent(includeAuthorInExport.value.trim())}`
       : "");
 }
+
+const headerModalOpen = ref(false);
+const headerTitle = ref("");
+function addHeader(type: "h1" | "h2") {
+  let id = 0;
+  while (favoriteCourses.includes(`NTNUx-${type}-${id}`)) {
+    id++;
+  }
+  favoriteCourses.push(`NTNUx-${type}-${id}`);
+  courseNameMap[`NTNUx-${type}-${id}`] = headerTitle.value;
+  saveFavoriteCourses();
+  headerTitle.value = "";
+  headerModalOpen.value = false;
+  setTimeout(() => {
+    headerh1.value = false;
+    headerh2.value = false;
+  }, 300);
+}
+const headerh1 = ref(false);
+const headerh2 = ref(false);
+
+defineShortcuts({
+  meta_h: {
+    handler() {
+      headerh1.value = true;
+      headerh2.value = false;
+      headerModalOpen.value = true;
+    },
+  },
+  meta_shift_h: {
+    handler() {
+      headerh1.value = false;
+      headerh2.value = true;
+      headerModalOpen.value = true;
+    },
+  },
+  meta_enter: {
+    handler() {
+      if (headerModalOpen.value) {
+        if (headerh1.value) {
+          addHeader("h1");
+        } else if (headerh2.value) {
+          addHeader("h2");
+        } else {
+          addHeader("h1");
+        }
+      }
+    },
+  },
+});
 </script>

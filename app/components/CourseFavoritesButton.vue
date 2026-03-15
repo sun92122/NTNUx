@@ -30,7 +30,7 @@ const isFavorite = computed(() =>
 
 function toggleFavorite() {
   if (!courseCode) return;
-  toggleFavoriteCourseByCode(courseCode as string);
+  toggleFavoriteCourseByCode(courseCode, courseName);
   if (isFavorite.value) {
     addToFavoritesToast(courseName || "", courseCode || "");
   } else {
