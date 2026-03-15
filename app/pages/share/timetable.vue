@@ -48,7 +48,6 @@ useSeoMeta({
   appleMobileWebAppTitle: title,
   ogTitle: title,
   twitterTitle: title,
-  ogUrl: window.location.href,
 });
 
 const timetable = ref({});
