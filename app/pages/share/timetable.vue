@@ -48,7 +48,7 @@ useSeoMeta({
   appleMobileWebAppTitle: title,
   ogTitle: title,
   twitterTitle: title,
-  ogUrl: "https://ntnux.org/user/timetable",
+  ogUrl: window.location.href,
 });
 
 const timetable = ref({});

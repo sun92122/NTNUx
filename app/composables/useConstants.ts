@@ -1,4 +1,4 @@
-export const modeList = [
+export const modeList: string[] = [
   // default
   "quick",
   // with dropdown filters
@@ -43,9 +43,9 @@ export const generalCoreMap: Record<string, string> = {
   C2: "MOOCs",
 } as const;
 
-export const days = ["一", "二", "三", "四", "五", "六"] as const;
+export const days: string[] = ["一", "二", "三", "四", "五", "六"] as const;
 
-export const periods = [
+export const periods: string[] = [
   "0",
   "1",
   "2",
@@ -124,7 +124,7 @@ export const locationMap: Record<string, string> = {
   "公館 研": `query=${encodeURIComponent("25°00'31.3\"N 121°32'06.8\"E")}`,
 } as const;
 
-export const colorList = [
+export const colorList: string[] = [
   // "#64748b33", // slate
   // "#6b728033", // gray
   // "#71717a33", // zinc
