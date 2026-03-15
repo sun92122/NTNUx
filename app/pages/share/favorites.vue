@@ -64,7 +64,7 @@ const courseNameMap = computed<CourseNameMap>(() => {
   return map;
 });
 
-const pageTitle = title ? `收藏課程（${title}）` : "我的收藏課程";
+const pageTitle = title ? `收藏課程（${title}）` : "分享的收藏課程";
 useHead({
   title: pageTitle,
 });
@@ -73,7 +73,6 @@ useSeoMeta({
   appleMobileWebAppTitle: pageTitle,
   ogTitle: pageTitle,
   twitterTitle: pageTitle,
-  ogUrl: window.location.href,
 });
 
 onMounted(() => {

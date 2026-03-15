@@ -30,6 +30,10 @@ export default defineNuxtConfig({
           content: "更適合師大人的課程查詢系統，更快、更強、行動裝置友好。",
         },
         {
+          name: "mobile-web-app-capable",
+          content: "yes",
+        },
+        {
           name: "apple-mobile-web-app-capable",
           content: "yes",
         },
