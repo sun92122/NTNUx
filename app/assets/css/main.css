@@ -20,4 +20,8 @@
   --ui-bg: var(--color-slate-800);
   --ui-bg-muted: var(--color-slate-700);
   --ui-bg-elevated: var(--color-slate-600);
+
+  .text-primary {
+    color: var(--color-blue-500);
+  }
 }
