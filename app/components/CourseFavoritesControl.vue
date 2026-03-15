@@ -23,7 +23,7 @@
         <template #item-label="{ item }">
           <span class="flex justify-between items-center w-full">
             <span>{{ item.label }}</span>
-            <div>
+            <div v-if="item?.value">
               <UBadge
                 v-if="item.value === defaultTerm"
                 color="warning"
@@ -141,6 +141,7 @@
         }"
       >
         <UButton
+          v-if="!shared"
           label="編輯"
           size="lg"
           color="primary"
@@ -343,6 +344,27 @@ CS101:程式設計\nMA102:微積分\n或是分享連結，例如：https://ntnux
             </template>
           </UInput>
         </UFormField>
+        <UFormField label="加上課程描述">
+          <UInput
+            v-model="includeDepictInExport"
+            placeholder="選填，分享時會顯示在標題下方"
+            class="w-full"
+            :ui="{ base: 'max-sm:text-sm!' }"
+            color="neutral"
+            variant="outline"
+            @update:model-value="exportFavorites"
+          >
+            <template v-if="includeDepictInExport?.length" #trailing>
+              <UButton
+                color="neutral"
+                variant="link"
+                icon="tabler:x"
+                aria-label="Clear input"
+                @click="includeDepictInExport = ''"
+              />
+            </template>
+          </UInput>
+        </UFormField>
         <UFormField label="加上你的暱稱">
           <UInput
             v-model="includeAuthorInExport"
@@ -415,20 +437,36 @@ const selectedTerm = useState<string[]>("selectedTerm", () => [
   defaultTerm.value,
 ]);
 const dropdownTermOptions = computed(() => {
-  return termList.value
-    .map((year) => {
-      return [
-        {
-          type: "label",
-          label: `${year} 學年`,
-        },
-        { label: `${year}-1`, value: `${year}-1` },
-        { label: `${year}-2`, value: `${year}-2` },
-        { label: `${year}-暑期`, value: `${year}-3` },
-        { type: "separator" },
-      ];
-    })
-    .flat() as any[];
+  return [
+    {
+      label: "預設學期",
+      onSelect: () => {
+        nextTick(() => {
+          selectedTermItems.value = [
+            {
+              label: defaultTerm.value.replace("3", "暑期"),
+              value: defaultTerm.value,
+            },
+          ];
+          selectedTerm.value = [defaultTerm.value];
+        });
+      },
+    },
+    ...termList.value
+      .map((year) => {
+        return [
+          {
+            type: "label",
+            label: `${year} 學年`,
+          },
+          { label: `${year}-1`, value: `${year}-1` },
+          { label: `${year}-2`, value: `${year}-2` },
+          { label: `${year}-暑期`, value: `${year}-3` },
+          { type: "separator" },
+        ];
+      })
+      .flat(),
+  ] as any[];
 });
 
 const selectedFavorite = useState<string[]>("selectedFavorite", () => []);
@@ -510,6 +548,7 @@ function importCourses() {
 const exportModalOpen = ref(false);
 const exportUrl = ref("");
 const includeTitleInExport = ref("");
+const includeDepictInExport = ref("");
 const includeAuthorInExport = ref("");
 function exportFavorites() {
   if (favoriteCourses.length === 0) {
@@ -519,19 +558,27 @@ function exportFavorites() {
   exportModalOpen.value = true;
   exportUrl.value =
     window.location.origin +
-    "/share/favorites?cs=" +
-    favoriteCourses
-      .map((code) => {
-        const name = courseNameMap[code] || "";
-        return `${code}:${name}`;
-      })
-      .join(",") +
-    (includeTitleInExport.value.trim() !== ""
-      ? `&title=${encodeURIComponent(includeTitleInExport.value.trim())}`
-      : "") +
-    (includeAuthorInExport.value.trim() !== ""
-      ? `&a=${encodeURIComponent(includeAuthorInExport.value.trim())}`
-      : "");
+    "/share/favorites?" +
+    [
+      includeTitleInExport.value.trim() !== ""
+        ? `title=${encodeURIComponent(includeTitleInExport.value.trim())}`
+        : "",
+      includeDepictInExport.value.trim() !== ""
+        ? `depict=${encodeURIComponent(includeDepictInExport.value.trim())}`
+        : "",
+      includeAuthorInExport.value.trim() !== ""
+        ? `a=${encodeURIComponent(includeAuthorInExport.value.trim())}`
+        : "",
+      "cs=" +
+        encodeURIComponent(
+          favoriteCourses
+            .map((code) => {
+              const name = courseNameMap[code] || "";
+              return `${code}:${name}`;
+            })
+            .join(","),
+        ),
+    ].join("&");
 }
 
 const headerModalOpen = ref(false);
@@ -582,5 +629,11 @@ defineShortcuts({
       }
     },
   },
+});
+
+onMounted(() => {
+  selectedTermItems.value = dropdownTermOptions.value.filter((option) =>
+    selectedTerm.value.includes(option.value as string),
+  );
 });
 </script>

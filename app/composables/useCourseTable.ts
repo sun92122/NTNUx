@@ -288,6 +288,13 @@ export function getTable() {
 }
 
 export function fetchTermData(term: string, lazy: boolean = false) {
+  if (!term) {
+    return {
+      refresh: async () => {},
+      refreshDenseData: async () => {},
+      refreshUpdateTime: async () => {},
+    };
+  }
   const tableWatchVersion = useState<number>("tableWatchVersion", () => 0);
   const dataAllTerms = useState<AllTermsData>("dataAllTerms", () => ({}));
   const denseDataAllTerms = useState<AllTermsData>(

@@ -2,8 +2,19 @@
   <div class="page-container w-full">
     <h1 class="text-2xl font-bold text-center my-6 grid">
       {{ title || "分享的收藏課程" }}
+      <span v-if="depict" class="text-sm text-dimmed mx-auto">{{
+        depict
+      }}</span>
       <span v-if="a" class="text-sm text-dimmed mx-auto">作者：{{ a }}</span>
     </h1>
+    <ULink
+      v-if="link && linktitle"
+      :href="link"
+      class="text-center text-dimmed hover:underline mb-4 block"
+      target="_blank"
+    >
+      {{ linktitle }}
+    </ULink>
     <CourseFavoritesControl
       :favoriteCourses="sharedFavoriteCourses"
       :courseNameMap="courseNameMap"
@@ -32,7 +43,7 @@ import type {
   CourseNameMap,
 } from "@/composables/useFavorites";
 
-const { cs, title, a } = useRoute().query;
+const { cs, title, depict, a, linktitle, link }: any = useRoute().query;
 
 // cs: courseCode:courseName,courseCode:courseName,...
 const sharedFavorite = computed(() => {
@@ -62,7 +73,7 @@ useSeoMeta({
   appleMobileWebAppTitle: pageTitle,
   ogTitle: pageTitle,
   twitterTitle: pageTitle,
-  ogUrl: "https://ntnux.org/user/favorites",
+  ogUrl: window.location.href,
 });
 
 onMounted(() => {

@@ -191,6 +191,31 @@ const favoriteAccordionItems = computed<any>(() => {
           },
           type: "h2",
         };
+      } else if (course_code.startsWith("NTNUx-h3")) {
+        return {
+          label: courseNameMap[course_code] || "h3",
+          disabled: true,
+          ui: {
+            ...headerUI,
+            label: courseNameMap[course_code]
+              ? "text-base font-medium ml-16"
+              : "text-base font-medium ml-16 italic text-dimmed",
+          },
+          type: "h3",
+        };
+      } else if (course_code.startsWith("NTNUx-separator")) {
+        return {
+          disabled: true,
+          ui: {
+            item: "rounded-none shadow-none border-x-0 border-t-0 border-b border-inverted/50 my-2",
+            header: "bg-transparent cursor-default py-0",
+            trigger: "cursor-default p-0 opacity-100 border-none",
+            trailingIcon: "hidden",
+            content: "hidden",
+            label: "p-0 h-0",
+          },
+          type: "separator",
+        };
       }
     }
     const courses = getCourseData(course_code);
