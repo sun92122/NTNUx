@@ -71,6 +71,25 @@
         variant="outline"
         @click="allClosed"
       ></UButton>
+    </div>
+    <div class="flex flex-row gap-2 mr-auto">
+      <UButton
+        label="隱藏空課程"
+        size="lg"
+        color="primary"
+        :variant="hideEmptyCourses ? 'solid' : 'outline'"
+        :icon="hideEmptyCourses ? 'tabler:eye-off' : 'tabler:eye'"
+        @click="
+          () => {
+            hideEmptyCourses = !hideEmptyCourses;
+            if (hideEmptyCourses) {
+              sorting = false;
+              deleting = false;
+              editing = false;
+            }
+          }
+        "
+      ></UButton>
       <UDropdownMenu
         size="lg"
         :items="[
@@ -79,6 +98,7 @@
             type: 'checkbox',
             onUpdateChecked(checked) {
               sorting = checked;
+              if (checked) hideEmptyCourses = false;
             },
             onSelect: (e) => {
               e.preventDefault();
@@ -92,6 +112,7 @@
             type: 'checkbox',
             onUpdateChecked(checked) {
               deleting = checked;
+              if (checked) hideEmptyCourses = false;
             },
             onSelect: (e) => {
               e.preventDefault();
@@ -105,6 +126,7 @@
             type: 'checkbox',
             onUpdateChecked(checked) {
               editing = checked;
+              if (checked) hideEmptyCourses = false;
             },
             onSelect: (e) => {
               e.preventDefault();
@@ -120,6 +142,7 @@
               sorting = checked;
               deleting = checked;
               editing = checked;
+              if (checked) hideEmptyCourses = false;
             },
             onSelect: (e) => {
               e.preventDefault();
@@ -269,8 +292,12 @@
       <template #body>
         <UTextarea
           v-model="importText"
-          placeholder="格式為 courseCode:courseName，一行一門課，例如：\n
-CS101:程式設計\nMA102:微積分\n或是分享連結，例如：https://ntnux.org/share/favorites?cs=..."
+          :placeholder="
+            '格式為 courseCode:courseName，一行一門課，例如：\n' +
+            'CSU0001:程式設計（一）\n' +
+            'MAU0179:微積分甲（二）\n' +
+            '或是分享連結：https://ntnux.org/share/favorites?cs=...'
+          "
           class="w-full"
           color="neutral"
           variant="outline"
@@ -344,6 +371,24 @@ CS101:程式設計\nMA102:微積分\n或是分享連結，例如：https://ntnux
             </template>
           </UInput>
         </UFormField>
+        <UFormField
+          label="加上標籤"
+          description="最多三個標籤，每個標籤 3 個字以內"
+        >
+          <UInputTags
+            v-model="includeTagsInExport"
+            placeholder="選填，例如：物理、雙主修、大學部..."
+            class="w-full"
+            :ui="{ base: 'max-sm:text-sm!' }"
+            color="neutral"
+            variant="outline"
+            @update:model-value="exportFavorites"
+            :max-length="3"
+            :max="3"
+            :add-on-tab="true"
+            :add-on-blur="true"
+          />
+        </UFormField>
         <UFormField label="加上課程描述">
           <UInput
             v-model="includeDepictInExport"
@@ -386,6 +431,13 @@ CS101:程式設計\nMA102:微積分\n或是分享連結，例如：https://ntnux
             </template>
           </UInput>
         </UFormField>
+        <USwitch
+          v-model="excludeCourseNameInExport"
+          label="匯出時不包含課程名稱（只包含課程代碼）"
+          description="部分課程名在載入課程前無法顯示，但可以大幅縮短連結長度"
+          :ui="{ base: 'max-sm:text-sm!' }"
+          @update:model-value="exportFavorites"
+        />
         <UInput
           v-model="exportUrl"
           label="分享連結（點擊複製）"
@@ -487,12 +539,16 @@ function termChangeHandler() {
   }
 }
 
+const hideEmptyCourses = useState<boolean>("hideEmptyCourses", () => false);
 const sorting = useState<boolean>("sorting", () => false);
 const deleting = useState<boolean>("deleting", () => false);
 const editing = useState<boolean>("editing", () => false);
 const clearFavoriteModalOpen = ref(false);
 function clearFavorites() {
   favoriteCourses.splice(0, favoriteCourses.length);
+  Object.keys(courseNameMap).forEach((key) => {
+    delete courseNameMap[key];
+  });
   saveFavoriteCourses();
 }
 
@@ -550,6 +606,8 @@ const exportUrl = ref("");
 const includeTitleInExport = ref("");
 const includeDepictInExport = ref("");
 const includeAuthorInExport = ref("");
+const includeTagsInExport = ref([]);
+const excludeCourseNameInExport = ref(false);
 function exportFavorites() {
   if (favoriteCourses.length === 0) {
     alert("沒有課程可供匯出");
@@ -563,6 +621,9 @@ function exportFavorites() {
       includeTitleInExport.value.trim() !== ""
         ? `title=${encodeURIComponent(includeTitleInExport.value.trim())}`
         : "",
+      includeTagsInExport.value.length > 0
+        ? `tags=${encodeURIComponent(includeTagsInExport.value.map((tag: string) => tag.trim()).join(","))}`
+        : "",
       includeDepictInExport.value.trim() !== ""
         ? `depict=${encodeURIComponent(includeDepictInExport.value.trim())}`
         : "",
@@ -571,14 +632,27 @@ function exportFavorites() {
         : "",
       "cs=" +
         encodeURIComponent(
-          favoriteCourses
-            .map((code) => {
-              const name = courseNameMap[code] || "";
-              return `${code}:${name}`;
-            })
-            .join(","),
+          excludeCourseNameInExport.value
+            ? favoriteCourses
+                .map((code) => {
+                  if (code.startsWith("NTNUx-h")) {
+                    const name = courseNameMap[code] || "";
+                    return `${code}:${name}`;
+                  }
+                  return code;
+                })
+                .join(",")
+            : favoriteCourses
+                .map((code) => {
+                  const name = courseNameMap[code] || "";
+                  return `${code}:${name}`;
+                })
+                .join(","),
         ),
-    ].join("&");
+      ,
+    ]
+      .filter((part) => part !== "")
+      .join("&");
 }
 
 const headerModalOpen = ref(false);

@@ -104,6 +104,10 @@ const navigationItems = computed(() => [
         label: "收藏課程",
         to: "/user/favorites",
       },
+      {
+        label: "公開收藏",
+        to: "/community/favorites",
+      },
     ],
   },
 ]);

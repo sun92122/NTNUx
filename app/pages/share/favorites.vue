@@ -6,6 +6,19 @@
         depict
       }}</span>
       <span v-if="a" class="text-sm text-dimmed mx-auto">作者：{{ a }}</span>
+      <div>
+        <UBadge
+          v-for="tag in tags
+            ? tags.split(',').map((t: string) => t.trim())
+            : []"
+          :key="tag"
+          :label="tag"
+          size="sm"
+          color="neutral"
+          variant="soft"
+          class="rounded-full justify-center font-bold mx-1 mt-2"
+        />
+      </div>
     </h1>
     <ULink
       v-if="link && linktitle"
@@ -43,7 +56,7 @@ import type {
   CourseNameMap,
 } from "@/composables/useFavorites";
 
-const { cs, title, depict, a, linktitle, link }: any = useRoute().query;
+const { cs, title, depict, a, linktitle, link, tags }: any = useRoute().query;
 
 // cs: courseCode:courseName,courseCode:courseName,...
 const sharedFavorite = computed(() => {

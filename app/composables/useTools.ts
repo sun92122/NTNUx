@@ -38,6 +38,7 @@ function customToast(
     icon: icon,
     progress: false,
     type: "foreground",
+    duration: 1500,
   });
 }
 
@@ -52,7 +53,7 @@ export function copyToClipboard(text: string, label: string) {
 
 export function addToTimetableToast(courseName: string, courseId: string) {
   customToast(
-    courseId,
+    "timetable",
     `${courseName}（${courseId}）`,
     "tabler:check",
     "已加入課表",
@@ -60,7 +61,7 @@ export function addToTimetableToast(courseName: string, courseId: string) {
 }
 export function removeFromTimetableToast(courseName: string, courseId: string) {
   customToast(
-    courseId,
+    "timetable",
     `${courseName}（${courseId}）`,
     "tabler:x",
     "已從課表移除",
@@ -69,7 +70,7 @@ export function removeFromTimetableToast(courseName: string, courseId: string) {
 
 export function addToFavoritesToast(courseName: string, courseId: string) {
   customToast(
-    courseId,
+    "favorites",
     `${courseName}（${courseId}）`,
     "tabler:heart-filled",
     "已加入收藏",
@@ -77,7 +78,7 @@ export function addToFavoritesToast(courseName: string, courseId: string) {
 }
 export function removeFromFavoritesToast(courseName: string, courseId: string) {
   customToast(
-    courseId,
+    "favorites",
     `${courseName}（${courseId}）`,
     "tabler:heart-broken",
     "已從收藏移除",

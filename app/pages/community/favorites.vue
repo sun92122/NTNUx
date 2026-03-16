@@ -44,7 +44,16 @@
           v-model="globalFilter"
           class="max-w-md w-full"
           placeholder="篩選收藏課程..."
-        />
+        >
+          <template v-if="globalFilter?.length > 0" #trailing>
+            <UButton
+              color="neutral"
+              variant="link"
+              icon="tabler:x"
+              @click="globalFilter = ''"
+            />
+          </template>
+        </UInput>
       </div>
       <UTable
         :data="data"
@@ -78,6 +87,7 @@ type FavoriteItem = {
   description: string;
   author: string;
   url: string;
+  tags: string;
 };
 
 const { data, status } = useLazyFetch<FavoriteItem[]>("/data/favorites.json", {
@@ -90,37 +100,21 @@ const { data, status } = useLazyFetch<FavoriteItem[]>("/data/favorites.json", {
       const description =
         query.get("depict") || `這是第 ${index + 1} 個收藏的課程`;
       const author = query.get("a") || "未知";
+      const tags = query.get("tags") || "";
       return {
         id: index + 1,
         title,
         description,
         author,
         url,
+        tags,
       } as FavoriteItem;
     });
   },
   server: false,
 });
-const UButton = resolveComponent("UButton");
+const UBadge = resolveComponent("UBadge");
 const columns = ref<TableColumn<FavoriteItem>[]>([
-  // {
-  //   id: "expand",
-  //   cell: ({ row }) =>
-  //     h(UButton, {
-  //       color: "neutral",
-  //       variant: "ghost",
-  //       icon: "tabler:chevron-down",
-  //       square: true,
-  //       "aria-label": "Expand",
-  //       ui: {
-  //         leadingIcon: [
-  //           "transition-transform",
-  //           row.getIsExpanded() ? "duration-200 rotate-180" : "",
-  //         ],
-  //       },
-  //       onClick: () => row.toggleExpanded(),
-  //     }),
-  // },
   {
     accessorKey: "title",
     header: "收藏名稱",
@@ -129,7 +123,8 @@ const columns = ref<TableColumn<FavoriteItem>[]>([
         "a",
         {
           href: row.original.url,
-          class: "text-muted underline",
+          class:
+            "text-muted underline max-w-25 min-w-10 w-full whitespace-pre-line",
         },
         row.original.title,
       );
@@ -138,6 +133,32 @@ const columns = ref<TableColumn<FavoriteItem>[]>([
   {
     accessorKey: "author",
     header: "作者",
+  },
+  {
+    accessorKey: "tags",
+    header: "標籤",
+    cell: ({ row }) => {
+      const tags = row.original.tags.split(",").map((tag) => tag.trim());
+      if (tags.length === 0 || (tags.length === 1 && tags[0] === "")) {
+        return;
+      }
+      return h(
+        "div",
+        {
+          class: "flex flex-col gap-1",
+        },
+        tags.map((tag) =>
+          h(UBadge, {
+            key: tag,
+            label: tag,
+            size: "sm",
+            color: "neutral",
+            variant: "soft",
+            class: "rounded-full justify-center font-bold",
+          }),
+        ),
+      );
+    },
   },
   {
     accessorKey: "description",
