@@ -371,6 +371,24 @@
             </template>
           </UInput>
         </UFormField>
+        <UFormField
+          label="加上標籤"
+          description="最多三個標籤，每個標籤 3 個字以內"
+        >
+          <UInputTags
+            v-model="includeTagsInExport"
+            placeholder="選填，例如：物理、雙主修、大學部..."
+            class="w-full"
+            :ui="{ base: 'max-sm:text-sm!' }"
+            color="neutral"
+            variant="outline"
+            @update:model-value="exportFavorites"
+            :max-length="3"
+            :max="3"
+            :add-on-tab="true"
+            :add-on-blur="true"
+          />
+        </UFormField>
         <UFormField label="加上課程描述">
           <UInput
             v-model="includeDepictInExport"
@@ -528,6 +546,9 @@ const editing = useState<boolean>("editing", () => false);
 const clearFavoriteModalOpen = ref(false);
 function clearFavorites() {
   favoriteCourses.splice(0, favoriteCourses.length);
+  Object.keys(courseNameMap).forEach((key) => {
+    delete courseNameMap[key];
+  });
   saveFavoriteCourses();
 }
 
@@ -585,6 +606,7 @@ const exportUrl = ref("");
 const includeTitleInExport = ref("");
 const includeDepictInExport = ref("");
 const includeAuthorInExport = ref("");
+const includeTagsInExport = ref([]);
 const excludeCourseNameInExport = ref(false);
 function exportFavorites() {
   if (favoriteCourses.length === 0) {
@@ -598,6 +620,9 @@ function exportFavorites() {
     [
       includeTitleInExport.value.trim() !== ""
         ? `title=${encodeURIComponent(includeTitleInExport.value.trim())}`
+        : "",
+      includeTagsInExport.value.length > 0
+        ? `tags=${encodeURIComponent(includeTagsInExport.value.map((tag: string) => tag.trim()).join(","))}`
         : "",
       includeDepictInExport.value.trim() !== ""
         ? `depict=${encodeURIComponent(includeDepictInExport.value.trim())}`

@@ -16,7 +16,7 @@
       }"
     >
       <template
-        v-if="sorting || deleting || editing"
+        v-if="sorting || deleting || editing || shared"
         #leading="{ item, index }"
       >
         <Icon
@@ -54,6 +54,13 @@
             }
           "
           @click.stop
+        />
+        <CourseFavoritesButton
+          v-if="item.type === 'course' && shared"
+          :course-name="courseNameMap[favoriteCourses[index] || '']"
+          :course-code="favoriteCourses[index]"
+          @click.stop
+          class="py-0"
         />
       </template>
       <template #body="{ item }">
