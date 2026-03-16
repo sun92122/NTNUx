@@ -164,69 +164,77 @@ const headerUI = {
   trailingIcon: "hidden",
   content: "hidden",
 } as const;
+const hideEmptyCourses = useState<boolean>("hideEmptyCourses", () => false);
 const favoriteAccordionItems = computed<any>(() => {
-  return favoriteCourses.map((course_code) => {
-    if (course_code.startsWith("NTNUx-")) {
-      if (course_code.startsWith("NTNUx-h1-")) {
-        return {
-          label: courseNameMap[course_code] || "h1",
-          disabled: true,
-          ui: {
-            ...headerUI,
-            label: courseNameMap[course_code]
-              ? "text-xl font-bold"
-              : "text-xl font-bold italic text-dimmed",
-          },
-          type: "h1",
-        };
-      } else if (course_code.startsWith("NTNUx-h2-")) {
-        return {
-          label: courseNameMap[course_code] || "h2",
-          disabled: true,
-          ui: {
-            ...headerUI,
-            label: courseNameMap[course_code]
-              ? "text-lg font-semibold ml-8"
-              : "text-lg font-semibold ml-8 italic text-dimmed",
-          },
-          type: "h2",
-        };
-      } else if (course_code.startsWith("NTNUx-h3")) {
-        return {
-          label: courseNameMap[course_code] || "h3",
-          disabled: true,
-          ui: {
-            ...headerUI,
-            label: courseNameMap[course_code]
-              ? "text-base font-medium ml-16"
-              : "text-base font-medium ml-16 italic text-dimmed",
-          },
-          type: "h3",
-        };
-      } else if (course_code.startsWith("NTNUx-separator")) {
-        return {
-          disabled: true,
-          ui: {
-            item: "rounded-none shadow-none border-x-0 border-t-0 border-b border-inverted/50 my-2",
-            header: "bg-transparent cursor-default py-0",
-            trigger: "cursor-default p-0 opacity-100 border-none",
-            trailingIcon: "hidden",
-            content: "hidden",
-            label: "p-0 h-0",
-          },
-          type: "separator",
-        };
+  return favoriteCourses
+    .map((course_code) => {
+      if (course_code.startsWith("NTNUx-")) {
+        if (course_code.startsWith("NTNUx-h1-")) {
+          return {
+            label: courseNameMap[course_code] || "h1",
+            disabled: true,
+            ui: {
+              ...headerUI,
+              label: courseNameMap[course_code]
+                ? "text-xl font-bold"
+                : "text-xl font-bold italic text-dimmed",
+            },
+            type: "h1",
+          };
+        } else if (course_code.startsWith("NTNUx-h2-")) {
+          return {
+            label: courseNameMap[course_code] || "h2",
+            disabled: true,
+            ui: {
+              ...headerUI,
+              label: courseNameMap[course_code]
+                ? "text-lg font-semibold ml-8"
+                : "text-lg font-semibold ml-8 italic text-dimmed",
+            },
+            type: "h2",
+          };
+        } else if (course_code.startsWith("NTNUx-h3")) {
+          return {
+            label: courseNameMap[course_code] || "h3",
+            disabled: true,
+            ui: {
+              ...headerUI,
+              label: courseNameMap[course_code]
+                ? "text-base font-medium ml-16"
+                : "text-base font-medium ml-16 italic text-dimmed",
+            },
+            type: "h3",
+          };
+        } else if (course_code.startsWith("NTNUx-separator")) {
+          return {
+            disabled: true,
+            ui: {
+              item: "rounded-none shadow-none border-x-0 border-t-0 border-b border-inverted/50 my-2",
+              header: "bg-transparent cursor-default py-0",
+              trigger: "cursor-default p-0 opacity-100 border-none",
+              trailingIcon: "hidden",
+              content: "hidden",
+              label: "p-0 h-0",
+            },
+            type: "separator",
+          };
+        }
       }
-    }
-    const courses = getCourseData(course_code);
-    return {
-      label: courseNameMap[course_code]
-        ? `${course_code}（${courseNameMap[course_code]}）`
-        : course_code,
-      courses: courses,
-      type: "course",
-    };
-  });
+      const courses = getCourseData(course_code);
+      return {
+        label: courseNameMap[course_code]
+          ? `${course_code}（${courseNameMap[course_code]}）`
+          : course_code,
+        courses: courses,
+        type: "course",
+      };
+    })
+    .filter((item: any) => {
+      if (hideEmptyCourses.value && item.type === "course") {
+        return item?.courses?.length || 0 > 0;
+      }
+      return true;
+    });
 });
 
 const deleting = useState<boolean>("deleting", () => false);

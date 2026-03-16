@@ -71,6 +71,16 @@
         variant="outline"
         @click="allClosed"
       ></UButton>
+    </div>
+    <div class="flex flex-row gap-2 mr-auto">
+      <UButton
+        label="隱藏空課程"
+        size="lg"
+        color="primary"
+        :variant="hideEmptyCourses ? 'solid' : 'outline'"
+        :icon="hideEmptyCourses ? 'tabler:eye-off' : 'tabler:eye'"
+        @click="hideEmptyCourses = !hideEmptyCourses"
+      ></UButton>
       <UDropdownMenu
         size="lg"
         :items="[
@@ -386,6 +396,13 @@ CS101:程式設計\nMA102:微積分\n或是分享連結，例如：https://ntnux
             </template>
           </UInput>
         </UFormField>
+        <USwitch
+          v-model="excludeCourseNameInExport"
+          label="匯出時不包含課程名稱（只包含課程代碼）"
+          description="部分課程名在載入課程前無法顯示，但可以大幅縮短連結長度"
+          :ui="{ base: 'max-sm:text-sm!' }"
+          @update:model-value="exportFavorites"
+        />
         <UInput
           v-model="exportUrl"
           label="分享連結（點擊複製）"
@@ -487,6 +504,7 @@ function termChangeHandler() {
   }
 }
 
+const hideEmptyCourses = useState<boolean>("hideEmptyCourses", () => false);
 const sorting = useState<boolean>("sorting", () => false);
 const deleting = useState<boolean>("deleting", () => false);
 const editing = useState<boolean>("editing", () => false);
@@ -550,6 +568,7 @@ const exportUrl = ref("");
 const includeTitleInExport = ref("");
 const includeDepictInExport = ref("");
 const includeAuthorInExport = ref("");
+const excludeCourseNameInExport = ref(false);
 function exportFavorites() {
   if (favoriteCourses.length === 0) {
     alert("沒有課程可供匯出");
@@ -571,14 +590,27 @@ function exportFavorites() {
         : "",
       "cs=" +
         encodeURIComponent(
-          favoriteCourses
-            .map((code) => {
-              const name = courseNameMap[code] || "";
-              return `${code}:${name}`;
-            })
-            .join(","),
+          excludeCourseNameInExport.value
+            ? favoriteCourses
+                .map((code) => {
+                  if (code.startsWith("NTNUx-h")) {
+                    const name = courseNameMap[code] || "";
+                    return `${code}:${name}`;
+                  }
+                  return code;
+                })
+                .join(",")
+            : favoriteCourses
+                .map((code) => {
+                  const name = courseNameMap[code] || "";
+                  return `${code}:${name}`;
+                })
+                .join(","),
         ),
-    ].join("&");
+      ,
+    ]
+      .filter((part) => part !== "")
+      .join("&");
 }
 
 const headerModalOpen = ref(false);
