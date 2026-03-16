@@ -79,7 +79,16 @@
         color="primary"
         :variant="hideEmptyCourses ? 'solid' : 'outline'"
         :icon="hideEmptyCourses ? 'tabler:eye-off' : 'tabler:eye'"
-        @click="hideEmptyCourses = !hideEmptyCourses"
+        @click="
+          () => {
+            hideEmptyCourses = !hideEmptyCourses;
+            if (hideEmptyCourses) {
+              sorting = false;
+              deleting = false;
+              editing = false;
+            }
+          }
+        "
       ></UButton>
       <UDropdownMenu
         size="lg"
@@ -89,6 +98,7 @@
             type: 'checkbox',
             onUpdateChecked(checked) {
               sorting = checked;
+              if (checked) hideEmptyCourses = false;
             },
             onSelect: (e) => {
               e.preventDefault();
@@ -102,6 +112,7 @@
             type: 'checkbox',
             onUpdateChecked(checked) {
               deleting = checked;
+              if (checked) hideEmptyCourses = false;
             },
             onSelect: (e) => {
               e.preventDefault();
@@ -115,6 +126,7 @@
             type: 'checkbox',
             onUpdateChecked(checked) {
               editing = checked;
+              if (checked) hideEmptyCourses = false;
             },
             onSelect: (e) => {
               e.preventDefault();
@@ -130,6 +142,7 @@
               sorting = checked;
               deleting = checked;
               editing = checked;
+              if (checked) hideEmptyCourses = false;
             },
             onSelect: (e) => {
               e.preventDefault();
@@ -279,8 +292,12 @@
       <template #body>
         <UTextarea
           v-model="importText"
-          placeholder="格式為 courseCode:courseName，一行一門課，例如：\n
-CS101:程式設計\nMA102:微積分\n或是分享連結，例如：https://ntnux.org/share/favorites?cs=..."
+          :placeholder="
+            '格式為 courseCode:courseName，一行一門課，例如：\n' +
+            'CSU0001:程式設計（一）\n' +
+            'MAU0179:微積分甲（二）\n' +
+            '或是分享連結：https://ntnux.org/share/favorites?cs=...'
+          "
           class="w-full"
           color="neutral"
           variant="outline"
