@@ -244,7 +244,16 @@ function updateSeoMeta() {
     description: description.value
       ? `課程資訊的詳細頁面。${description.value}`
       : `${course.value?.name || "課程資訊"} 的詳細課程資訊。`,
+    ogUrl: `https://ntnux.org/courses/${year}/${term}/${courseId}${course.value?.name ? `/${encodeURIComponent(course.value?.name)}` : ""}`,
   });
+  if (
+    route.path !==
+    `/courses/${year}/${term}/${courseId}${course.value?.name ? `/${encodeURIComponent(course.value.name)}` : ""}`
+  ) {
+    router.replace({
+      path: `/courses/${year}/${term}/${courseId}${course.value?.name ? `/${encodeURIComponent(course.value.name)}` : ""}`,
+    });
+  }
 }
 updateSeoMeta();
 
@@ -259,7 +268,11 @@ function initialize() {
   ) {
     getCourseDescription(
       course.value?.course_code || courseId.split("-", 2)[0] || "",
-    );
+    ).then(() => {
+      description.value = course.value?.description || "";
+      updateSeoMeta();
+    });
+  } else {
     description.value = course.value?.description || "";
     updateSeoMeta();
   }
