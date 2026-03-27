@@ -343,6 +343,18 @@
         />
 
         <template #body>
+          <div>
+            <UButton
+              label="下載課表影像"
+              color="neutral"
+              variant="outline"
+              icon="tabler:download"
+              class="h-9 cursor-pointer"
+              :loading="downloading"
+              :disabled="downloading"
+              @click="downloadTimetableImage"
+            />
+          </div>
           <USwitch
             v-model="includeColorInExport"
             label="在匯出資料中包含課程背景顏色"
@@ -407,8 +419,10 @@ import { periods } from "@/composables/useConstants";
 import { copyToClipboard } from "@/composables/useTools";
 
 import type { Course } from "@/composables/useCourseTable";
-import type { TimetableSettings } from "@/composables/useTimetable";
+import * as htmlToImage from "html-to-image";
+import { toPng, toJpeg, toBlob, toPixelData, toSvg } from "html-to-image";
 
+const timetableRef = useState<HTMLTableElement>("timetableRef");
 const config = useRuntimeConfig();
 const termList = useState<string[]>("termList", () =>
   config.public.ntnuxTerms
@@ -550,6 +564,37 @@ function exportTimetable() {
     (includeSettingsInExport.value
       ? `&settings=${exportTimetableSettings(settings.value)}`
       : "");
+}
+const downloading = ref(false);
+function downloadTimetableImage() {
+  if (!timetableRef.value) {
+    alert("無法取得課表元素");
+    return;
+  }
+  downloading.value = true;
+  htmlToImage
+    .toPng(timetableRef.value, {
+      cacheBust: true,
+      pixelRatio: 0.5,
+      backgroundColor: "var(--ui-bg)",
+      width: timetableRef.value.offsetWidth,
+      height: timetableRef.value.offsetHeight,
+      canvasWidth: timetableRef.value.scrollWidth,
+      canvasHeight: timetableRef.value.scrollHeight,
+    })
+    .then((dataUrl) => {
+      const link = document.createElement("a");
+      link.download = `timetable-${currentTerm.value}.png`;
+      link.href = dataUrl;
+      link.click();
+    })
+    .catch((error) => {
+      console.error("匯出課表影像失敗:", error);
+      alert("匯出課表影像失敗，請稍後再試");
+    })
+    .finally(() => {
+      downloading.value = false;
+    });
 }
 
 onMounted(() => {

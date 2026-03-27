@@ -32,7 +32,10 @@
     />
     <!-- table -->
     <div class="overflow-x-auto">
-      <table class="table table-fixed w-full max-w-2xl mx-auto">
+      <table
+        ref="timetableRef"
+        class="table table-fixed w-full max-w-2xl mx-auto"
+      >
         <colgroup>
           <col
             :class="
@@ -304,6 +307,8 @@ const defaultTerm = useState<string>(
 );
 const currentTerm = useState<string>("currentTerm", () => defaultTerm.value);
 const activeTerm = computed(() => props.term || currentTerm.value);
+
+const timetableRef = useState<HTMLTableElement>("timetableRef");
 
 interface dayPeriodToCourse {
   [day: string]: {
