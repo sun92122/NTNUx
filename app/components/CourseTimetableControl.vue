@@ -67,6 +67,7 @@
             class="w-full max-w-xs"
           />
         </div>
+        <USwitch v-model="settings.showOthers" label="顯示其他課程" />
         <USwitch v-model="settings.showCourseTeacher" label="顯示授課教師" />
         <USwitch v-model="settings.showCourseLocation" label="顯示上課地點" />
 
@@ -419,8 +420,7 @@ import { periods } from "@/composables/useConstants";
 import { copyToClipboard } from "@/composables/useTools";
 
 import type { Course } from "@/composables/useCourseTable";
-import * as htmlToImage from "html-to-image";
-import { toPng, toJpeg, toBlob, toPixelData, toSvg } from "html-to-image";
+import { toBlob } from "html-to-image";
 
 const timetableRef = useState<HTMLTableElement>("timetableRef");
 const config = useRuntimeConfig();
@@ -548,6 +548,7 @@ function exportTimetable() {
   const timetable = allTimetable.value[currentTerm.value];
   if (!timetable || Object.keys(timetable).length === 0) {
     alert("目前課表沒有資料可供匯出");
+    exportModalOpen.value = false;
     return;
   }
   exportData.value = exportCourseDataIds(
@@ -558,6 +559,7 @@ function exportTimetable() {
     window.location.origin +
     "/share/timetable?cs=" +
     `${exportCourseDataParams(currentTerm.value, includeColorInExport.value)}` +
+    `&term=${encodeURIComponent(currentTerm.value)}` +
     (includeAuthorInExport.value.trim() !== ""
       ? `&a=${encodeURIComponent(includeAuthorInExport.value.trim())}`
       : "") +
@@ -572,21 +574,25 @@ function downloadTimetableImage() {
     return;
   }
   downloading.value = true;
-  htmlToImage
-    .toPng(timetableRef.value, {
-      cacheBust: true,
-      pixelRatio: 0.5,
-      backgroundColor: "var(--ui-bg)",
-      width: timetableRef.value.offsetWidth,
-      height: timetableRef.value.offsetHeight,
-      canvasWidth: timetableRef.value.scrollWidth,
-      canvasHeight: timetableRef.value.scrollHeight,
-    })
-    .then((dataUrl) => {
+
+  toBlob(timetableRef.value, {
+    cacheBust: true,
+    pixelRatio: 2,
+    backgroundColor: "var(--ui-bg)",
+    style: {
+      padding: "20px",
+    },
+  })
+    .then((blob) => {
+      if (!blob) {
+        throw new Error("無法生成圖片");
+      }
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.download = `timetable-${currentTerm.value}.png`;
-      link.href = dataUrl;
+      link.href = url;
       link.click();
+      URL.revokeObjectURL(url);
     })
     .catch((error) => {
       console.error("匯出課表影像失敗:", error);

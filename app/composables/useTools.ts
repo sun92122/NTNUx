@@ -18,6 +18,7 @@ export function jsonLzEncode(obj: any) {
 
 export function jsonLzDecode(str: string) {
   try {
+    if (!str) return null;
     return JSONC.parse(decompressFromBase64(str));
   } catch (e) {
     console.error("Failed to decompress JSON:", e);
