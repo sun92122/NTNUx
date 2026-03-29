@@ -219,11 +219,12 @@
             :key="course.id"
             color="neutral"
             variant="soft"
-            class="w-full justify-start mb-2"
+            class="w-full justify-start mb-2 cursor-pointer"
             @click="
-              selectedCourse = course;
-              showMultipleCoursesModal = false;
-              showCourseModal = true;
+              () => {
+                showMultipleCoursesModal = false;
+                openCourse(course);
+              }
             "
           >
             {{ course.name }} - {{ course.teacher }}
@@ -238,21 +239,45 @@
       >
         <template #body>
           <div class="flex flex-col gap-2">
-            <div class="text-muted align-middle h-6">
-              <UIcon name="tabler:users" class="size-4" />
-              {{ selectedCourse?.teacher }}
+            <div class="text-muted align-middle min-h-6 flex flex-row gap-1">
+              <UIcon name="tabler:users" class="size-4 mt-1" />
+              <div class="inline-block whitespace-pre-wrap">
+                {{ selectedCourse?.teacher }}
+              </div>
             </div>
-            <div class="text-muted align-middle h-6">
-              <UIcon name="tabler:clock" class="size-4" />
-              {{ selectedCourse?.tl?.join("/") }}
+            <div class="text-muted align-middle min-h-6 flex flex-row gap-1">
+              <UIcon name="tabler:clock" class="size-4 mt-1" />
+              <div class="whitespace-pre-wrap">
+                {{
+                  selectedCourse?.tl?.join("\n") ||
+                  denseDataAllTerms?.[activeTerm]?.[
+                    `${selectedCourse?.course_code}-${selectedCourse?.course_group}`
+                  ]
+                    ?.map((t) => `${t.date} ${t.time_location}`)
+                    .join("\n") ||
+                  "無時間資訊"
+                }}
+              </div>
             </div>
             <div class="flex justify-between items-center">
               <UPopover v-if="!shared">
-                <UButton color="neutral" variant="outline">
+                <UButton
+                  color="neutral"
+                  variant="outline"
+                  @click="
+                    () => {
+                      if (!selectedCourse.color) {
+                        selectedCourse.color = '#CCCCCC';
+                      }
+                    }
+                  "
+                  class="cursor-pointer"
+                >
                   <template #leading>
                     <span
                       :style="{
                         backgroundColor:
+                          selectedCourse?.color &&
                           selectedCourse?.color?.length === 7
                             ? selectedCourse.color + '50'
                             : selectedCourse?.color || '#CCCCCC50',
@@ -316,6 +341,10 @@ const config = useRuntimeConfig();
 const defaultTerm = useState<string>(
   "defaultTerm",
   () => (config.public.ntnuxDefaultTerm as string) || "",
+);
+const denseDataAllTerms = useState<AllTermsDenseData>(
+  "denseDataAllTerms",
+  () => ({}),
 );
 const currentTerm = useState<string>("currentTerm", () => defaultTerm.value);
 const activeTerm = computed(() => props.term || currentTerm.value);
@@ -500,6 +529,10 @@ const multipleCourses = ref<CourseTimetableItem[]>([]);
 const selectedPeriod = ref("");
 const showCourseModal = ref(false);
 const selectedCourse = ref<CourseTimetableItem | null>(null);
+function openCourse(course: CourseTimetableItem) {
+  selectedCourse.value = course;
+  showCourseModal.value = true;
+}
 function openCoursesAt(
   day: number | string,
   period: number | string,
@@ -510,8 +543,7 @@ function openCoursesAt(
   if (courses.length === 0) {
     return;
   } else if (courses.length === 1) {
-    selectedCourse.value = courses[0] as CourseTimetableItem;
-    showCourseModal.value = true;
+    openCourse(courses[0] as CourseTimetableItem);
   } else {
     multipleCourses.value = courses;
     showMultipleCoursesModal.value = true;

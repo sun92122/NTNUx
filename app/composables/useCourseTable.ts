@@ -113,17 +113,7 @@ export function useCourseTable() {
     return updateTimeAllTerms.value[currentTerm.value] || "unknown";
   });
 
-  const { refresh, refreshDenseData, refreshUpdateTime } = fetchTermData(
-    currentTerm.value,
-  );
-
-  async function refreshAll() {
-    await refresh();
-    await refreshDenseData();
-    await refreshUpdateTime();
-    console.log(`Data for term ${currentTerm.value} refreshed.`);
-    tableWatchVersion.value += 1;
-  }
+  const { refreshAll } = fetchTermData(currentTerm.value);
 
   // watch
   watch(currentTerm, async () => {
@@ -293,6 +283,7 @@ export function fetchTermData(term: string, lazy: boolean = false) {
       refresh: async () => {},
       refreshDenseData: async () => {},
       refreshUpdateTime: async () => {},
+      refreshAll: async () => {},
     };
   }
   const tableWatchVersion = useState<number>("tableWatchVersion", () => 0);
@@ -350,6 +341,13 @@ export function fetchTermData(term: string, lazy: boolean = false) {
     refresh,
     refreshDenseData,
     refreshUpdateTime,
+    refreshAll: async () => {
+      await refresh();
+      await refreshDenseData();
+      await refreshUpdateTime();
+      console.log(`Data for term ${term} refreshed.`);
+      tableWatchVersion.value += 1;
+    },
   };
 }
 

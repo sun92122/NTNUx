@@ -18,6 +18,7 @@
       :timetable="timetable"
       :settings="settings"
       :shared="true"
+      :term="term"
     />
 
     <template #fallback>
