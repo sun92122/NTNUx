@@ -24,6 +24,31 @@ export interface TimetableAllDict {
 
 export const allTimetable = ref<TimetableAllDict>({} as TimetableAllDict);
 
+export function ignoreTimetableAlert() {
+  const ignoreAlert = useState("timetableAlertIgnore", () => false);
+  const key = "ntnux-user-timetable-alert-ignore";
+  if (import.meta.client) {
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      try {
+        ignoreAlert.value = JSON.parse(stored);
+      } catch (e) {
+        ignoreAlert.value = false;
+        localStorage.removeItem(key);
+      }
+    }
+  }
+  return ignoreAlert.value;
+}
+export function setTimetableAlertIgnore(value: boolean) {
+  const key = "ntnux-user-timetable-alert-ignore";
+  if (import.meta.client) {
+    localStorage.setItem(key, JSON.stringify(value));
+  }
+  const ignoreAlert = useState("timetableAlertIgnore", () => false);
+  ignoreAlert.value = value;
+}
+
 // use local storage instead of cookie to store timetable data
 export function getTimetable(term: string) {
   if (!import.meta.client) {
@@ -72,11 +97,13 @@ function getCourseTimetableItem(
     teacher: course?.teacher,
     tl: course?.time,
     tll: course?.time_location_list,
-    color:
-      color ||
-      getCourseColor(
-        course?.id || `${course.course_code}-${course.course_group}`,
-      ),
+    color: color
+      ? color
+      : course?.time_location_list?.length
+        ? getCourseColor(
+            course?.id || `${course.course_code}-${course.course_group}`,
+          )
+        : undefined,
     priority: priority,
   };
 }
@@ -219,10 +246,9 @@ export function exportCourseDataIds(
     return priorityB - priorityA; // Sort by priority descending
   });
   const exportData = sortedCourses.map(([key, course]) => {
-    // return course.id || key;
     const courseKey = course.id || key;
     if (includeColor) {
-      return `${courseKey}:${course.color || ""}`;
+      return course?.color ? `${courseKey}:${course.color}` : courseKey;
     }
     return courseKey;
   });
@@ -260,7 +286,7 @@ export async function importCourses(
       );
       if (!course) {
         await fetchTermData(activeTerm)
-          .refresh()
+          .refreshAll()
           .then(() => {
             const refreshedCourse = dataAllTerms.value[activeTerm]?.find(
               (c) =>
@@ -304,6 +330,7 @@ export const defaultTimetableSettings: TimetableSettings = {
   hidePeriod: false,
   hidePeriodTime: false,
   hidePeriods: ["0", "5", "C", "D"],
+  showOthers: true,
   showCourseTeacher: true,
   showCourseLocation: true,
 } as const;
@@ -318,6 +345,7 @@ export interface TimetableSettings {
   hidePeriod: boolean;
   hidePeriodTime: boolean;
   hidePeriods: string[];
+  showOthers: boolean;
   showCourseTeacher: boolean;
   showCourseLocation: boolean;
 }

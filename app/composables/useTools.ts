@@ -18,6 +18,7 @@ export function jsonLzEncode(obj: any) {
 
 export function jsonLzDecode(str: string) {
   try {
+    if (!str) return null;
     return JSONC.parse(decompressFromBase64(str));
   } catch (e) {
     console.error("Failed to decompress JSON:", e);
@@ -83,4 +84,24 @@ export function removeFromFavoritesToast(courseName: string, courseId: string) {
     "tabler:heart-broken",
     "已從收藏移除",
   );
+}
+
+export const defaultModalOptions = {
+  open: false,
+  title: "",
+  description: "",
+  close: false,
+  slots: {
+    body: "",
+    footer: "",
+  },
+};
+export function addGlobalModal(attr: Record<string, any>) {
+  const globalModal = useState("globalModal", () => ({
+    ...defaultModalOptions,
+  }));
+
+  Object.assign(globalModal.value, attr);
+
+  globalModal.value.open = true;
 }

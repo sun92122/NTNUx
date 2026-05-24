@@ -47,6 +47,17 @@ export default defineNuxtConfig({
   },
   vite: {
     plugins: [tailwindcss() as any],
+    optimizeDeps: {
+      include: [
+        "@vue/devtools-core",
+        "@vue/devtools-kit",
+        "lz-string", // CJS
+        "jsonc.min", // CJS
+        "html-to-image",
+        "@tanstack/vue-table",
+        "@tanstack/vue-virtual",
+      ],
+    },
   },
   nitro: {
     preset: "cloudflare_module",
