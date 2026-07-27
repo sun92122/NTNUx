@@ -2693,15 +2693,7 @@
         <changefreq>weekly</changefreq>
         </url>
     <url>
-        <loc>https://ntnux.org/courses/115/1/0681/%E9%9D%92%E5%B0%91%E5%B9%B4%E5%BF%83%E7%90%86%E5%AD%B8%EF%BC%88%E6%95%99%EF%BC%89</loc>
-        <changefreq>weekly</changefreq>
-        </url>
-    <url>
         <loc>https://ntnux.org/courses/115/1/0682/%E6%95%99%E8%82%B2%E5%8F%B2%EF%BC%88%E6%95%99%EF%BC%89</loc>
-        <changefreq>weekly</changefreq>
-        </url>
-    <url>
-        <loc>https://ntnux.org/courses/115/1/0683/%E7%8F%BE%E4%BB%A3%E6%95%99%E8%82%B2%E6%80%9D%E6%BD%AE%EF%BC%88%E6%95%99%EF%BC%89</loc>
         <changefreq>weekly</changefreq>
         </url>
     <url>
@@ -5857,10 +5849,6 @@
         <changefreq>weekly</changefreq>
         </url>
     <url>
-        <loc>https://ntnux.org/courses/115/1/1492/%E9%9F%93%E5%9C%8B%E5%9C%8B%E9%9A%9B%E9%97%9C%E4%BF%82%E5%B0%88%E9%A1%8C%E7%A0%94%E7%A9%B6</loc>
-        <changefreq>weekly</changefreq>
-        </url>
-    <url>
         <loc>https://ntnux.org/courses/115/1/1493/%E6%BC%A2%E8%AA%9E%E8%AA%9E%E6%B3%95%E5%AD%B8</loc>
         <changefreq>weekly</changefreq>
         </url>
@@ -6042,10 +6030,6 @@
         </url>
     <url>
         <loc>https://ntnux.org/courses/115/1/1540/%E7%9E%AD%E8%A7%A3%E6%9D%B1%E4%BA%9E%E6%B5%B7%E6%B4%8B%E7%88%AD%E7%AB%AF</loc>
-        <changefreq>weekly</changefreq>
-        </url>
-    <url>
-        <loc>https://ntnux.org/courses/115/1/1541/%E9%9F%93%E5%9C%8B%E6%96%87%E5%8C%96%E7%A0%94%E7%A9%B6%EF%BC%9A%E5%AA%92%E9%AB%94%EF%BC%8C%E6%96%87%E5%8C%96%E5%92%8C%E7%A4%BE%E6%9C%83</loc>
         <changefreq>weekly</changefreq>
         </url>
     <url>
@@ -6398,10 +6382,6 @@
         </url>
     <url>
         <loc>https://ntnux.org/courses/115/1/1633/%E5%BE%B7%E8%AA%9E%EF%BC%88%E4%B8%89%EF%BC%89</loc>
-        <changefreq>weekly</changefreq>
-        </url>
-    <url>
-        <loc>https://ntnux.org/courses/115/1/1634/%E6%95%99%E8%82%B2%E7%B5%B1%E8%A8%88</loc>
         <changefreq>weekly</changefreq>
         </url>
     <url>
@@ -7614,10 +7594,6 @@
         </url>
     <url>
         <loc>https://ntnux.org/courses/115/1/1944/%E8%8B%B1%E5%9C%8B%E5%8F%B2</loc>
-        <changefreq>weekly</changefreq>
-        </url>
-    <url>
-        <loc>https://ntnux.org/courses/115/1/1945/%E7%8F%BE%E4%BB%A3%E9%9F%93%E5%9C%8B%E6%AD%B7%E5%8F%B2%E8%88%87%E6%96%87%E5%8C%96</loc>
         <changefreq>weekly</changefreq>
         </url>
     <url>
@@ -9709,10 +9685,6 @@
         <changefreq>weekly</changefreq>
         </url>
     <url>
-        <loc>https://ntnux.org/courses/115/1/2470/%E7%B6%B2%E8%B7%AF%E8%A1%8C%E9%8A%B7</loc>
-        <changefreq>weekly</changefreq>
-        </url>
-    <url>
         <loc>https://ntnux.org/courses/115/1/2471/%E8%A1%8C%E9%8A%B7%E7%A0%94%E7%A9%B6</loc>
         <changefreq>weekly</changefreq>
         </url>
@@ -9953,10 +9925,6 @@
         <changefreq>weekly</changefreq>
         </url>
     <url>
-        <loc>https://ntnux.org/courses/115/1/2534/%E9%AB%94%E8%82%B2%EF%BC%88%E9%AB%94%E9%81%A9%E8%83%BD%EF%BC%89</loc>
-        <changefreq>weekly</changefreq>
-        </url>
-    <url>
         <loc>https://ntnux.org/courses/115/1/2535/%E9%AB%94%E8%82%B2%EF%BC%88%E7%8F%BE%E4%BB%A3%E8%88%9E%EF%BC%89</loc>
         <changefreq>weekly</changefreq>
         </url>
@@ -10086,10 +10054,6 @@
         </url>
     <url>
         <loc>https://ntnux.org/courses/115/1/2567/%E9%AB%94%E8%82%B2%EF%BC%88%E7%B1%83%E7%90%83%E5%88%9D%E7%B4%9A%EF%BC%89</loc>
-        <changefreq>weekly</changefreq>
-        </url>
-    <url>
-        <loc>https://ntnux.org/courses/115/1/2568/%E9%AB%94%E8%82%B2%EF%BC%88%E6%8E%92%E7%90%83%E5%88%9D%E7%B4%9A%EF%BC%89</loc>
         <changefreq>weekly</changefreq>
         </url>
     <url>
@@ -11034,10 +10998,6 @@
         </url>
     <url>
         <loc>https://ntnux.org/courses/115/1/2808/%E9%9B%A2%E6%95%A3%E6%95%B8%E5%AD%B8</loc>
-        <changefreq>weekly</changefreq>
-        </url>
-    <url>
-        <loc>https://ntnux.org/courses/115/1/2809/%E9%AB%98%E7%AD%89%E5%B9%BE%E4%BD%95%EF%BC%88%E4%B8%80%EF%BC%89</loc>
         <changefreq>weekly</changefreq>
         </url>
     <url>
@@ -12762,6 +12722,26 @@
         </url>
     <url>
         <loc>https://ntnux.org/courses/115/1/3245/%E6%98%8E%E6%B8%85%E6%B1%9F%E5%8D%97%E7%9A%84%E5%9F%8E%E5%B8%82%E5%92%8C%E6%96%87%E5%AD%B8</loc>
+        <changefreq>weekly</changefreq>
+        </url>
+    <url>
+        <loc>https://ntnux.org/courses/115/1/3246/%E6%95%99%E5%AD%B8%E5%8E%9F%E7%90%86%EF%BC%88%E5%B0%8F%E6%95%99%EF%BC%89</loc>
+        <changefreq>weekly</changefreq>
+        </url>
+    <url>
+        <loc>https://ntnux.org/courses/115/1/3247/%E5%9C%8B%E9%9A%9B%E8%B2%A1%E5%8B%99%E7%AE%A1%E7%90%86</loc>
+        <changefreq>weekly</changefreq>
+        </url>
+    <url>
+        <loc>https://ntnux.org/courses/115/1/3248/%E7%B6%B2%E8%B7%AF%E6%B5%81%E9%87%8F%E5%88%86%E6%9E%90%E8%88%87%E8%A1%8C%E9%8A%B7%E5%AF%A6%E5%8B%99%E6%87%89%E7%94%A8</loc>
+        <changefreq>weekly</changefreq>
+        </url>
+    <url>
+        <loc>https://ntnux.org/courses/115/1/3249/%E8%B3%87%E6%96%99%E7%B5%90%E6%A7%8B</loc>
+        <changefreq>weekly</changefreq>
+        </url>
+    <url>
+        <loc>https://ntnux.org/courses/115/1/3250/%E6%9D%B1%E5%8C%97%E4%BA%9E%E6%96%87%E5%8C%96%E5%B0%88%E9%A1%8C%E7%A0%94%E7%A9%B6</loc>
         <changefreq>weekly</changefreq>
         </url>
 </urlset>
